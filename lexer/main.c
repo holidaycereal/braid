@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
 	while (tokens[i].type != EOF_TOKEN) {
 		if (tokens[i].value) {
 			printf("%s: %s\n",
-				token_type_to_string(tokens[i].type), tokens[i].value);
+					token_type_to_string(tokens[i].type), tokens[i].value);
 		} else {
 			printf("%s\n", token_type_to_string(tokens[i].type));
 		}
