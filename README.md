@@ -6,13 +6,7 @@ WIP programming language
 for my friends who im showing this to who dont know terminal stuff
 1. `git clone https://github.com/holidaycereal/braid`
 2. `cd braid/lexer`
-3. figure out which C compiler you have
-```
-which cc
-which gcc
-which clang
-```
-^^ try those commands and use whichever one doesnt give you an error message
+3. figure out which C compiler you have. try `which cc`, `which gcc`, `which clang`. use whichever one doesn't give you an error message
 4. `cc main.c lexer.c word_type.c -o main` (substitute `cc` if needed)
 5. `./main examples/test.braid`
 
