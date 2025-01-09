@@ -131,7 +131,7 @@ Token* lex(const char* input) {
 
 			if (input[pos] != '\0' && input[pos + 1] != '\0') {
 				if (input[pos] == '\\' && input[pos + 2] == '\'') {
-					ch[0] = input[pos];
+					ch[0] = '\\';
 					ch[1] = input[pos + 1];
 					ch[2] = '\0';
 					pos += 2;
