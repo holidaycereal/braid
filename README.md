@@ -10,6 +10,6 @@ for my friends who im showing this to who dont know terminal stuff
 4. `cc main.c lexer.c word_type.c -o main` (substitute `cc` if needed)
 5. `./main examples/test.braid`
 
-hopefully it works for you. you can compare the output to the file examples/test.braid to see what it's doing
+hopefully it works for you. you can compare the output to the file `examples/test.braid` to see what it's doing
 
 and try messing with the code if u want!! (u will have to compile it again if u do btw)
