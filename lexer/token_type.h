@@ -1,0 +1,38 @@
+#ifndef TOKEN_TYPE_H
+#define TOKEN_TYPE_H
+
+typedef enum {
+	// Keywords
+	WORD_IF, WORD_THEN, WORD_ELSE, WORD_WHILE, WORD_FOR, WORD_IN, WORD_DO,
+	WORD_OF, WORD_BREAK, WORD_CONTINUE, WORD_MATCH, WORD_TEST, WORD_DYN,
+	WORD_PROC, WORD_DATA, WORD_TYPE, WORD_FROM, WORD_TRAIT, WORD_BASE,
+	WORD_IMPL, WORD_SELF, WORD_INCLUDE, WORD_IMPORT, WORD_ALIAS, WORD_EXIT,
+
+	// Primitives
+	PRIM_U8, PRIM_U16, PRIM_U32, PRIM_U64, PRIM_I8, PRIM_I16, PRIM_I32,
+	PRIM_I64, PRIM_USIZE, PRIM_ISIZE, PRIM_F32, PRIM_F64, PRIM_BOOL,
+
+	// Misc builtin words
+	LIT_TRUE, LIT_FALSE, LSL, LSR, ASL, ASR,
+
+	// Tokens with a string value
+	IDENT, LIT_NUM, LIT_CHAR, LIT_STR, LIT_STR_RAW, ERR_TOKEN,
+
+	// Punctuation & operators
+	PAREN_L, PAREN_R, BRACKET_L, BRACKET_R, BRACE_L, BRACE_R, DOT, COMMA,
+	SEMICOLON, COLON, EQUALS, VERT_LINE, DOLLAR, AMPERSAND, BANG, QUESTION,
+	HASH, CARET, MINUS, PLUS, STAR, SLASH, PERCENT, LESS, GREATER,
+	TEST_EQ, NOT_EQ,            //  ==  !=
+	LESS_EQ, GREATER_EQ,        //  <=  >=
+	AND, OR, XOR,               //  &&  ||  ##
+	ARROW, MUT_ARROW,           //  ->  >>
+	INCREMENT, DECREMENT,       //  ++  --
+	PLUS_EQUALS, MINUS_EQUALS,  //  +=  -=  *=  /=  ^=
+	STAR_EQUALS, SLASH_EQUALS, CARET_EQUALS,
+	RANGE,                      //  ..
+	MODULE,                     //  ::
+
+	EOF_TOKEN,  // End of input
+} TokenType;
+
+#endif

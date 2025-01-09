@@ -1,0 +1,14 @@
+// single line comment
+
+/* block comment
+	/*
+		nested
+		block
+		comment
+	*/
+*/
+
+proc main(args: [str]) {
+	io::echo(stdout, "hello, world");
+	exit 0;
+}
