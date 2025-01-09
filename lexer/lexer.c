@@ -254,7 +254,6 @@ Token* lex(const char* input) {
 		}
 	}
 
-	// Add EOF token
 	tokens[count++] = *make_token(EOF_TOKEN, NULL);
 
 	return tokens;
