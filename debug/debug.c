@@ -23,7 +23,7 @@ void debug_init(void) {
 	size_t i;
 	for (category = strtok(debug_str, ","); category; category = strtok(NULL, ",")) {
 		for (i = 0; i < sizeof(debug_categories) / sizeof(debug_categories[0]); i++) {
-			if (strcmp(category, debug_categories[i]) == 0) {
+			if (strcmp(category, debug_categories[i].name) == 0) {
 				// Enable if the flag bit is set
 				enabled_categories |= debug_categories[i].category;
 				break;
@@ -33,7 +33,6 @@ void debug_init(void) {
 	free(debug_str);
 }
 
-// Check if the bit flag is set
 bool is_enabled(DebugCategory category) {
 	return enabled_categories & category != 0;
 }
