@@ -6,7 +6,7 @@
 
 void print_token(Token token) {
 	if (token.value) {
-		debug_print(DEBUG_LEXER, "%s, %s\n", token_type_to_string(token.type), token.value);
+		debug_print(DEBUG_LEXER, "%s: %s\n", token_type_to_string(token.type), token.value);
 	} else {
 		debug_print(DEBUG_LEXER, "%s\n", token_type_to_string(token.type));
 	}
