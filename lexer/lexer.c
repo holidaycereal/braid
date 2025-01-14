@@ -84,7 +84,7 @@ Token* lex(const char* input) {
 				pos += 2;
 				while (input[pos] == '0' || input[pos] == '1') pos++;
 			} else {                      // Decimal
-				while (isdigit(input[pos]) || input[pos] == '.' && !has_dot) {
+				while (isdigit(input[pos]) || (input[pos] == '.' && !has_dot)) {
 					if (input[pos] == '.') has_dot = true;
 					pos++;
 				}
