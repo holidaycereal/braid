@@ -34,7 +34,7 @@ void debug_init(void) {
 }
 
 bool is_enabled(DebugCategory category) {
-	return enabled_categories & category != 0;
+	return (enabled_categories & category) != 0;
 }
 
 void debug_print(DebugCategory category, const char* fmt, ...) {
