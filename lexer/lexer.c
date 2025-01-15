@@ -215,13 +215,11 @@ Token* lex(const char* input) {
 				break;
 			case '-':
 				if (input[pos + 1] == '=') { type = MINUS_EQUALS; pos += 2; }
-				else if (input[pos + 1] == '-') { type = DECREMENT; pos += 2; }
 				else if (input[pos + 1] == '>') { type = ARROW; pos += 2; }
 				else { type = MINUS; pos++; }
 				break;
 			case '+':
 				if (input[pos + 1] == '=') { type = PLUS_EQUALS; pos += 2; }
-				else if (input[pos + 1] == '+') { type = INCREMENT; pos += 2; }
 				else { type = PLUS; pos++; }
 				break;
 			case '*':
@@ -233,7 +231,7 @@ Token* lex(const char* input) {
 				else { type = SLASH; pos++; }
 				break;
 			case '%':
-				if (input[pos + 1] == '=' { type = PERCENT_EQ; pos+= 2; }
+				if (input[pos + 1] == '=') { type = PERCENT_EQUALS; pos+= 2; }
 				else { type = PERCENT; pos++; }
 				break;
 			case '<':
