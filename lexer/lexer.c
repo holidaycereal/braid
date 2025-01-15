@@ -223,14 +223,16 @@ Token* lex(const char* input) {
 				if (input[pos + 1] == '=') { type = SLASH_EQUALS; pos += 2; }
 				else { type = SLASH; pos++; }
 				break;
-			case '%': type = PERCENT; pos++; break;
+			case '%':
+				if (input[pos + 1] == '=' { type = PERCENT_EQ; pos+= 2; }
+				else { type = PERCENT; pos++; }
+				break;
 			case '<':
 				if (input[pos + 1] == '=') { type = LESS_EQ; pos += 2; }
 				else { type = LESS; pos++; }
 				break;
 			case '>':
 				if (input[pos + 1] == '=') { type = GREATER_EQ; pos += 2; }
-				else if (input[pos + 1] == '>') { type = MUT_ARROW; pos += 2; }
 				else { type = GREATER; pos++; }
 				break;
 			default:

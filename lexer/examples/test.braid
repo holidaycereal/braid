@@ -8,7 +8,6 @@
 	*/
 */
 
-proc main(args: [str]) {
-	io::echo(stdout, "hello, world");
-	exit 0;
+main(args) : [str] -> () {
+	io::echo("hello, world");
 }

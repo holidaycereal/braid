@@ -8,24 +8,14 @@ const char* token_type_to_string(TokenType type) {
 	case WORD_WHILE: return "WORD_WHILE";
 	case WORD_FOR: return "WORD_FOR";
 	case WORD_IN: return "WORD_IN";
-	case WORD_DO: return "WORD_DO";
-	case WORD_OF: return "WORD_OF";
 	case WORD_BREAK: return "WORD_BREAK";
 	case WORD_CONTINUE: return "WORD_CONTINUE";
 	case WORD_MATCH: return "WORD_MATCH";
-	case WORD_TEST: return "WORD_TEST";
 	case WORD_DYN: return "WORD_DYN";
-	case WORD_PROC: return "WORD_PROC";
 	case WORD_DATA: return "WORD_DATA";
 	case WORD_TYPE: return "WORD_TYPE";
-	case WORD_FROM: return "WORD_FROM";
-	case WORD_TRAIT: return "WORD_TRAIT";
-	case WORD_BASE: return "WORD_BASE";
-	case WORD_IMPL: return "WORD_IMPL";
-	case WORD_SELF: return "WORD_SELF";
 	case WORD_INCLUDE: return "WORD_INCLUDE";
 	case WORD_IMPORT: return "WORD_IMPORT";
-	case WORD_ALIAS: return "WORD_ALIAS";
 	case WORD_EXIT: return "WORD_EXIT";
 
 	case PRIM_U8: return "PRIM_U8";
@@ -44,10 +34,6 @@ const char* token_type_to_string(TokenType type) {
 
 	case LIT_TRUE: return "LIT_TRUE";
 	case LIT_FALSE: return "LIT_FALSE";
-	case LSL: return "LSL";
-	case LSR: return "LSR";
-	case ASL: return "ASL";
-	case ASR: return "ASR";
 
 	case IDENT: return "IDENT";
 	case LIT_NUM: return "LIT_NUM";
@@ -89,14 +75,12 @@ const char* token_type_to_string(TokenType type) {
 	case OR: return "OR";
 	case XOR: return "XOR";
 	case ARROW: return "ARROW";
-	case MUT_ARROW: return "MUT_ARROW";
-	case INCREMENT: return "INCREMENT";
-	case DECREMENT: return "DECREMENT";
 	case PLUS_EQUALS: return "PLUS_EQUALS";
 	case MINUS_EQUALS: return "MINUS_EQUALS";
 	case STAR_EQUALS: return "STAR_EQUALS";
 	case SLASH_EQUALS: return "SLASH_EQUALS";
 	case CARET_EQUALS: return "CARET_EQUALS";
+	case PERCENT_EQUALS: return "PERCENT_EQUALS";
 	case RANGE: return "RANGE";
 	case MODULE: return "MODULE";
 
