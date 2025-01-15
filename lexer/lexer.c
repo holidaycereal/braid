@@ -105,16 +105,11 @@ Token* lex(const char* input) {
 			size_t start = pos;
 			TokenType type = input[pos - 1] == '"' ? LIT_STR : LIT_STR_RAW;
 
-			if (type == LIT_STR) {
-				while (input[pos] != '\0' && input[pos] != '"') {
-					if (input[pos] == '\\') pos++;
-					if (input[pos] == '\0') break;
-					pos++;
-				}
-			} else {
-				while (input[pos] != '\0' && input[pos] != '`') {
-					pos++;
-				}
+			while (input[pos] != '\0'
+					&& input[pos] != (type == LIT_STR ? '"' : '`')) {
+				if (input[pos] == '\\') pos++;
+				if (input[pos] == '\0') break;
+				pos++;
 			}
 
 			if (input[pos] == '\0') {
