@@ -1,6 +1,6 @@
 #include "lexer/lexer.h"
+#include "lexer/debug/token_string.h"
 #include "debug/debug.h"
-#include "debug/lexer/token_string.h"
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -7,8 +7,8 @@ endif
 
 SRCS = lexer/lexer.c \
        lexer/word_type.c \
+       lexer/debug/token_string.c \
        debug/debug.c \
-       debug/lexer/token_string.c \
        main.c
 
 OBJS = $(SRCS:.c=.o)
