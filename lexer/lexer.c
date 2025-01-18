@@ -8,6 +8,8 @@
 
 #define CUR input[pos]
 #define NEXT input[pos + 1]
+#define NEXT_NEXT input[pos + 2]
+#define PREV input[pos - 1]
 
 Token* make_token(TokenType type, const char* value) {
 	Token* token = malloc(sizeof(Token));
@@ -108,7 +110,7 @@ Token* lex(const char* input) {
 		else if (CUR == '"' || CUR == '`') {
 			pos++;  // Skip opening quote
 			size_t start = pos;
-			TokenType type = input[pos - 1] == '"' ? TOK_LIT_STR : TOK_LIT_STR_RAW;
+			TokenType type = PREV == '"' ? TOK_LIT_STR : TOK_LIT_STR_RAW;
 
 			while (CUR != '\0' && CUR != (type == TOK_LIT_STR ? '"' : '`')) {
 				if (CUR == '\\') pos++;
@@ -137,7 +139,7 @@ Token* lex(const char* input) {
 			char ch[3];
 
 			if (CUR != '\0' && NEXT != '\0') {
-				if (CUR == '\\' && input[pos + 2] == '\'') {
+				if (CUR == '\\' && NEXT_NEXT == '\'') {
 					ch[0] = '\\';
 					ch[1] = NEXT;
 					ch[2] = '\0';
@@ -171,7 +173,7 @@ Token* lex(const char* input) {
 
 			if (type == TOK_ERR) {
 				char err_str[32];
-				sprintf(err_str, "Unknown character %c", input[pos - 1]);
+				sprintf(err_str, "Unknown character %c", PREV);
 				tokens[count++] = *make_token(TOK_ERR, err_str);
 			} else {
 				tokens[count++] = *make_token(type, NULL);
