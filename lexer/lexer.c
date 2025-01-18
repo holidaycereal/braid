@@ -6,6 +6,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define CUR input[pos]
+#define NEXT input[pos + 1]
+
 Token* make_token(TokenType type, const char* value) {
 	Token* token = malloc(sizeof(Token));
 	token->type = type;
@@ -19,27 +22,27 @@ Token* lex(const char* input) {
 	size_t count = 0;  // Token count
 	size_t pos = 0;    // Character position in input file
 
-	while (input[pos] != '\0') {
+	while (CUR != '\0') {
 		// Skip whitespace
-		if (isspace(input[pos])) {
+		if (isspace(CUR)) {
 			pos++;
 			continue;
 		}
 		// Skip one-line comments
-		if (input[pos] == '/' && input[pos + 1] == '/') {
+		if (CUR == '/' && NEXT == '/') {
 			pos += 2;
-			while (input[pos] != '\0' && input[pos] != '\n') pos++;
+			while (CUR != '\0' && CUR != '\n') pos++;
 			continue;
 		}
 		// Skip block comments
-		if (input[pos] == '/' && input[pos + 1] == '*') {
+		if (CUR == '/' && NEXT == '*') {
 			pos += 2;
 			size_t nest_levels = 1;
-			while (input[pos] != '\0') {
-				if (input[pos] == '/' && input[pos + 1] == '*') {
+			while (CUR != '\0') {
+				if (CUR == '/' && NEXT == '*') {
 					pos += 2;
 					nest_levels++;
-				} else if (input[pos] == '*' && input[pos + 1] == '/') {
+				} else if (CUR == '*' && NEXT == '/') {
 					pos += 2;
 					nest_levels--;
 					if (nest_levels == 0) break;
@@ -51,9 +54,9 @@ Token* lex(const char* input) {
 		}
 
 		// Identifiers & builtin words
-		if (isalpha(input[pos]) || input[pos] == '_') {
+		if (isalpha(CUR) || CUR == '_') {
 			size_t start = pos;
-			while (isalnum(input[pos]) || input[pos] == '_') pos++;
+			while (isalnum(CUR) || CUR == '_') pos++;
 
 			size_t len = pos - start;
 			char* word = malloc(len + 1);
@@ -67,26 +70,26 @@ Token* lex(const char* input) {
 
 		// Numeric literals
 		// TODO: scientific notation
-		else if (isdigit(input[pos])) {
+		else if (isdigit(CUR)) {
 			size_t start = pos;
 			bool has_dot = false;
 			TokenType type = TOK_LIT_INT_DEC;
 
-			if (input[pos] == '0' && (input[pos + 1] == 'x' || input[pos + 1] == 'X')) {
+			if (CUR == '0' && (NEXT == 'x' || NEXT == 'X')) {
 				type = TOK_LIT_INT_HEX;
 				pos += 2;
-				while (isxdigit(input[pos])) pos++;
-			} else if (input[pos] == '0' && (input[pos + 1] == 'o' || input[pos + 1] == 'O')) {
+				while (isxdigit(CUR)) pos++;
+			} else if (CUR == '0' && (NEXT == 'o' || NEXT == 'O')) {
 				type = TOK_LIT_INT_OCT;
 				pos += 2;
-				while (input[pos] >= '0' && input[pos] <= '7') pos++;
-			} else if (input[pos] == '0' && (input[pos + 1] == 'b' || input[pos + 1] == 'B')) {
+				while (CUR >= '0' && CUR <= '7') pos++;
+			} else if (CUR == '0' && (NEXT == 'b' || NEXT == 'B')) {
 				type = TOK_LIT_INT_BIN;
 				pos += 2;
-				while (input[pos] == '0' || input[pos] == '1') pos++;
+				while (CUR == '0' || CUR == '1') pos++;
 			} else {
-				while (isdigit(input[pos]) || (input[pos] == '.' && !has_dot)) {
-					if (input[pos] == '.') has_dot = true;
+				while (isdigit(CUR) || (CUR == '.' && !has_dot)) {
+					if (CUR == '.') has_dot = true;
 					pos++;
 				}
 				if (has_dot) type = TOK_LIT_FLOAT;
@@ -102,18 +105,18 @@ Token* lex(const char* input) {
 		}
 
 		// String literals
-		else if (input[pos] == '"' || input[pos] == '`') {
+		else if (CUR == '"' || CUR == '`') {
 			pos++;  // Skip opening quote
 			size_t start = pos;
 			TokenType type = input[pos - 1] == '"' ? TOK_LIT_STR : TOK_LIT_STR_RAW;
 
-			while (input[pos] != '\0' && input[pos] != (type == TOK_LIT_STR ? '"' : '`')) {
-				if (input[pos] == '\\') pos++;
-				if (input[pos] == '\0') break;
+			while (CUR != '\0' && CUR != (type == TOK_LIT_STR ? '"' : '`')) {
+				if (CUR == '\\') pos++;
+				if (CUR == '\0') break;
 				pos++;
 			}
 
-			if (input[pos] == '\0') {
+			if (CUR == '\0') {
 				tokens[count++] = *make_token(TOK_ERR, "Unterminated string literal");
 				continue;
 			}
@@ -129,30 +132,30 @@ Token* lex(const char* input) {
 		}
 
 		// Character literals
-		else if (input[pos] == '\'') {
+		else if (CUR == '\'') {
 			pos++;  // Skip opening quote
 			char ch[3];
 
-			if (input[pos] != '\0' && input[pos + 1] != '\0') {
-				if (input[pos] == '\\' && input[pos + 2] == '\'') {
+			if (CUR != '\0' && NEXT != '\0') {
+				if (CUR == '\\' && input[pos + 2] == '\'') {
 					ch[0] = '\\';
-					ch[1] = input[pos + 1];
+					ch[1] = NEXT;
 					ch[2] = '\0';
 					pos += 2;
-				} else if (input[pos] != '\'' && input[pos + 1] == '\'') {
-					ch[0] = input[pos];
+				} else if (CUR != '\'' && NEXT == '\'') {
+					ch[0] = CUR;
 					ch[1] = '\0';
 					ch[2] = '\0';
 					pos++;
 				} else {
-					while (input[pos] != '\0' && input[pos] != '\'') pos++;
-					if (input[pos] == '\'') pos++;
+					while (CUR != '\0' && CUR != '\'') pos++;
+					if (CUR == '\'') pos++;
 					tokens[count++] = *make_token(TOK_ERR, "Invalid character literal");
 					continue;
 				}
 			} else {
 				tokens[count++] = *make_token(TOK_ERR, "Unterminated character literal");
-				if (input[pos] != '\0') pos++;
+				if (CUR != '\0') pos++;
 				continue;
 			}
 
@@ -162,7 +165,7 @@ Token* lex(const char* input) {
 
 		// Punctuation & operators
 		else {
-			TokenType type = get_symbol_type(input[pos], input[pos + 1]);
+			TokenType type = get_symbol_type(CUR, NEXT);
 			if (is_long_symbol(type)) pos++;
 			pos++;
 
