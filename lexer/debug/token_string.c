@@ -36,7 +36,11 @@ const char* token_type_to_string(TokenType type) {
 	case LIT_FALSE: return "LIT_FALSE";
 
 	case IDENT: return "IDENT";
-	case LIT_NUM: return "LIT_NUM";
+	case LIT_INT_DEC: return "LIT_INT_DEC";
+	case LIT_INT_HEX: return "LIT_INT_HEX";
+	case LIT_INT_OCT: return "LIT_INT_OCT";
+	case LIT_INT_BIN: return "LIT_INT_BIN";
+	case LIT_FLOAT: return "LIT_FLOAT";
 	case LIT_CHAR: return "LIT_CHAR";
 	case LIT_STR: return "LIT_STR";
 	case LIT_STR_RAW: return "LIT_STR_RAW";

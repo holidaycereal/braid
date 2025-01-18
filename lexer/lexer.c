@@ -69,25 +69,27 @@ Token* lex(const char* input) {
 		// TODO: scientific notation
 		else if (isdigit(input[pos])) {
 			size_t start = pos;
-			bool has_dot = false;  // To ensure e.g. "4.2.8" is not one number
+			bool has_dot = false;
+			TokenType type = LIT_INT_DEC;
 
-			if (input[pos] == '0'         // Hexadecimal
-					&& (input[pos + 1] == 'x' || input[pos + 1] == 'X')) {
+			if (input[pos] == '0' && (input[pos + 1] == 'x' || input[pos + 1] == 'X')) {
+				type = LIT_INT_HEX;
 				pos += 2;
 				while (isxdigit(input[pos])) pos++;
-			} else if (input[pos] == '0'  // Octal
-					&& (input[pos + 1] == 'o' || input[pos + 1] == 'O')) {
+			} else if (input[pos] == '0' && (input[pos + 1] == 'o' || input[pos + 1] == 'O')) {
+				type = LIT_INT_OCT;
 				pos += 2;
 				while (input[pos] >= '0' && input[pos] <= '7') pos++;
-			} else if (input[pos] == '0'  // Binary
-					&& (input[pos + 1] == 'b' || input[pos + 1] == 'B')) {
+			} else if (input[pos] == '0' && (input[pos + 1] == 'b' || input[pos + 1] == 'B')) {
+				type = LIT_INT_BIN;
 				pos += 2;
 				while (input[pos] == '0' || input[pos] == '1') pos++;
-			} else {                      // Decimal
+			} else {
 				while (isdigit(input[pos]) || (input[pos] == '.' && !has_dot)) {
 					if (input[pos] == '.') has_dot = true;
 					pos++;
 				}
+				if (has_dot) type = LIT_FLOAT;
 			}
 
 			size_t len = pos - start;
@@ -95,7 +97,7 @@ Token* lex(const char* input) {
 			strncpy(num, input + start, len);
 			num[len] = '\0';
 
-			tokens[count++] = *make_token(LIT_NUM, num);
+			tokens[count++] = *make_token(type, num);
 			free(num);
 		}
 

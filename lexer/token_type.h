@@ -40,7 +40,11 @@ typedef enum {
 
 	// Tokens with a string value
 	IDENT,
-	LIT_NUM,
+	LIT_INT_DEC,
+	LIT_INT_HEX,
+	LIT_INT_OCT,
+	LIT_INT_BIN,
+	LIT_FLOAT,
 	LIT_CHAR,
 	LIT_STR,
 	LIT_STR_RAW,
