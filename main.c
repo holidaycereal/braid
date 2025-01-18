@@ -39,12 +39,12 @@ int main(int argc, char** argv) {
 	Token* tokens = lex(input);
 
 	// Print lex output if debug category enabled
-	for (i = 0; tokens[i].type != EOF_TOKEN; i++) {
+	for (i = 0; tokens[i].type != TOK_EOF; i++) {
 		print_token(tokens[i]);
 	}
 
 	// Free the tokens and their string values
-	for (i = 0; tokens[i].type != EOF_TOKEN; i++) {
+	for (i = 0; tokens[i].type != TOK_EOF; i++) {
 		free(tokens[i].value);
 	}
 	free(tokens);
