@@ -1,6 +1,5 @@
 #include "lexer_helpers.h"
 #include <string.h>
-#include <stdbool.h>
 
 TokenType get_word_type(const char* word) {
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
@@ -40,52 +39,57 @@ TokenType get_word_type(const char* word) {
 }
 
 TokenType get_symbol_type(char c1, char c2) {
-	return
-	  c1 == '(' ? TOK_PAREN_L
-	: c1 == ')' ? TOK_PAREN_R
-	: c1 == '[' ? TOK_BRACKET_L
-	: c1 == ']' ? TOK_BRACKET_R
-	: c1 == '{' ? TOK_BRACE_L
-	: c1 == '}' ? TOK_BRACE_R
-	: c1 == '.' ? c2 == '.' ? TOK_RANGE : TOK_DOT
-	: c1 == ',' ? TOK_COMMA
-	: c1 == ';' ? TOK_SEMICOLON
-	: c1 == ':' ? c2 == ':' ? TOK_MODULE : TOK_COLON
-	: c1 == '=' ? c2 == '=' ? TOK_COMP_EQ : TOK_EQUALS
-	: c1 == '|' ? c2 == '|' ? TOK_OR : TOK_VERT_LINE
-	: c1 == '$' ? TOK_DOLLAR
-	: c1 == '&' ? c2 == '&' ? TOK_AND : TOK_AMPERSAND
-	: c1 == '!' ? c2 == '=' ? TOK_COMP_NE : TOK_BANG
-	: c1 == '?' ? TOK_QUESTION
-	: c1 == '#' ? c2 == '#' ? TOK_XOR : TOK_HASH
-	: c1 == '^' ? c2 == '=' ? TOK_CARET_EQUALS : TOK_CARET
-	: c1 == '-' ? c2 == '=' ? TOK_MINUS_EQUALS : c2 == '>' ? TOK_ARROW : TOK_MINUS
-	: c1 == '+' ? c2 == '=' ? TOK_PLUS_EQUALS : TOK_PLUS
-	: c1 == '*' ? c2 == '=' ? TOK_STAR_EQUALS : TOK_STAR
-	: c1 == '/' ? c2 == '=' ? TOK_SLASH_EQUALS : TOK_SLASH
-	: c1 == '%' ? c2 == '=' ? TOK_PERCENT_EQUALS : TOK_PERCENT
-	: c1 == '<' ? c2 == '=' ? TOK_COMP_LE : TOK_LESS
-	: c1 == '>' ? c2 == '=' ? TOK_COMP_GE : c2 == '>' ? TOK_FWD_COMPOSE : TOK_GREATER
-	: TOK_ERR;
+	switch (c1) {
+	case '(': return TOK_PAREN_L;
+	case ')': return TOK_PAREN_R;
+	case '[': return TOK_BRACKET_L;
+	case ']': return TOK_BRACKET_R;
+	case '{': return TOK_BRACE_L;
+	case '}': return TOK_BRACE_R;
+	case '.': return c2 == '.' ? TOK_RANGE : TOK_DOT;
+	case ',': return TOK_COMMA;
+	case ';': return TOK_SEMICOLON;
+	case ':': return c2 == ':' ? TOK_MODULE : TOK_COLON;
+	case '=': return c2 == '=' ? TOK_COMP_EQ : TOK_EQUALS;
+	case '|': return c2 == '|' ? TOK_OR : TOK_VERT_LINE;
+	case '$': return TOK_DOLLAR;
+	case '&': return c2 == '&' ? TOK_AND : TOK_AMPERSAND;
+	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
+	case '?': return TOK_QUESTION;
+	case '#': return c2 == '#' ? TOK_XOR : TOK_HASH;
+	case '^': return c2 == '=' ? TOK_CARET_EQUALS : TOK_CARET;
+	case '-': return c2 == '=' ? TOK_MINUS_EQUALS : c2 == '>' ? TOK_ARROW : TOK_MINUS;
+	case '+': return c2 == '=' ? TOK_PLUS_EQUALS : TOK_PLUS;
+	case '*': return c2 == '=' ? TOK_STAR_EQUALS : TOK_STAR;
+	case '/': return c2 == '=' ? TOK_SLASH_EQUALS : TOK_SLASH;
+	case '%': return c2 == '=' ? TOK_PERCENT_EQUALS : TOK_PERCENT;
+	case '<': return c2 == '=' ? TOK_COMP_LE : TOK_LESS;
+	case '>': return c2 == '=' ? TOK_COMP_GE : c2 == '>' ? TOK_FWD_COMPOSE : TOK_GREATER;
+	default: return TOK_ERR;
+	}
 }
 
 bool is_long_symbol(TokenType type) {
-	return
-	   type == TOK_RANGE
-	|| type == TOK_MODULE
-	|| type == TOK_COMP_EQ
-	|| type == TOK_OR
-	|| type == TOK_AND
-	|| type == TOK_COMP_NE
-	|| type == TOK_XOR
-	|| type == TOK_CARET_EQUALS
-	|| type == TOK_MINUS_EQUALS
-	|| type == TOK_ARROW
-	|| type == TOK_FWD_COMPOSE
-	|| type == TOK_PLUS_EQUALS
-	|| type == TOK_STAR_EQUALS
-	|| type == TOK_SLASH_EQUALS
-	|| type == TOK_PERCENT_EQUALS
-	|| type == TOK_COMP_LE
-	|| type == TOK_COMP_GE;
+	switch (type) {
+	case TOK_RANGE:
+	case TOK_MODULE:
+	case TOK_COMP_EQ:
+	case TOK_OR:
+	case TOK_AND:
+	case TOK_COMP_NE:
+	case TOK_XOR:
+	case TOK_CARET_EQUALS:
+	case TOK_MINUS_EQUALS:
+	case TOK_ARROW:
+	case TOK_FWD_COMPOSE:
+	case TOK_PLUS_EQUALS:
+	case TOK_STAR_EQUALS:
+	case TOK_SLASH_EQUALS:
+	case TOK_PERCENT_EQUALS:
+	case TOK_COMP_LE:
+	case TOK_COMP_GE:
+		return true;
+	default:
+		return false;
+	}
 }
