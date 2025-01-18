@@ -6,7 +6,7 @@ ifdef DEBUG
 endif
 
 SRCS = lexer/lexer.c \
-       lexer/word_type.c \
+       lexer/lexer_helpers.c \
        lexer/debug/token_string.c \
        debug/debug.c \
        main.c

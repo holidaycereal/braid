@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include "word_type.h"
+#include "lexer_helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -166,84 +166,9 @@ Token* lex(const char* input) {
 
 		// Punctuation & operators
 		else {
-			TokenType type;
-			switch (input[pos]) {
-			case '(': type = PAREN_L; pos++; break;
-			case ')': type = PAREN_R; pos++; break;
-			case '[': type = BRACKET_L; pos++; break;
-			case ']': type = BRACKET_R; pos++; break;
-			case '{': type = BRACE_L; pos++; break;
-			case '}': type = BRACE_R; pos++; break;
-			case '.':
-				if (input[pos + 1] == '.') { type = RANGE; pos += 2; }
-				else { type = DOT; pos++; }
-				break;
-			case ',': type = COMMA; pos++; break;
-			case ';': type = SEMICOLON; pos++; break;
-			case ':':
-				if (input[pos + 1] == ':') { type = MODULE; pos += 2; }
-				else { type = COLON; pos++; }
-				break;
-			case '=':
-				if (input[pos + 1] == '=') { type = TEST_EQ; pos += 2; }
-				else { type = EQUALS; pos++; }
-				break;
-			case '|':
-				if (input[pos + 1] == '|') { type = OR; pos += 2; }
-				else { type = VERT_LINE; pos++; }
-				break;
-			case '$': type = DOLLAR; pos++; break;
-			case '&':
-				if (input[pos + 1] == '&') { type = AND; pos += 2; }
-				else { type = AMPERSAND; pos++; }
-				break;
-			case '!':
-				if (input[pos + 1] == '=') { type = NOT_EQ; pos += 2; }
-				else { type = BANG; pos++; }
-				break;
-			case '?': type = QUESTION; pos++; break;
-			case '#':
-				if (input[pos + 1] == '#') { type = XOR; pos += 2; }
-				else { type = HASH; pos++; }
-				break;
-			case '^':
-				if (input[pos + 1] == '=') { type = CARET_EQUALS; pos += 2; }
-				else { type = CARET; pos++; }
-				break;
-			case '-':
-				if (input[pos + 1] == '=') { type = MINUS_EQUALS; pos += 2; }
-				else if (input[pos + 1] == '>') { type = ARROW; pos += 2; }
-				else { type = MINUS; pos++; }
-				break;
-			case '+':
-				if (input[pos + 1] == '=') { type = PLUS_EQUALS; pos += 2; }
-				else { type = PLUS; pos++; }
-				break;
-			case '*':
-				if (input[pos + 1] == '=') { type = STAR_EQUALS; pos += 2; }
-				else { type = STAR; pos++; }
-				break;
-			case '/':
-				if (input[pos + 1] == '=') { type = SLASH_EQUALS; pos += 2; }
-				else { type = SLASH; pos++; }
-				break;
-			case '%':
-				if (input[pos + 1] == '=') { type = PERCENT_EQUALS; pos+= 2; }
-				else { type = PERCENT; pos++; }
-				break;
-			case '<':
-				if (input[pos + 1] == '=') { type = LESS_EQ; pos += 2; }
-				else { type = LESS; pos++; }
-				break;
-			case '>':
-				if (input[pos + 1] == '=') { type = GREATER_EQ; pos += 2; }
-				else { type = GREATER; pos++; }
-				break;
-			default:
-				type = ERR_TOKEN;
-				pos++;
-				break;
-			}
+			TokenType type = get_symbol_type(input[pos], input[pos + 1]);
+			if (is_long_symbol(type)) pos++;
+			pos++;
 
 			if (type == ERR_TOKEN) {
 				char err_str[32];
@@ -254,6 +179,7 @@ Token* lex(const char* input) {
 			}
 		}
 
+		// Resize the token array if needed
 		if (count >= capacity) {
 			capacity *= 2;
 			tokens = realloc(tokens, sizeof(Token) * capacity);
