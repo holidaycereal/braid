@@ -3,98 +3,99 @@
 
 typedef enum {
 	// Keywords
-	WORD_IF,
-	WORD_THEN,
-	WORD_ELSE,
-	WORD_WHILE,
-	WORD_FOR,
-	WORD_IN,
-	WORD_BREAK,
-	WORD_CONTINUE,
-	WORD_MATCH,
-	WORD_DYN,
-	WORD_DATA,
-	WORD_TYPE,
-	WORD_INCLUDE,
-	WORD_IMPORT,
-	WORD_EXIT,
+	TOK_WORD_IF,
+	TOK_WORD_THEN,
+	TOK_WORD_ELSE,
+	TOK_WORD_WHILE,
+	TOK_WORD_FOR,
+	TOK_WORD_IN,
+	TOK_WORD_BREAK,
+	TOK_WORD_CONTINUE,
+	TOK_WORD_MATCH,
+	TOK_WORD_DYN,
+	TOK_WORD_DATA,
+	TOK_WORD_TYPE,
+	TOK_WORD_INCLUDE,
+	TOK_WORD_IMPORT,
+	TOK_WORD_EXIT,
 
 	// Primitives
-	PRIM_U8,
-	PRIM_U16,
-	PRIM_U32,
-	PRIM_U64,
-	PRIM_I8,
-	PRIM_I16,
-	PRIM_I32,
-	PRIM_I64,
-	PRIM_USIZE,
-	PRIM_ISIZE,
-	PRIM_F32,
-	PRIM_F64,
-	PRIM_BOOL,
+	TOK_PRIM_U8,
+	TOK_PRIM_U16,
+	TOK_PRIM_U32,
+	TOK_PRIM_U64,
+	TOK_PRIM_I8,
+	TOK_PRIM_I16,
+	TOK_PRIM_I32,
+	TOK_PRIM_I64,
+	TOK_PRIM_USIZE,
+	TOK_PRIM_ISIZE,
+	TOK_PRIM_F32,
+	TOK_PRIM_F64,
+	TOK_PRIM_BOOL,
 
 	// Boolean literals
-	LIT_TRUE,
-	LIT_FALSE,
+	TOK_LIT_TRUE,
+	TOK_LIT_FALSE,
 
 	// Tokens with a string value
-	IDENT,
-	LIT_INT_DEC,
-	LIT_INT_HEX,
-	LIT_INT_OCT,
-	LIT_INT_BIN,
-	LIT_FLOAT,
-	LIT_CHAR,
-	LIT_STR,
-	LIT_STR_RAW,
-	ERR_TOKEN,
+	TOK_IDENT,
+	TOK_LIT_INT_DEC,
+	TOK_LIT_INT_HEX,
+	TOK_LIT_INT_OCT,
+	TOK_LIT_INT_BIN,
+	TOK_LIT_FLOAT,
+	TOK_LIT_CHAR,
+	TOK_LIT_STR,
+	TOK_LIT_STR_RAW,
+	TOK_ERR,
 
 	// Punctuation & operators
-	PAREN_L,
-	PAREN_R,
-	BRACKET_L,
-	BRACKET_R,
-	BRACE_L,
-	BRACE_R,
-	DOT,
-	COMMA,
-	SEMICOLON,
-	COLON,
-	EQUALS,
-	VERT_LINE,
-	DOLLAR,
-	AMPERSAND,
-	BANG,
-	QUESTION,
-	HASH,
-	CARET,
-	MINUS,
-	PLUS,
-	STAR,
-	SLASH,
-	PERCENT,
-	LESS,
-	GREATER,
+	TOK_PAREN_L,
+	TOK_PAREN_R,
+	TOK_BRACKET_L,
+	TOK_BRACKET_R,
+	TOK_BRACE_L,
+	TOK_BRACE_R,
+	TOK_DOT,
+	TOK_COMMA,
+	TOK_SEMICOLON,
+	TOK_COLON,
+	TOK_EQUALS,
+	TOK_VERT_LINE,
+	TOK_DOLLAR,
+	TOK_AMPERSAND,
+	TOK_BANG,
+	TOK_QUESTION,
+	TOK_HASH,
+	TOK_CARET,
+	TOK_MINUS,
+	TOK_PLUS,
+	TOK_STAR,
+	TOK_SLASH,
+	TOK_PERCENT,
+	TOK_LESS,
+	TOK_GREATER,
 	// Multi-character operators
-	TEST_EQ,         //  ==
-	NOT_EQ,          //  !=
-	LESS_EQ,         //  <=
-	GREATER_EQ,      //  >=
-	AND,             //  &&
-	OR,              //  ||
-	XOR,             //  ##
-	ARROW,           //  ->
-	PLUS_EQUALS,     //  +=
-	MINUS_EQUALS,    //  -=
-	STAR_EQUALS,     //  *=
-	SLASH_EQUALS,    //  /=
-	CARET_EQUALS,    //  ^=
-	PERCENT_EQUALS,  //  %=
-	RANGE,           //  ..
-	MODULE,          //  ::
+	TOK_COMP_EQ,         //  ==
+	TOK_COMP_NE,         //  !=
+	TOK_COMP_LE,         //  <=
+	TOK_COMP_GE,         //  >=
+	TOK_AND,             //  &&
+	TOK_OR,              //  ||
+	TOK_XOR,             //  ##
+	TOK_ARROW,           //  ->
+	TOK_FWD_COMPOSE,     //  >>
+	TOK_PLUS_EQUALS,     //  +=
+	TOK_MINUS_EQUALS,    //  -=
+	TOK_STAR_EQUALS,     //  *=
+	TOK_SLASH_EQUALS,    //  /=
+	TOK_CARET_EQUALS,    //  ^=
+	TOK_PERCENT_EQUALS,  //  %=
+	TOK_RANGE,           //  ..
+	TOK_MODULE,          //  ::
 
-	EOF_TOKEN,  // End of input
+	TOK_EOF,  // End of input
 } TokenType;
 
 #endif

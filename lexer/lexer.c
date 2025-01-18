@@ -61,7 +61,7 @@ Token* lex(const char* input) {
 			word[len] = '\0';
 
 			TokenType type = get_word_type(word);
-			tokens[count++] = *make_token(type, type == IDENT ? word : NULL);
+			tokens[count++] = *make_token(type, type == TOK_IDENT ? word : NULL);
 			free(word);
 		}
 
@@ -70,18 +70,18 @@ Token* lex(const char* input) {
 		else if (isdigit(input[pos])) {
 			size_t start = pos;
 			bool has_dot = false;
-			TokenType type = LIT_INT_DEC;
+			TokenType type = TOK_LIT_INT_DEC;
 
 			if (input[pos] == '0' && (input[pos + 1] == 'x' || input[pos + 1] == 'X')) {
-				type = LIT_INT_HEX;
+				type = TOK_LIT_INT_HEX;
 				pos += 2;
 				while (isxdigit(input[pos])) pos++;
 			} else if (input[pos] == '0' && (input[pos + 1] == 'o' || input[pos + 1] == 'O')) {
-				type = LIT_INT_OCT;
+				type = TOK_LIT_INT_OCT;
 				pos += 2;
 				while (input[pos] >= '0' && input[pos] <= '7') pos++;
 			} else if (input[pos] == '0' && (input[pos + 1] == 'b' || input[pos + 1] == 'B')) {
-				type = LIT_INT_BIN;
+				type = TOK_LIT_INT_BIN;
 				pos += 2;
 				while (input[pos] == '0' || input[pos] == '1') pos++;
 			} else {
@@ -89,7 +89,7 @@ Token* lex(const char* input) {
 					if (input[pos] == '.') has_dot = true;
 					pos++;
 				}
-				if (has_dot) type = LIT_FLOAT;
+				if (has_dot) type = TOK_LIT_FLOAT;
 			}
 
 			size_t len = pos - start;
@@ -105,18 +105,17 @@ Token* lex(const char* input) {
 		else if (input[pos] == '"' || input[pos] == '`') {
 			pos++;  // Skip opening quote
 			size_t start = pos;
-			TokenType type = input[pos - 1] == '"' ? LIT_STR : LIT_STR_RAW;
+			TokenType type = input[pos - 1] == '"' ? TOK_LIT_STR : TOK_LIT_STR_RAW;
 
 			while (input[pos] != '\0'
-					&& input[pos] != (type == LIT_STR ? '"' : '`')) {
+					&& input[pos] != (type == TOK_LIT_STR ? '"' : '`')) {
 				if (input[pos] == '\\') pos++;
 				if (input[pos] == '\0') break;
 				pos++;
 			}
 
 			if (input[pos] == '\0') {
-				tokens[count++] = *make_token(
-						ERR_TOKEN, "Unterminated string literal");
+				tokens[count++] = *make_token(TOK_ERR, "Unterminated string literal");
 				continue;
 			}
 
@@ -149,18 +148,16 @@ Token* lex(const char* input) {
 				} else {
 					while (input[pos] != '\0' && input[pos] != '\'') pos++;
 					if (input[pos] == '\'') pos++;
-					tokens[count++] = *make_token(
-							ERR_TOKEN, "Invalid character literal");
+					tokens[count++] = *make_token(TOK_ERR, "Invalid character literal");
 					continue;
 				}
 			} else {
-				tokens[count++] = *make_token(
-						ERR_TOKEN, "Unterminated character literal");
+				tokens[count++] = *make_token(TOK_ERR, "Unterminated character literal");
 				if (input[pos] != '\0') pos++;
 				continue;
 			}
 
-			tokens[count++] = *make_token(LIT_CHAR, ch);
+			tokens[count++] = *make_token(TOK_LIT_CHAR, ch);
 			pos++;  // Skip closing quote
 		}
 
@@ -170,10 +167,10 @@ Token* lex(const char* input) {
 			if (is_long_symbol(type)) pos++;
 			pos++;
 
-			if (type == ERR_TOKEN) {
+			if (type == TOK_ERR) {
 				char err_str[32];
 				sprintf(err_str, "Unknown character %c", input[pos - 1]);
-				tokens[count++] = *make_token(ERR_TOKEN, err_str);
+				tokens[count++] = *make_token(TOK_ERR, err_str);
 			} else {
 				tokens[count++] = *make_token(type, NULL);
 			}
@@ -186,7 +183,7 @@ Token* lex(const char* input) {
 		}
 	}
 
-	tokens[count++] = *make_token(EOF_TOKEN, NULL);
+	tokens[count++] = *make_token(TOK_EOF, NULL);
 
 	return tokens;
 }
