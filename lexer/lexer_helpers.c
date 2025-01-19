@@ -81,7 +81,22 @@ bool is_long_symbol(TokenType type) {
 	case TOK_SEMICOLON: return false;
 	case TOK_DOLLAR: return false;
 	case TOK_QUESTION: return false;
-	case TOK_ERROR: return false;
+	case TOK_DOT: return false;
+	case TOK_COLON: return false;
+	case TOK_EQUALS: return false;
+	case TOK_VERT_LINE: return false;
+	case TOK_AMPERSAND: return false;
+	case TOK_BANG: return false;
+	case TOK_HASH: return false;
+	case TOK_CARET: return false;
+	case TOK_MINUS: return false;
+	case TOK_STAR: return false;
+	case TOK_PLUS: return false;
+	case TOK_SLASH: return false;
+	case TOK_PERCENT: return false;
+	case TOK_LESS: return false;
+	case TOK_GREATER: return false;
+	case TOK_ERR: return false;
 	default: return true;
 	}
 }
