@@ -8,15 +8,20 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_WORD_WHILE: return "TOK_WORD_WHILE";
 	case TOK_WORD_FOR: return "TOK_WORD_FOR";
 	case TOK_WORD_IN: return "TOK_WORD_IN";
+	case TOK_WORD_DO: return "TOK_WORD_DO";
 	case TOK_WORD_BREAK: return "TOK_WORD_BREAK";
 	case TOK_WORD_CONTINUE: return "TOK_WORD_CONTINUE";
 	case TOK_WORD_MATCH: return "TOK_WORD_MATCH";
+	case TOK_WORD_WITH: return "TOK_WORD_WITH";
 	case TOK_WORD_DYN: return "TOK_WORD_DYN";
-	case TOK_WORD_DATA: return "TOK_WORD_DATA";
 	case TOK_WORD_TYPE: return "TOK_WORD_TYPE";
+	case TOK_WORD_RECORD: return "TOK_WORD_RECORD";
 	case TOK_WORD_INCLUDE: return "TOK_WORD_INCLUDE";
 	case TOK_WORD_IMPORT: return "TOK_WORD_IMPORT";
 	case TOK_WORD_EXIT: return "TOK_WORD_EXIT";
+	case TOK_WORD_AND: return "TOK_WORD_AND";
+	case TOK_WORD_OR: return "TOK_WORD_OR";
+	case TOK_WORD_XOR: return "TOK_WORD_XOR";
 
 	case TOK_PRIM_U8: return "TOK_PRIM_U8";
 	case TOK_PRIM_U16: return "TOK_PRIM_U16";
@@ -58,11 +63,9 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_COLON: return "TOK_COLON";
 	case TOK_EQUALS: return "TOK_EQUALS";
 	case TOK_VERT_LINE: return "TOK_VERT_LINE";
-	case TOK_DOLLAR: return "TOK_DOLLAR";
 	case TOK_AMPERSAND: return "TOK_AMPERSAND";
 	case TOK_BANG: return "TOK_BANG";
 	case TOK_QUESTION: return "TOK_QUESTION";
-	case TOK_HASH: return "TOK_HASH";
 	case TOK_CARET: return "TOK_CARET";
 	case TOK_MINUS: return "TOK_MINUS";
 	case TOK_PLUS: return "TOK_PLUS";
@@ -75,9 +78,6 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_COMP_NE: return "TOK_COMP_NE";
 	case TOK_COMP_LE: return "TOK_COMP_LE";
 	case TOK_COMP_GE: return "TOK_COMP_GE";
-	case TOK_AND: return "TOK_AND";
-	case TOK_OR: return "TOK_OR";
-	case TOK_XOR: return "TOK_XOR";
 	case TOK_ARROW: return "TOK_ARROW";
 	case TOK_FWD_COMPOSE: return "TOK_FWD_COMPOSE";
 	case TOK_PLUS_EQUALS: return "TOK_PLUS_EQUALS";

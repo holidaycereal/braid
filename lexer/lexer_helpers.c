@@ -8,15 +8,20 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
 	if (strcmp(word, "for") == 0) return TOK_WORD_FOR;
 	if (strcmp(word, "in") == 0) return TOK_WORD_IN;
+	if (strcmp(word, "do") == 0) return TOK_WORD_DO;
 	if (strcmp(word, "break") == 0) return TOK_WORD_BREAK;
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
 	if (strcmp(word, "match") == 0) return TOK_WORD_MATCH;
+	if (strcmp(word, "with") == 0) return TOK_WORD_WITH;
 	if (strcmp(word, "dyn") == 0) return TOK_WORD_DYN;
-	if (strcmp(word, "data") == 0) return TOK_WORD_DATA;
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;
+	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "include") == 0) return TOK_WORD_INCLUDE;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
 	if (strcmp(word, "exit") == 0) return TOK_WORD_EXIT;
+	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
+	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
+	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
 
 	if (strcmp(word, "u8") == 0) return TOK_PRIM_U8;
 	if (strcmp(word, "u16") == 0) return TOK_PRIM_U16;
@@ -51,12 +56,10 @@ TokenType get_symbol_type(char c1, char c2) {
 	case ';': return TOK_SEMICOLON;
 	case ':': return c2 == ':' ? TOK_MODULE : TOK_COLON;
 	case '=': return c2 == '=' ? TOK_COMP_EQ : TOK_EQUALS;
-	case '|': return c2 == '|' ? TOK_OR : TOK_VERT_LINE;
-	case '$': return TOK_DOLLAR;
-	case '&': return c2 == '&' ? TOK_AND : TOK_AMPERSAND;
+	case '|': return TOK_VERT_LINE;
+	case '&': return TOK_AMPERSAND;
 	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
 	case '?': return TOK_QUESTION;
-	case '#': return c2 == '#' ? TOK_XOR : TOK_HASH;
 	case '^': return c2 == '=' ? TOK_CARET_EQUALS : TOK_CARET;
 	case '-': return c2 == '=' ? TOK_MINUS_EQUALS : c2 == '>' ? TOK_ARROW : TOK_MINUS;
 	case '+': return c2 == '=' ? TOK_PLUS_EQUALS : TOK_PLUS;
@@ -79,7 +82,6 @@ bool is_long_symbol(TokenType type) {
 	case TOK_BRACE_R: return false;
 	case TOK_COMMA: return false;
 	case TOK_SEMICOLON: return false;
-	case TOK_DOLLAR: return false;
 	case TOK_QUESTION: return false;
 	case TOK_DOT: return false;
 	case TOK_COLON: return false;

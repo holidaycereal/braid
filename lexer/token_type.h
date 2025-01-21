@@ -9,15 +9,20 @@ typedef enum {
 	TOK_WORD_WHILE,
 	TOK_WORD_FOR,
 	TOK_WORD_IN,
+	TOK_WORD_DO,
 	TOK_WORD_BREAK,
 	TOK_WORD_CONTINUE,
 	TOK_WORD_MATCH,
+	TOK_WORD_WITH,
 	TOK_WORD_DYN,
-	TOK_WORD_DATA,
 	TOK_WORD_TYPE,
+	TOK_WORD_RECORD,
 	TOK_WORD_INCLUDE,
 	TOK_WORD_IMPORT,
 	TOK_WORD_EXIT,
+	TOK_WORD_AND,
+	TOK_WORD_OR,
+	TOK_WORD_XOR,
 
 	// Primitives
 	TOK_PRIM_U8,
@@ -63,11 +68,9 @@ typedef enum {
 	TOK_COLON,
 	TOK_EQUALS,
 	TOK_VERT_LINE,
-	TOK_DOLLAR,
 	TOK_AMPERSAND,
 	TOK_BANG,
 	TOK_QUESTION,
-	TOK_HASH,
 	TOK_CARET,
 	TOK_MINUS,
 	TOK_PLUS,
@@ -81,9 +84,6 @@ typedef enum {
 	TOK_COMP_NE,         //  !=
 	TOK_COMP_LE,         //  <=
 	TOK_COMP_GE,         //  >=
-	TOK_AND,             //  &&
-	TOK_OR,              //  ||
-	TOK_XOR,             //  ##
 	TOK_ARROW,           //  ->
 	TOK_FWD_COMPOSE,     //  >>
 	TOK_PLUS_EQUALS,     //  +=
