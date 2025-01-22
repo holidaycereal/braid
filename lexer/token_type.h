@@ -14,6 +14,7 @@ typedef enum {
 	TOK_WORD_CONTINUE,
 	TOK_WORD_MATCH,
 	TOK_WORD_WITH,
+	TOK_WORD_SWITCH,
 	TOK_WORD_DYN,
 	TOK_WORD_TYPE,
 	TOK_WORD_RECORD,
@@ -23,6 +24,7 @@ typedef enum {
 	TOK_WORD_AND,
 	TOK_WORD_OR,
 	TOK_WORD_XOR,
+	TOK_WORD_NOT,
 
 	// Primitives
 	TOK_PRIM_U8,
@@ -85,6 +87,7 @@ typedef enum {
 	TOK_COMP_LE,         //  <=
 	TOK_COMP_GE,         //  >=
 	TOK_ARROW,           //  ->
+	TOK_RETURN_ARROW,    //  =>
 	TOK_FWD_COMPOSE,     //  >>
 	TOK_PLUS_EQUALS,     //  +=
 	TOK_MINUS_EQUALS,    //  -=

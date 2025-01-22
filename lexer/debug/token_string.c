@@ -13,6 +13,7 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_WORD_CONTINUE: return "TOK_WORD_CONTINUE";
 	case TOK_WORD_MATCH: return "TOK_WORD_MATCH";
 	case TOK_WORD_WITH: return "TOK_WORD_WITH";
+	case TOK_WORD_SWITCH: return "TOK_WORD_SWITCH";
 	case TOK_WORD_DYN: return "TOK_WORD_DYN";
 	case TOK_WORD_TYPE: return "TOK_WORD_TYPE";
 	case TOK_WORD_RECORD: return "TOK_WORD_RECORD";
@@ -22,6 +23,7 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_WORD_AND: return "TOK_WORD_AND";
 	case TOK_WORD_OR: return "TOK_WORD_OR";
 	case TOK_WORD_XOR: return "TOK_WORD_XOR";
+	case TOK_WORD_NOT: return "TOK_WORD_NOT";
 
 	case TOK_PRIM_U8: return "TOK_PRIM_U8";
 	case TOK_PRIM_U16: return "TOK_PRIM_U16";
@@ -79,6 +81,7 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_COMP_LE: return "TOK_COMP_LE";
 	case TOK_COMP_GE: return "TOK_COMP_GE";
 	case TOK_ARROW: return "TOK_ARROW";
+	case TOK_RETURN_ARROW: return "TOK_RETURN_ARROW";
 	case TOK_FWD_COMPOSE: return "TOK_FWD_COMPOSE";
 	case TOK_PLUS_EQUALS: return "TOK_PLUS_EQUALS";
 	case TOK_MINUS_EQUALS: return "TOK_MINUS_EQUALS";

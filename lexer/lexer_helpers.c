@@ -13,6 +13,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
 	if (strcmp(word, "match") == 0) return TOK_WORD_MATCH;
 	if (strcmp(word, "with") == 0) return TOK_WORD_WITH;
+	if (strcmp(word, "switch") == 0) return TOK_WORD_SWITCH;
 	if (strcmp(word, "dyn") == 0) return TOK_WORD_DYN;
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
@@ -22,6 +23,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
 	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
+	if (strcmp(word, "not") == 0) return TOK_WORD_NOT;
 
 	if (strcmp(word, "u8") == 0) return TOK_PRIM_U8;
 	if (strcmp(word, "u16") == 0) return TOK_PRIM_U16;
@@ -55,7 +57,7 @@ TokenType get_symbol_type(char c1, char c2) {
 	case ',': return TOK_COMMA;
 	case ';': return TOK_SEMICOLON;
 	case ':': return c2 == ':' ? TOK_MODULE : TOK_COLON;
-	case '=': return c2 == '=' ? TOK_COMP_EQ : TOK_EQUALS;
+	case '=': return c2 == '=' ? TOK_COMP_EQ : c2 == '>' ? TOK_RETURN_ARROW : TOK_EQUALS;
 	case '|': return TOK_VERT_LINE;
 	case '&': return TOK_AMPERSAND;
 	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
