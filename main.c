@@ -4,12 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_token(Token token) {
-	if (token.value) {
-		debug_print(DEBUG_LEXER, "%s \033[34m%s\033[0m\n", token_type_to_string(token.type), token.value);
-	} else {
-		debug_print(DEBUG_LEXER, "%s\n", token_type_to_string(token.type));
-	}
+static inline void print_token(Token token) {
+	debug_print(DEBUG_LEXER, "%s \033[34m%s\033[0m\n",
+			token_type_to_string(token.type), token.value ? token.value : "");
 }
 
 int main(int argc, char** argv) {
