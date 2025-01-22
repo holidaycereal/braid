@@ -8,7 +8,6 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
 	if (strcmp(word, "for") == 0) return TOK_WORD_FOR;
 	if (strcmp(word, "in") == 0) return TOK_WORD_IN;
-	if (strcmp(word, "do") == 0) return TOK_WORD_DO;
 	if (strcmp(word, "break") == 0) return TOK_WORD_BREAK;
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
 	if (strcmp(word, "match") == 0) return TOK_WORD_MATCH;

@@ -8,7 +8,6 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_WORD_WHILE: return "TOK_WORD_WHILE";
 	case TOK_WORD_FOR: return "TOK_WORD_FOR";
 	case TOK_WORD_IN: return "TOK_WORD_IN";
-	case TOK_WORD_DO: return "TOK_WORD_DO";
 	case TOK_WORD_BREAK: return "TOK_WORD_BREAK";
 	case TOK_WORD_CONTINUE: return "TOK_WORD_CONTINUE";
 	case TOK_WORD_MATCH: return "TOK_WORD_MATCH";
