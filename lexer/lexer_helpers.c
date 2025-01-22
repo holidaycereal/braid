@@ -5,6 +5,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
 	if (strcmp(word, "then") == 0) return TOK_WORD_THEN;
 	if (strcmp(word, "else") == 0) return TOK_WORD_ELSE;
+	if (strcmp(word, "elif") == 0) return TOK_WORD_ELIF;
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
 	if (strcmp(word, "for") == 0) return TOK_WORD_FOR;
 	if (strcmp(word, "in") == 0) return TOK_WORD_IN;

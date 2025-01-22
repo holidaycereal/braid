@@ -5,6 +5,7 @@ const char* token_type_to_string(TokenType type) {
 	case TOK_WORD_IF: return "TOK_WORD_IF";
 	case TOK_WORD_THEN: return "TOK_WORD_THEN";
 	case TOK_WORD_ELSE: return "TOK_WORD_ELSE";
+	case TOK_WORD_ELIF: return "TOK_WORD_ELIF";
 	case TOK_WORD_WHILE: return "TOK_WORD_WHILE";
 	case TOK_WORD_FOR: return "TOK_WORD_FOR";
 	case TOK_WORD_IN: return "TOK_WORD_IN";
