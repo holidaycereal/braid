@@ -5,8 +5,12 @@
 #include <stdlib.h>
 
 static inline void print_token(Token token) {
-	debug_print(DEBUG_LEXER, "%s \033[34m%s\033[0m\n",
-			token_type_to_string(token.type), token.value ? token.value : "");
+	debug_print(
+		DEBUG_LEXER,
+		"%s \033[34m%s\033[0m\n",
+		token_type_to_string(token.type),
+		token.value ? token.value : ""
+	);
 }
 
 int main(int argc, char** argv) {
