@@ -1,0 +1,28 @@
+# bnf grammar for braid
+
+<node>         ::= <def> | <statement> | <expr>
+
+<def>          ::= <const-def> | <fn-def> | <type-def> | <record-def>
+<const-def>    ::= <ident> <expr>
+<type-expr>    ::= <primitive> | <ident> <type-expr>*
+<fn-def>       ::= <ident> <ident> <type-sig> <statement>*
+<type-sig>     ::= <type-expr> <type-expr> | <type-expr> <type-sig>
+<type-def>     ::= <ident> <ident>* <variant>+
+<variant>      ::= none | <type-expr> | <record-def>
+<record-def>   ::= <ident> <ident>* <field>+
+<field>        ::= <ident> (<type-expr> | <variant>+)
+
+<expr>         ::= <literal> | <ident> | <fn-call> | <if-else> | <match>
+<fn-call>      ::= <ident> <ident>*
+<if-else>      ::= <expr> <expr> <expr>
+<match>        ::= <expr> (<expr> <expr>)+ <expr>
+
+<statement>    ::= <assignment> | <reassignment> | <expr> | <block>
+<assignment>   ::= <ident> <type-expr> <expr>
+<reassignment> ::= <ident> <expr>
+<block>        ::= <if> | <switch> | <while> | <for>
+<if>           ::= <expr> <statement>* (none | <else>)
+<else>         ::= <statement>*
+<switch>       ::= <expr> (<expr> <statement>*)* (none | <else>)
+<while>        ::= <expr> <statement>*
+<for>          ::= <expr> <expr> <statement>*

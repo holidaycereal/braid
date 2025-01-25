@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include "lexer_helpers.h"
+#include "helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -8,14 +8,14 @@
 
 #define CUR input[pos]
 #define NEXT input[pos + 1]
-#define NEXT_NEXT input[pos + 2]
+#define NEXTNEXT input[pos + 2]
 #define PREV input[pos - 1]
 
-Token* make_token(TokenType type, const char* value) {
-	Token* token = malloc(sizeof(Token));
-	token->type = type;
-	token->value = value ? strdup(value) : NULL;
-	return token;
+Token make_token(TokenType type, const char* value) {
+	return (Token) {
+		.type = type,
+		.value = value ? strdup(value) : NULL
+	};
 }
 
 Token* lex(const char* input) {
@@ -66,7 +66,7 @@ Token* lex(const char* input) {
 			word[len] = '\0';
 
 			TokenType type = get_word_type(word);
-			tokens[count++] = *make_token(type, type == TOK_IDENT ? word : NULL);
+			tokens[count++] = make_token(type, type == TOK_IDENT ? word : NULL);
 			free(word);
 		}
 
@@ -102,7 +102,7 @@ Token* lex(const char* input) {
 			strncpy(num, input + start, len);
 			num[len] = '\0';
 
-			tokens[count++] = *make_token(type, num);
+			tokens[count++] = make_token(type, num);
 			free(num);
 		}
 
@@ -119,7 +119,7 @@ Token* lex(const char* input) {
 			}
 
 			if (CUR == '\0') {
-				tokens[count++] = *make_token(TOK_ERR, "Unterminated string literal");
+				tokens[count++] = make_token(TOK_ERR, "Unterminated string literal");
 				continue;
 			}
 
@@ -128,7 +128,7 @@ Token* lex(const char* input) {
 			strncpy(str, input + start, len);
 			str[len] = '\0';
 
-			tokens[count++] = *make_token(type, str);
+			tokens[count++] = make_token(type, str);
 			free(str);
 			pos++;  // Skip closing quote
 		}
@@ -139,7 +139,7 @@ Token* lex(const char* input) {
 			char ch[3];
 
 			if (CUR != '\0' && NEXT != '\0') {
-				if (CUR == '\\' && NEXT_NEXT == '\'') {
+				if (CUR == '\\' && NEXTNEXT == '\'') {
 					ch[0] = '\\';
 					ch[1] = NEXT;
 					ch[2] = '\0';
@@ -152,16 +152,16 @@ Token* lex(const char* input) {
 				} else {
 					while (CUR != '\0' && CUR != '\'') pos++;
 					if (CUR == '\'') pos++;
-					tokens[count++] = *make_token(TOK_ERR, "Invalid character literal");
+					tokens[count++] = make_token(TOK_ERR, "Invalid character literal");
 					continue;
 				}
 			} else {
-				tokens[count++] = *make_token(TOK_ERR, "Unterminated character literal");
+				tokens[count++] = make_token(TOK_ERR, "Unterminated character literal");
 				if (CUR != '\0') pos++;
 				continue;
 			}
 
-			tokens[count++] = *make_token(TOK_LIT_CHAR, ch);
+			tokens[count++] = make_token(TOK_LIT_CHAR, ch);
 			pos++;  // Skip closing quote
 		}
 
@@ -174,9 +174,9 @@ Token* lex(const char* input) {
 			if (type == TOK_ERR) {
 				char err_str[32];
 				sprintf(err_str, "Unknown character %c", PREV);
-				tokens[count++] = *make_token(TOK_ERR, err_str);
+				tokens[count++] = make_token(TOK_ERR, err_str);
 			} else {
-				tokens[count++] = *make_token(type, NULL);
+				tokens[count++] = make_token(type, NULL);
 			}
 		}
 
@@ -187,7 +187,25 @@ Token* lex(const char* input) {
 		}
 	}
 
-	tokens[count++] = *make_token(TOK_EOF, NULL);
+	// Safely add EOF token
+	if (count >= capacity) {
+		capacity++;
+		tokens = realloc(tokens, sizeof(Token) * capacity);
+	}
+	tokens[count++] = make_token(TOK_EOF, NULL);
 
 	return tokens;
 }
+
+void free_tokens(Token* tokens) {
+	if (!tokens) return;
+	for (int i = 0; tokens[i].type != TOK_EOF; i++) {
+		if (tokens[i].value) free(tokens[i].value);
+	}
+	free(tokens);
+}
+
+// For Haskell FFI
+size_t get_token_size() { return sizeof(Token); }
+size_t get_token_alignment() { return _Alignof(Token); }
+size_t get_token_type_size() { return sizeof(TokenType); }
