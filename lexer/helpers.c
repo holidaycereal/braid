@@ -1,4 +1,4 @@
-#include "lexer_helpers.h"
+#include "helpers.h"
 #include <string.h>
 
 TokenType get_word_type(const char* word) {
@@ -24,7 +24,6 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
 	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
 	if (strcmp(word, "not") == 0) return TOK_WORD_NOT;
-
 	if (strcmp(word, "u8") == 0) return TOK_PRIM_U8;
 	if (strcmp(word, "u16") == 0) return TOK_PRIM_U16;
 	if (strcmp(word, "u32") == 0) return TOK_PRIM_U32;
@@ -38,10 +37,8 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "f32") == 0) return TOK_PRIM_F32;
 	if (strcmp(word, "f64") == 0) return TOK_PRIM_F64;
 	if (strcmp(word, "bool") == 0) return TOK_PRIM_BOOL;
-
 	if (strcmp(word, "true") == 0) return TOK_LIT_TRUE;
 	if (strcmp(word, "false") == 0) return TOK_LIT_FALSE;
-
 	return TOK_IDENT;
 }
 
