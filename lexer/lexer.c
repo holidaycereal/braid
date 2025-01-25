@@ -204,8 +204,3 @@ void free_tokens(Token* tokens) {
 	}
 	free(tokens);
 }
-
-// For Haskell FFI
-size_t get_token_size() { return sizeof(Token); }
-size_t get_token_alignment() { return _Alignof(Token); }
-size_t get_token_type_size() { return sizeof(TokenType); }

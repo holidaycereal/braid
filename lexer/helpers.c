@@ -3,7 +3,6 @@
 
 TokenType get_word_type(const char* word) {
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
-	if (strcmp(word, "then") == 0) return TOK_WORD_THEN;
 	if (strcmp(word, "else") == 0) return TOK_WORD_ELSE;
 	if (strcmp(word, "elif") == 0) return TOK_WORD_ELIF;
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
@@ -13,6 +12,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
 	if (strcmp(word, "match") == 0) return TOK_WORD_MATCH;
 	if (strcmp(word, "with") == 0) return TOK_WORD_WITH;
+	if (strcmp(word, "when") == 0) return TOK_WORD_WHEN;
 	if (strcmp(word, "switch") == 0) return TOK_WORD_SWITCH;
 	if (strcmp(word, "dyn") == 0) return TOK_WORD_DYN;
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;

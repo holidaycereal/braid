@@ -5,7 +5,6 @@
 
 typedef enum {
 	TOK_WORD_IF,
-	TOK_WORD_THEN,
 	TOK_WORD_ELSE,
 	TOK_WORD_ELIF,
 	TOK_WORD_WHILE,
@@ -15,6 +14,7 @@ typedef enum {
 	TOK_WORD_CONTINUE,
 	TOK_WORD_MATCH,
 	TOK_WORD_WITH,
+	TOK_WORD_WHEN,
 	TOK_WORD_SWITCH,
 	TOK_WORD_DYN,
 	TOK_WORD_TYPE,
@@ -101,7 +101,7 @@ Token make_token(TokenType type, const char* value);
 Token* lex(const char* input);
 void free_tokens(Token* tokens);
 
-// For Haskell FFI
+// For FFI
 size_t get_token_size();
 size_t get_token_alignment();
 size_t get_token_type_size();

@@ -5,7 +5,6 @@
 static inline void print_token(Token token) {
 	switch (token.type) {
 	case TOK_WORD_IF: printf("TOK_WORD_IF"); break;
-	case TOK_WORD_THEN: printf("TOK_WORD_THEN"); break;
 	case TOK_WORD_ELSE: printf("TOK_WORD_ELSE"); break;
 	case TOK_WORD_ELIF: printf("TOK_WORD_ELIF"); break;
 	case TOK_WORD_WHILE: printf("TOK_WORD_WHILE"); break;
@@ -15,6 +14,7 @@ static inline void print_token(Token token) {
 	case TOK_WORD_CONTINUE: printf("TOK_WORD_CONTINUE"); break;
 	case TOK_WORD_MATCH: printf("TOK_WORD_MATCH"); break;
 	case TOK_WORD_WITH: printf("TOK_WORD_WITH"); break;
+	case TOK_WORD_WHEN: printf("TOK_WORD_WHEN"); break;
 	case TOK_WORD_SWITCH: printf("TOK_WORD_SWITCH"); break;
 	case TOK_WORD_DYN: printf("TOK_WORD_DYN"); break;
 	case TOK_WORD_TYPE: printf("TOK_WORD_TYPE"); break;
