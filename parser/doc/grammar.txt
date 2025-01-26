@@ -1,28 +1,45 @@
-# bnf grammar for braid
+vim:expandtab
+bnf grammar for braid: version 2
+[x] - x is optional
+x*  - 0 or more of x
+x+  - 1 or more of x
 
-<node>         ::= <def> | <statement> | <expr>
+<program> ::= <directive>* <toplevel-def>* <main-fn>
 
-<def>          ::= <const-def> | <fn-def> | <type-def> | <record-def>
-<const-def>    ::= <ident> <expr>
-<type-expr>    ::= <primitive> | <ident> <type-expr>*
-<fn-def>       ::= <ident> <ident> <type-sig> <statement>*
-<type-sig>     ::= <type-expr> <type-expr> | <type-expr> <type-sig>
-<type-def>     ::= <ident> <ident>* <variant>+
-<variant>      ::= none | <type-expr> | <record-def>
-<record-def>   ::= <ident> <ident>* <field>+
-<field>        ::= <ident> (<type-expr> | <variant>+)
+<directive> ::= <import> | <include>
 
-<expr>         ::= <literal> | <ident> | <fn-call> | <if-else> | <match>
-<fn-call>      ::= <ident> <ident>*
-<if-else>      ::= <expr> <expr> <expr>
-<match>        ::= <expr> (<expr> <expr>)+ <expr>
+<toplevel-def> ::= <assignment>
+                 | <declaration>
+                 | <const-def>
+                 | <fn-def>
+                 | <type-def>
+                 | <record-def>
 
-<statement>    ::= <assignment> | <reassignment> | <expr> | <block>
-<assignment>   ::= <ident> <type-expr> <expr>
-<reassignment> ::= <ident> <expr>
-<block>        ::= <if> | <switch> | <while> | <for>
-<if>           ::= <expr> <statement>* (none | <else>)
-<else>         ::= <statement>*
-<switch>       ::= <expr> (<expr> <statement>*)* (none | <else>)
-<while>        ::= <expr> <statement>*
-<for>          ::= <expr> <expr> <statement>*
+<statement> ::= <single-statement> ";" | <block>
+
+<single-statement> ::= <assignment>
+                     | <reassignment>
+                     | declaration
+                     | <fn-call>
+
+<assignment> ::= <identifier> ":" [<type>] "=" <expr>
+
+<expr> ::= <match-expr>
+         | <when-expr>
+         | <const-expr>
+         | <dyn-expr>
+         | <fn-call>
+
+<fn-call> ::= <identifier> "(" <argument>* ")"
+
+<match-expr> ::= "match" <expr> "with" <first-case> <middle-case>* [<fallback>]
+<first-case> ::= ["|"] <match-case>
+<middle-case> ::= "|" <match-case>
+<match-case> ::= <expr> "->" <const-expr>
+
+<when-expr> ::= "when" <first-pred> <middle-pred>* <fallback>
+<first-pred> ::= ["|"] <when-pred>
+<middle-pred> ::= "|" <when-pred>
+<when-pred> ::= <cond> "->" <expr>
+
+<fallback> ::= "|" <expr>
