@@ -20,6 +20,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "const") == 0) return TOK_WORD_CONST;
+	if (strcmp(word, "fn") == 0) return TOK_WORD_FN;
 	if (strcmp(word, "include") == 0) return TOK_WORD_INCLUDE;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
 	if (strcmp(word, "as") == 0) return TOK_WORD_AS;

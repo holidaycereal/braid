@@ -20,6 +20,7 @@ let print_token token =
   | TokWordType -> "TokWordType"
   | TokWordRecord -> "TokWordRecord"
   | TokWordConst -> "TokWordConst"
+  | TokWordFn -> "TokWordFn"
   | TokWordInclude -> "TokWordInclude"
   | TokWordImport -> "TokWordImport"
   | TokWordAs -> "TokWordAs"
