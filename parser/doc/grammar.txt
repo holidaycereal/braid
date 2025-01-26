@@ -16,6 +16,8 @@ x+  - 1 or more of x
                  | <type-def>
                  | <record-def>
 
+<main-fn> ::= "main" "{" <statement>* "}"
+
 <statement> ::= <single-statement> ";" | <block>
 
 <single-statement> ::= <assignment>
