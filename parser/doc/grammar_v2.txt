@@ -4,7 +4,7 @@ x*  - 0 or more of x
 x+  - 1 or more of x
 
 <program> ::= <statement> | <statement> <program>
-<statement> ::= (<assignment> | <fn-call>) ";"
+<statement> ::= ((<assignment> | <fn-call>) ";") | <block>
 <assignment> ::= <identifier> ":" [<type>] "=" <expr>
 <expr> ::= <match-expr> | <when-expr> | <value>
 
