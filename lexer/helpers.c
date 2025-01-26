@@ -14,11 +14,15 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "with") == 0) return TOK_WORD_WITH;
 	if (strcmp(word, "when") == 0) return TOK_WORD_WHEN;
 	if (strcmp(word, "switch") == 0) return TOK_WORD_SWITCH;
+	if (strcmp(word, "case") == 0) return TOK_WORD_CASE;
+	if (strcmp(word, "default") == 0) return TOK_WORD_DEFAULT;
 	if (strcmp(word, "dyn") == 0) return TOK_WORD_DYN;
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
+	if (strcmp(word, "const") == 0) return TOK_WORD_CONST;
 	if (strcmp(word, "include") == 0) return TOK_WORD_INCLUDE;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
+	if (strcmp(word, "as") == 0) return TOK_WORD_AS;
 	if (strcmp(word, "exit") == 0) return TOK_WORD_EXIT;
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
