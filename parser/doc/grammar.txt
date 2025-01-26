@@ -1,5 +1,6 @@
 vim:expandtab
-bnf grammar for braid: version 2
+
+bnf grammar for braid
 [x] - x is optional
 x*  - 0 or more of x
 x+  - 1 or more of x
