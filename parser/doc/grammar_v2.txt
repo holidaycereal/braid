@@ -1,0 +1,21 @@
+bnf grammar for braid: version 2
+[x] - x is optional
+x*  - 0 or more of x
+x+  - 1 or more of x
+
+<program> ::= <statement> | <statement> <program>
+<statement> ::= (<assignment> | <fn-call>) ";"
+<assignment> ::= <identifier> ":" [<type>] "=" <expr>
+<expr> ::= <match-expr> | <when-expr> | <value>
+
+<match-expr> ::= "match" <expr> "with" <first-case> <middle-case>* [<fallback>]
+<first-case> ::= ["|"] <match-case>
+<middle-case> ::= "|" <match-case>
+<match-case> ::= <expr> "->" <expr>
+
+<when-expr> ::= "when" <first-pred> <middle-pred>* <fallback>
+<first-pred> ::= ["|"] <when-pred>
+<middle-pred> ::= "|" <when-pred>
+<when-pred> ::= <cond> "->" <expr>
+
+<fallback> ::= "|" <expr>
