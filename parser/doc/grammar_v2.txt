@@ -1,3 +1,4 @@
+vim:expandtab
 bnf grammar for braid: version 2
 [x] - x is optional
 x*  - 0 or more of x
@@ -9,17 +10,17 @@ x+  - 1 or more of x
 
 <toplevel-def> ::= <assignment>
                  | <declaration>
-		 | <const-def>
-		 | <fn-def>
-		 | <type-def>
-		 | <record-def>
+                 | <const-def>
+                 | <fn-def>
+                 | <type-def>
+                 | <record-def>
 
 <statement> ::= <single-statement> ";" | <block>
 
 <single-statement> ::= <assignment>
                      | <reassignment>
-		     | declaration
-		     | <fn-call>
+                     | declaration
+                     | <fn-call>
 
 <assignment> ::= <identifier> ":" [<type>] "=" <expr>
 <expr> ::= <match-expr> | <when-expr> | <value>
