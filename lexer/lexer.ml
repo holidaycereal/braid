@@ -191,8 +191,8 @@ let convert_token_type = function
   | 86 -> TokCaretEquals
   | 87 -> TokPercentEquals
   | 88 -> TokRange
-	| 89 -> TokModule
-	| 90 -> TokEof
+  | 89 -> TokModule
+  | 90 -> TokEof
   | _ -> TokErr
 (* }}} *)
 
