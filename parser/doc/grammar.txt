@@ -5,44 +5,48 @@ bnf grammar for braid
 x*  - 0 or more of x
 x+  - 1 or more of x
 
-<program> ::= <directive>* <toplevel-def>* <main-fn>
+<program>          ::= <directive>* <toplevel-def>* <entry>
+<directive>        ::= <import> | <include>
+<toplevel-def>     ::= <assignment>
+                     | <declaration>
+                     | <const-def>
+                     | <fn-def>
+                     | <type-def>
+                     | <record-def>
+<entry>            ::= "main" "{" <statement>* "}"
 
-<directive> ::= <import> | <include>
-
-<toplevel-def> ::= <assignment>
-                 | <declaration>
-                 | <const-def>
-                 | <fn-def>
-                 | <type-def>
-                 | <record-def>
-
-<main-fn> ::= "main" "{" <statement>* "}"
-
-<statement> ::= <single-statement> ";" | <block>
-
+<statement>        ::= <single-statement> ";" | <block>
 <single-statement> ::= <assignment>
                      | <reassignment>
-                     | declaration
+                     | <declaration>
+                     | <fn-call>
+<block>            ::= <if-block>
+                     | <switch-block>
+                     | <for-block>
+                     | <while-block>
+
+<assignment>       ::= <identifier> ":" [<type>] "=" <expr>
+<fn-call>          ::= <identifier> "(" <argument>* ")"
+<expr>             ::= <match-expr>
+                     | <when-expr>
+                     | <const-expr>
+                     | <dyn-expr>
                      | <fn-call>
 
-<assignment> ::= <identifier> ":" [<type>] "=" <expr>
+<match-expr>       ::= "match" <expr> "with"
+                       <first-case>
+                       <middle-case>*
+                       [<fallback>]
+<first-case>       ::= ["|"] <match-case>
+<middle-case>      ::= "|" <match-case>
+<match-case>       ::= <expr> "->" <const-expr>
 
-<expr> ::= <match-expr>
-         | <when-expr>
-         | <const-expr>
-         | <dyn-expr>
-         | <fn-call>
+<when-expr>        ::= "when"
+                       <first-pred>
+                       <middle-pred>*
+                       <fallback>
+<first-pred>       ::= ["|"] <when-pred>
+<middle-pred>      ::= "|" <when-pred>
+<when-pred>        ::= <cond> "->" <expr>
 
-<fn-call> ::= <identifier> "(" <argument>* ")"
-
-<match-expr> ::= "match" <expr> "with" <first-case> <middle-case>* [<fallback>]
-<first-case> ::= ["|"] <match-case>
-<middle-case> ::= "|" <match-case>
-<match-case> ::= <expr> "->" <const-expr>
-
-<when-expr> ::= "when" <first-pred> <middle-pred>* <fallback>
-<first-pred> ::= ["|"] <when-pred>
-<middle-pred> ::= "|" <when-pred>
-<when-pred> ::= <cond> "->" <expr>
-
-<fallback> ::= "|" <expr>
+<fallback>         ::= "|" <expr>
