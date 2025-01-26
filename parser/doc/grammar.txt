@@ -10,9 +10,9 @@ x+  - 1 or more of x
 <toplevel-def>     ::= <assignment>
                      | <declaration>
                      | <const-def>
-                     | <fn-def>
                      | <type-def>
                      | <record-def>
+                     | <fn-def>
 <entry>            ::= "main" "{" <statement>* "}"
 
 <statement>        ::= <single-statement> ";" | <block>
@@ -20,13 +20,32 @@ x+  - 1 or more of x
                      | <reassignment>
                      | <declaration>
                      | <fn-call>
+                     | <return>
+                     | <break>
+                     | <continue>
 <block>            ::= <if-block>
                      | <switch-block>
                      | <for-block>
                      | <while-block>
 
-<assignment>       ::= <identifier> ":" [<type>] "=" <expr>
-<fn-call>          ::= <identifier> "(" <argument>* ")"
+<assignment>       ::= <ident> ":" [<type>] "=" <expr>
+<declaration>      ::= <ident> ":" <type>
+<reassignment>     ::= <ident> "=" <expr>
+<fn-call>          ::= <ident> "(" <argument>* ")"
+<return>           ::= "=>" <expr>
+
+<const-def>        ::= "const"  <ident> ":" <type> "=" <expr> ";"
+<type-def>         ::= "type"   <ident> "=" <type> ";"
+<record-def>       ::= "record" <ident> "{" (<declaration> ";")* "}"
+
+<fn-def>           ::= "fn" <ident> <param>+ [<type-sig>] <fn-body>
+<param>            ::= "(" [<ident> ("," <ident>)*] ")"
+<type-sig>         ::= ":" <type> ("->" <type>)+
+<fn-body>          ::= "{" <statement>* "}" | <return> ";"
+
+<import>           ::= "import"  <module-path> ";"
+<include>          ::= "include" <file-path>   ";"
+
 <expr>             ::= <match-expr>
                      | <when-expr>
                      | <const-expr>
@@ -34,19 +53,27 @@ x+  - 1 or more of x
                      | <fn-call>
 
 <match-expr>       ::= "match" <expr> "with"
-                       <first-case>
-                       <middle-case>*
+                       ["|"] <match-case>
+                       ("|"  <match-case>)*
                        [<fallback>]
-<first-case>       ::= ["|"] <match-case>
-<middle-case>      ::= "|" <match-case>
 <match-case>       ::= <expr> "->" <const-expr>
 
 <when-expr>        ::= "when"
-                       <first-pred>
-                       <middle-pred>*
+                       ["|"] <when-pred>
+                       ("|"  <when-pred>)*
                        <fallback>
-<first-pred>       ::= ["|"] <when-pred>
-<middle-pred>      ::= "|" <when-pred>
 <when-pred>        ::= <cond> "->" <expr>
 
 <fallback>         ::= "|" <expr>
+
+<if-block>         ::= "if"    <cond> "{" <statement>* "}"
+                       ("elif" <cond> "{" <statement>* "}")*
+                       ["else"        "{" <statement>* "}"]
+
+<switch-block>     ::= "switch" <expr> "{"
+                       ("case" <const-expr> ":" <statement>*)*
+                       ["default"           ":" <statement>*]
+                       "}"
+
+<for-block>        ::= "for" <param> "in" <iterable>    "{" <statement>* "}"
+<while-block>      ::= "while" <cond> ["," <statement>] "{" <statement>* "}"
