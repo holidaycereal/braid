@@ -90,7 +90,10 @@ Token* lex(const char* input) {
 				pos += 2;
 				while (CUR == '0' || CUR == '1') pos++;
 			} else {
-				while (isdigit(CUR) || (CUR == '.' && !has_dot)) {
+				while (isdigit(CUR)
+						|| (CUR == '.'
+							&& !has_dot
+							&& isdigit(NEXT))) {
 					if (CUR == '.') has_dot = true;
 					pos++;
 				}
