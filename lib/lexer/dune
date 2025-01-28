@@ -1,0 +1,7 @@
+(library
+  (name lexer)
+  (foreign_stubs
+    (language c)
+    (names lexer_stubs lexer helpers)
+    (flags (-I .)))
+  (modules lexer))

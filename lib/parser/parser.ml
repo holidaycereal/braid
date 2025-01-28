@@ -1,4 +1,4 @@
-open Lexer
+(* open Lexer *)
 open Stdint
 
 type num_kind = Signed | Unsigned | Floating
