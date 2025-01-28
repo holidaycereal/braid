@@ -5,75 +5,63 @@ bnf grammar for braid
 x*  - 0 or more of x
 x+  - 1 or more of x
 
-<program>          ::= <directive>* <toplevel-def>* <entry>
-<directive>        ::= <import> | <include>
-<toplevel-def>     ::= <assignment>
-                     | <declaration>
-                     | <const-def>
-                     | <type-def>
-                     | <record-def>
-                     | <fn-def>
-<entry>            ::= "main" "{" <statement>* "}"
+<program>   ::= <directive>* <toplevel>* <entry>
+<entry>     ::= "main" "{" <statement>* "}"
+<directive> ::= <import> | <include>
+<toplevel>  ::= <assignment>
+              | <decl>
+              | <const-def>
+              | <type-def>
+              | <record-def>
+              | <fn-def>
 
-<statement>        ::= <single-statement> ";" | <block>
-<single-statement> ::= <assignment>
-                     | <reassignment>
-                     | <declaration>
+<import>  ::= "import"  <module-path> ";"
+<include> ::= "include" <file-path>   ";"
+
+<const-def>  ::= "const"  <ident> ":" [<type>] "=" <expr> ";"
+<type-def>   ::= "type"   <ident> "=" <type> ";"
+<record-def> ::= "record" <ident> "{" (<decl> ";")* "}"
+
+<fn-def>     ::= <fn-decl> ("=>" <expr> ";" | "{" <statement>* "}")
+<fn-decl>    ::= "fn" <ident> <param-list> | <fn-decl> <param-list>
+<param-list> ::= "(" [<ident> ("," <ident>)*] ")"
+
+<statement> ::= <single-statement> ";" | <block>
+
+<single-statement> ::= <ident> ":" [<type>] "=" <expr>  // assignment
+                     | <ident> "=" <expr>               // reassignment
+                     | <ident> ":" <type>               // declaration
                      | <fn-call>
-                     | <return>
-                     | <break>
-                     | <continue>
-<block>            ::= <if-block>
-                     | <switch-block>
-                     | <for-block>
-                     | <while-block>
+                     | "=>" <expr>                 // return statement
+                     | "break" <positive-integer>  // break <depth>;
+                     | "continue"
 
-<assignment>       ::= <ident> ":" [<type>] "=" <expr>
-<declaration>      ::= <ident> ":" <type>
-<reassignment>     ::= <ident> "=" <expr>
-<fn-call>          ::= <ident> "(" <argument>* ")"
-<return>           ::= "=>" <expr>
+<fn-call>    ::= <ident> <arg-list> | <fn-call> <arg-list>
+<arg-list>   ::= "(" [<expr> ("," <expr>)*] ")"
 
-<const-def>        ::= "const"  <ident> ":" <type> "=" <expr> ";"
-<type-def>         ::= "type"   <ident> "=" <type> ";"
-<record-def>       ::= "record" <ident> "{" (<declaration> ";")* "}"
+<expr> ::= <match-expr> | <when-expr> | <const-expr> | <dyn-expr> | <fn-call>
 
-<fn-def>           ::= "fn" <ident> <param>+ [<type-sig>] <fn-body>
-<param>            ::= "(" [<ident> ("," <ident>)*] ")"
-<type-sig>         ::= ":" <type> ("->" <type>)+
-<fn-body>          ::= "{" <statement>* "}" | <return> ";"
+<match-expr> ::= "match" <expr> "with"
+                      (<expr> "->" <const-expr>)
+                 ("|" (<expr> "->" <const-expr>))*
+                 ["|" <expr>]
 
-<import>           ::= "import"  <module-path> ";"
-<include>          ::= "include" <file-path>   ";"
+<when-expr>  ::= "when"
+                      (<cond> "->" <expr>)
+                 ("|" (<cond> "->" <expr>))*
+                 "|" <expr>
 
-<expr>             ::= <match-expr>
-                     | <when-expr>
-                     | <const-expr>
-                     | <dyn-expr>
-                     | <fn-call>
+<block> ::= <switch-block> | <if-block> | <for-block> | <while-block>
 
-<match-expr>       ::= "match" <expr> "with"
-                       ["|"] <match-case>
-                       ("|"  <match-case>)*
-                       [<fallback>]
-<match-case>       ::= <expr> "->" <const-expr>
+<switch-block> ::= "switch" <expr> "{"
+                   ("case" <const-expr> ":" <statement>*)*
+                   ["default"           ":" <statement>*]
+                   "}"
 
-<when-expr>        ::= "when"
-                       ["|"] <when-pred>
-                       ("|"  <when-pred>)*
-                       <fallback>
-<when-pred>        ::= <cond> "->" <expr>
+<if-block>     ::= "if"    <cond> "{" <statement>* "}"
+                   ("elif" <cond> "{" <statement>* "}")*
+                   ["else"        "{" <statement>* "}"]
 
-<fallback>         ::= "|" <expr>
+<for-block>    ::= "for" <param> "in" <iterable>    "{" <statement>* "}"
 
-<if-block>         ::= "if"    <cond> "{" <statement>* "}"
-                       ("elif" <cond> "{" <statement>* "}")*
-                       ["else"        "{" <statement>* "}"]
-
-<switch-block>     ::= "switch" <expr> "{"
-                       ("case" <const-expr> ":" <statement>*)*
-                       ["default"           ":" <statement>*]
-                       "}"
-
-<for-block>        ::= "for" <param> "in" <iterable>    "{" <statement>* "}"
-<while-block>      ::= "while" <cond> ["," <statement>] "{" <statement>* "}"
+<while-block>  ::= "while" <cond> ["," <statement>] "{" <statement>* "}"
