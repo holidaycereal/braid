@@ -106,9 +106,4 @@ Token make_token(TokenType type, const char* value);
 Token* lex(const char* input);
 void free_tokens(Token* tokens);
 
-// For FFI
-size_t get_token_size();
-size_t get_token_alignment();
-size_t get_token_type_size();
-
 #endif
