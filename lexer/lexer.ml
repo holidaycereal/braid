@@ -94,8 +94,8 @@ type token_type =
 (* }}} *)
 
 type token = {
-  tok_typ : token_type;
-  tok_val : string option;
+  token_type : token_type;
+  token_value : string option;
 }
 
 external c_lex : string -> (int * string) array = "c_lex"
@@ -197,8 +197,8 @@ let convert_token_type = function
 (* }}} *)
 
 let convert_token (ttyp, tval) = {
-  tok_typ = convert_token_type ttyp;
-  tok_val = if tval = "" then None else Some tval;
+  token_type = convert_token_type ttyp;
+  token_value = if tval = "" then None else Some tval;
 }
 
 let lex input =
