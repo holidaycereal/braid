@@ -1,6 +1,7 @@
 open Lexer
 
 let print_token token =
+(* {{{ *)
   let typ_str = match token.tok_typ with
   | TokWordIf -> "TokWordIf"
   | TokWordElse -> "TokWordElse"
@@ -93,6 +94,7 @@ let print_token token =
   | TokRange -> "TokRange"
   | TokModule -> "TokModule"
   | TokEof -> "TokEof"
+(* }}} *)
   in
   let val_str = match token.tok_val with
   | None -> ""
