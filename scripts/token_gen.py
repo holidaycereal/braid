@@ -49,7 +49,7 @@ def gen_ml_print(labels: List[str]) -> List[str]:
     return [f"  | {name} -> \"{name}\"" for name in (ml_name(label) for label in labels)]
 
 # File IO
-def new_section(filename: str, marker: str, new_content: List[str]) -> None:
+def gen_section(filename: str, marker: str, new_content: List[str]) -> None:
     with open(filename) as f:
         lines = f.readlines()
 
@@ -88,13 +88,13 @@ def main():
 
     src = project_root/"lib"/"lexer"
     bin = project_root/"bin"
-    new_section(src/"lexer.h", "TYPE", gen_c_type(all))
-    new_section(src/"helpers.c", "WORD", gen_c_word(words))
-    new_section(src/"helpers.c", "SYMBOL", gen_c_symbol(short_entries, long_entries))
-    new_section(src/"helpers.c", "ISLONG", gen_c_islong(short_symbols))
-    new_section(src/"lexer.ml", "TYPE", gen_ml_type(all))
-    new_section(src/"lexer.ml", "CONVERT", gen_ml_convert(all))
-    new_section(bin/"main.ml", "PRINT", gen_ml_print(all))
+    gen_section(src/"lexer.h", "TYPE", gen_c_type(all))
+    gen_section(src/"helpers.c", "WORD", gen_c_word(words))
+    gen_section(src/"helpers.c", "SYMBOL", gen_c_symbol(short_entries, long_entries))
+    gen_section(src/"helpers.c", "ISLONG", gen_c_islong(short_symbols))
+    gen_section(src/"lexer.ml", "TYPE", gen_ml_type(all))
+    gen_section(src/"lexer.ml", "CONVERT", gen_ml_convert(all))
+    gen_section(bin/"main.ml", "PRINT", gen_ml_print(all))
 
 if __name__ == "__main__":
     main()
