@@ -1,0 +1,98 @@
+words:
+  - "word_if"
+  - "word_else"
+  - "word_elif"
+  - "word_while"
+  - "word_for"
+  - "word_in"
+  - "word_break"
+  - "word_continue"
+  - "word_match"
+  - "word_with"
+  - "word_when"
+  - "word_switch"
+  - "word_case"
+  - "word_default"
+  - "word_dyn"
+  - "word_type"
+  - "word_record"
+  - "word_const"
+  - "word_fn"
+  - "word_include"
+  - "word_import"
+  - "word_as"
+  - "word_exit"
+  - "word_and"
+  - "word_or"
+  - "word_xor"
+  - "word_not"
+  - "prim_u8"
+  - "prim_u16"
+  - "prim_u32"
+  - "prim_u64"
+  - "prim_i8"
+  - "prim_i16"
+  - "prim_i32"
+  - "prim_i64"
+  - "prim_usize"
+  - "prim_isize"
+  - "prim_f32"
+  - "prim_f64"
+  - "prim_bool"
+  - "lit_true"
+  - "lit_false"
+
+special:
+  - "ident"
+  - "lit_int_dec"
+  - "lit_int_hex"
+  - "lit_int_oct"
+  - "lit_int_bin"
+  - "lit_float"
+  - "lit_char"
+  - "lit_str"
+  - "lit_str_raw"
+  - "err"
+  - "eof"
+
+shortSymbols:
+  - ["paren_l",   "("]
+  - ["paren_r",   ")"]
+  - ["bracket_l", "["]
+  - ["bracket_r", "]"]
+  - ["brace_l",   "{"]
+  - ["brace_r",   "}"]
+  - ["dot",       "."]
+  - ["comma",     ","]
+  - ["semicolon", ";"]
+  - ["colon",     ":"]
+  - ["equals",    "="]
+  - ["vert_line", "|"]
+  - ["ampersand", "&"]
+  - ["bang",      "!"]
+  - ["question",  "?"]
+  - ["caret",     "^"]
+  - ["minus",     "-"]
+  - ["plus",      "+"]
+  - ["star",      "*"]
+  - ["slash",     "/"]
+  - ["percent",   "%"]
+  - ["less",      "<"]
+  - ["greater",   ">"]
+
+longSymbols:
+  - ["comp_eq",        "=="]
+  - ["comp_ne",        "!="]
+  - ["comp_le",        "<="]
+  - ["comp_ge",        ">="]
+  - ["arrow",          "->"]
+  - ["return_arrow",   "=>"]
+  - ["fwd_compose",    ">>"]
+  - ["plus_equals",    "+="]
+  - ["minus_equals",   "-="]
+  - ["star_equals",    "*="]
+  - ["slash_equals",   "/="]
+  - ["caret_equals",   "^="]
+  - ["percent_equals", "%="]
+  - ["range",          ".."]
+  - ["module",         "::"]

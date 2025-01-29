@@ -2,6 +2,7 @@
 #include <string.h>
 
 TokenType get_word_type(const char* word) {
+// GENERATE BEGIN WORD {{{
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
 	if (strcmp(word, "else") == 0) return TOK_WORD_ELSE;
 	if (strcmp(word, "elif") == 0) return TOK_WORD_ELIF;
@@ -44,11 +45,13 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "bool") == 0) return TOK_PRIM_BOOL;
 	if (strcmp(word, "true") == 0) return TOK_LIT_TRUE;
 	if (strcmp(word, "false") == 0) return TOK_LIT_FALSE;
+// GENERATE END WORD }}}
 	return TOK_IDENT;
 }
 
 TokenType get_symbol_type(char c1, char c2) {
 	switch (c1) {
+// GENERATE BEGIN SYMBOL {{{
 	case '(': return TOK_PAREN_L;
 	case ')': return TOK_PAREN_R;
 	case '[': return TOK_BRACKET_L;
@@ -65,42 +68,45 @@ TokenType get_symbol_type(char c1, char c2) {
 	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
 	case '?': return TOK_QUESTION;
 	case '^': return c2 == '=' ? TOK_CARET_EQUALS : TOK_CARET;
-	case '-': return c2 == '=' ? TOK_MINUS_EQUALS : c2 == '>' ? TOK_ARROW : TOK_MINUS;
+	case '-': return c2 == '>' ? TOK_ARROW : c2 == '=' ? TOK_MINUS_EQUALS : TOK_MINUS;
 	case '+': return c2 == '=' ? TOK_PLUS_EQUALS : TOK_PLUS;
 	case '*': return c2 == '=' ? TOK_STAR_EQUALS : TOK_STAR;
 	case '/': return c2 == '=' ? TOK_SLASH_EQUALS : TOK_SLASH;
 	case '%': return c2 == '=' ? TOK_PERCENT_EQUALS : TOK_PERCENT;
 	case '<': return c2 == '=' ? TOK_COMP_LE : TOK_LESS;
 	case '>': return c2 == '=' ? TOK_COMP_GE : c2 == '>' ? TOK_FWD_COMPOSE : TOK_GREATER;
+// GENERATE END SYMBOL }}}
 	default: return TOK_ERR;
 	}
 }
 
 bool is_long_symbol(TokenType type) {
 	switch (type) {
+// GENERATE BEGIN ISLONG {{{
 	case TOK_PAREN_L: return false;
 	case TOK_PAREN_R: return false;
 	case TOK_BRACKET_L: return false;
 	case TOK_BRACKET_R: return false;
 	case TOK_BRACE_L: return false;
 	case TOK_BRACE_R: return false;
+	case TOK_DOT: return false;
 	case TOK_COMMA: return false;
 	case TOK_SEMICOLON: return false;
-	case TOK_QUESTION: return false;
-	case TOK_DOT: return false;
 	case TOK_COLON: return false;
 	case TOK_EQUALS: return false;
 	case TOK_VERT_LINE: return false;
 	case TOK_AMPERSAND: return false;
 	case TOK_BANG: return false;
+	case TOK_QUESTION: return false;
 	case TOK_CARET: return false;
 	case TOK_MINUS: return false;
-	case TOK_STAR: return false;
 	case TOK_PLUS: return false;
+	case TOK_STAR: return false;
 	case TOK_SLASH: return false;
 	case TOK_PERCENT: return false;
 	case TOK_LESS: return false;
 	case TOK_GREATER: return false;
+// GENERATE END ISLONG }}}
 	case TOK_ERR: return false;
 	default: return true;
 	}

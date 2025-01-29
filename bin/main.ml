@@ -1,8 +1,8 @@
 open Lexer
 
 let print_token token =
-(* {{{ *)
   let typ_str = match token.token_type with
+(* GENERATE BEGIN PRINT {{{ *)
   | TokWordIf -> "TokWordIf"
   | TokWordElse -> "TokWordElse"
   | TokWordElif -> "TokWordElif"
@@ -55,6 +55,7 @@ let print_token token =
   | TokLitStr -> "TokLitStr"
   | TokLitStrRaw -> "TokLitStrRaw"
   | TokErr -> "TokErr"
+  | TokEof -> "TokEof"
   | TokParenL -> "TokParenL"
   | TokParenR -> "TokParenR"
   | TokBracketL -> "TokBracketL"
@@ -93,8 +94,7 @@ let print_token token =
   | TokPercentEquals -> "TokPercentEquals"
   | TokRange -> "TokRange"
   | TokModule -> "TokModule"
-  | TokEof -> "TokEof"
-(* }}} *)
+(* GENERATE END PRINT }}} *)
   in
   let val_str = match token.token_value with
   | None -> ""

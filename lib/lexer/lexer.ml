@@ -1,5 +1,5 @@
 type token_type =
-(* {{{ *)
+(* GENERATE BEGIN TYPE {{{ *)
   | TokWordIf
   | TokWordElse
   | TokWordElif
@@ -52,6 +52,7 @@ type token_type =
   | TokLitStr
   | TokLitStrRaw
   | TokErr
+  | TokEof
   | TokParenL
   | TokParenR
   | TokBracketL
@@ -90,8 +91,7 @@ type token_type =
   | TokPercentEquals
   | TokRange
   | TokModule
-  | TokEof
-(* }}} *)
+(* GENERATE END TYPE }}} *)
 
 type token = {
   token_type : token_type;
@@ -101,7 +101,7 @@ type token = {
 external c_lex : string -> (int * string) array = "c_lex"
 
 let convert_token_type = function
-(* {{{ *)
+(* GENERATE BEGIN CONVERT {{{ *)
   | 0 -> TokWordIf
   | 1 -> TokWordElse
   | 2 -> TokWordElif
@@ -154,47 +154,47 @@ let convert_token_type = function
   | 49 -> TokLitStr
   | 50 -> TokLitStrRaw
   | 51 -> TokErr
-  | 52 -> TokParenL
-  | 53 -> TokParenR
-  | 54 -> TokBracketL
-  | 55 -> TokBracketR
-  | 56 -> TokBraceL
-  | 57 -> TokBraceR
-  | 58 -> TokDot
-  | 59 -> TokComma
-  | 60 -> TokSemicolon
-  | 61 -> TokColon
-  | 62 -> TokEquals
-  | 63 -> TokVertLine
-  | 64 -> TokAmpersand
-  | 65 -> TokBang
-  | 66 -> TokQuestion
-  | 67 -> TokCaret
-  | 68 -> TokMinus
-  | 69 -> TokPlus
-  | 70 -> TokStar
-  | 71 -> TokSlash
-  | 72 -> TokPercent
-  | 73 -> TokLess
-  | 74 -> TokGreater
-  | 75 -> TokCompEq
-  | 76 -> TokCompNe
-  | 77 -> TokCompLe
-  | 78 -> TokCompGe
-  | 79 -> TokArrow
-  | 80 -> TokReturnArrow
-  | 81 -> TokFwdCompose
-  | 82 -> TokPlusEquals
-  | 83 -> TokMinusEquals
-  | 84 -> TokStarEquals
-  | 85 -> TokSlashEquals
-  | 86 -> TokCaretEquals
-  | 87 -> TokPercentEquals
-  | 88 -> TokRange
-  | 89 -> TokModule
-  | 90 -> TokEof
+  | 52 -> TokEof
+  | 53 -> TokParenL
+  | 54 -> TokParenR
+  | 55 -> TokBracketL
+  | 56 -> TokBracketR
+  | 57 -> TokBraceL
+  | 58 -> TokBraceR
+  | 59 -> TokDot
+  | 60 -> TokComma
+  | 61 -> TokSemicolon
+  | 62 -> TokColon
+  | 63 -> TokEquals
+  | 64 -> TokVertLine
+  | 65 -> TokAmpersand
+  | 66 -> TokBang
+  | 67 -> TokQuestion
+  | 68 -> TokCaret
+  | 69 -> TokMinus
+  | 70 -> TokPlus
+  | 71 -> TokStar
+  | 72 -> TokSlash
+  | 73 -> TokPercent
+  | 74 -> TokLess
+  | 75 -> TokGreater
+  | 76 -> TokCompEq
+  | 77 -> TokCompNe
+  | 78 -> TokCompLe
+  | 79 -> TokCompGe
+  | 80 -> TokArrow
+  | 81 -> TokReturnArrow
+  | 82 -> TokFwdCompose
+  | 83 -> TokPlusEquals
+  | 84 -> TokMinusEquals
+  | 85 -> TokStarEquals
+  | 86 -> TokSlashEquals
+  | 87 -> TokCaretEquals
+  | 88 -> TokPercentEquals
+  | 89 -> TokRange
+  | 90 -> TokModule
+(* GENERATE END CONVERT }}} *)
   | _ -> TokErr
-(* }}} *)
 
 let convert_token (ttyp, tval) = {
   token_type = convert_token_type ttyp;

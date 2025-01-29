@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 typedef enum {
+// GENERATE BEGIN TYPE {{{
 	TOK_WORD_IF,
 	TOK_WORD_ELSE,
 	TOK_WORD_ELIF,
@@ -56,6 +57,7 @@ typedef enum {
 	TOK_LIT_STR,
 	TOK_LIT_STR_RAW,
 	TOK_ERR,
+	TOK_EOF,
 	TOK_PAREN_L,
 	TOK_PAREN_R,
 	TOK_BRACKET_L,
@@ -79,22 +81,22 @@ typedef enum {
 	TOK_PERCENT,
 	TOK_LESS,
 	TOK_GREATER,
-	TOK_COMP_EQ,         //  ==
-	TOK_COMP_NE,         //  !=
-	TOK_COMP_LE,         //  <=
-	TOK_COMP_GE,         //  >=
-	TOK_ARROW,           //  ->
-	TOK_RETURN_ARROW,    //  =>
-	TOK_FWD_COMPOSE,     //  >>
-	TOK_PLUS_EQUALS,     //  +=
-	TOK_MINUS_EQUALS,    //  -=
-	TOK_STAR_EQUALS,     //  *=
-	TOK_SLASH_EQUALS,    //  /=
-	TOK_CARET_EQUALS,    //  ^=
-	TOK_PERCENT_EQUALS,  //  %=
-	TOK_RANGE,           //  ..
-	TOK_MODULE,          //  ::
-	TOK_EOF,
+	TOK_COMP_EQ,
+	TOK_COMP_NE,
+	TOK_COMP_LE,
+	TOK_COMP_GE,
+	TOK_ARROW,
+	TOK_RETURN_ARROW,
+	TOK_FWD_COMPOSE,
+	TOK_PLUS_EQUALS,
+	TOK_MINUS_EQUALS,
+	TOK_STAR_EQUALS,
+	TOK_SLASH_EQUALS,
+	TOK_CARET_EQUALS,
+	TOK_PERCENT_EQUALS,
+	TOK_RANGE,
+	TOK_MODULE,
+// GENERATE END TYPE }}}
 } TokenType;
 
 typedef struct {
