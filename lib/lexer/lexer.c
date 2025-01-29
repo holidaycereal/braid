@@ -77,19 +77,26 @@ Token* lex(const char* input) {
 			bool has_dot = false;
 			TokenType type = TOK_LIT_INT_DEC;
 
+			// Hexadecimal
 			if (CUR == '0' && (NEXT == 'x' || NEXT == 'X')) {
 				type = TOK_LIT_INT_HEX;
 				pos += 2;
 				while (isxdigit(CUR)) pos++;
-			} else if (CUR == '0' && (NEXT == 'o' || NEXT == 'O')) {
+			}
+			// Octal
+			else if (CUR == '0' && (NEXT == 'o' || NEXT == 'O')) {
 				type = TOK_LIT_INT_OCT;
 				pos += 2;
 				while (CUR >= '0' && CUR <= '7') pos++;
-			} else if (CUR == '0' && (NEXT == 'b' || NEXT == 'B')) {
+			}
+			// Binary
+			else if (CUR == '0' && (NEXT == 'b' || NEXT == 'B')) {
 				type = TOK_LIT_INT_BIN;
 				pos += 2;
 				while (CUR == '0' || CUR == '1') pos++;
-			} else {
+			}
+			// Decimal
+			else {
 				while (isdigit(CUR)
 						|| (CUR == '.'
 							&& !has_dot
