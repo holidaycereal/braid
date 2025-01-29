@@ -127,7 +127,6 @@ Token* lex(const char* input) {
 				if (CUR == '\0') break;
 				pos++;
 			}
-
 			if (CUR == '\0') {
 				tokens[count++] = make_token(TOK_ERR, "Unterminated string literal");
 				continue;
@@ -180,7 +179,6 @@ Token* lex(const char* input) {
 			TokenType type = get_symbol_type(CUR, NEXT);
 			if (is_long_symbol(type)) pos++;
 			pos++;
-
 			if (type == TOK_ERR) {
 				char err_str[32];
 				sprintf(err_str, "Unknown character %c", PREV);
