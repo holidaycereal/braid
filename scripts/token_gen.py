@@ -75,7 +75,7 @@ def main():
     script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
     project_root = script_dir.parent
 
-    with open(script_dir/"tokens.yml") as f:
+    with open(script_dir/"config.yml") as f:
         data = yaml.safe_load(f)
 
     words = data["words"]
