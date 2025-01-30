@@ -64,14 +64,13 @@ TokenType get_symbol_type(char c1, char c2) {
 	case ']': return TOK_BRACKET_R;
 	case '{': return TOK_BRACE_L;
 	case '}': return TOK_BRACE_R;
-	case '.': return c2 == '.' ? TOK_RANGE : c2 == '<' ? TOK_BIT_LSL : c2 == '>' ? TOK_BIT_LSR : TOK_DOT;
+	case '.': return c2 == '.' ? TOK_RANGE : c2 == '<' ? TOK_BIT_LSL : c2 == '>' ? TOK_BIT_LSR : c2 == '*' ? TOK_BIT_AND : c2 == '+' ? TOK_BIT_OR : c2 == '^' ? TOK_BIT_XOR : TOK_DOT;
 	case ',': return TOK_COMMA;
 	case ';': return TOK_SEMICOLON;
 	case ':': return c2 == ':' ? TOK_MODULE : c2 == '<' ? TOK_BIT_ASL : c2 == '>' ? TOK_BIT_ASR : TOK_COLON;
 	case '=': return c2 == '=' ? TOK_COMP_EQ : c2 == '>' ? TOK_RETURN_ARROW : TOK_EQUALS;
 	case '|': return TOK_VERT_LINE;
 	case '&': return TOK_AMPERSAND;
-	case '#': return TOK_HASH;
 	case '~': return TOK_TILDE;
 	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
 	case '?': return TOK_QUESTION;
@@ -104,7 +103,6 @@ bool is_long_symbol(TokenType type) {
 	case TOK_EQUALS: return false;
 	case TOK_VERT_LINE: return false;
 	case TOK_AMPERSAND: return false;
-	case TOK_HASH: return false;
 	case TOK_TILDE: return false;
 	case TOK_BANG: return false;
 	case TOK_QUESTION: return false;

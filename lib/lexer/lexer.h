@@ -77,7 +77,6 @@ typedef enum {
 	TOK_EQUALS,
 	TOK_VERT_LINE,
 	TOK_AMPERSAND,
-	TOK_HASH,
 	TOK_TILDE,
 	TOK_BANG,
 	TOK_QUESTION,
@@ -103,6 +102,9 @@ typedef enum {
 	TOK_BIT_LSR,
 	TOK_BIT_ASL,
 	TOK_BIT_ASR,
+	TOK_BIT_AND,
+	TOK_BIT_OR,
+	TOK_BIT_XOR,
 // GENERATE END TYPE }}}
 } TokenType;
 
