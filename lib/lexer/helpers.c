@@ -8,6 +8,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "elif") == 0) return TOK_WORD_ELIF;
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
 	if (strcmp(word, "for") == 0) return TOK_WORD_FOR;
+	if (strcmp(word, "do") == 0) return TOK_WORD_DO;
 	if (strcmp(word, "in") == 0) return TOK_WORD_IN;
 	if (strcmp(word, "break") == 0) return TOK_WORD_BREAK;
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
@@ -29,11 +30,13 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
 	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
-	if (strcmp(word, "not") == 0) return TOK_WORD_NOT;
+	if (strcmp(word, "byte") == 0) return TOK_PRIM_BYTE;
+	if (strcmp(word, "uint") == 0) return TOK_PRIM_UINT;
 	if (strcmp(word, "u8") == 0) return TOK_PRIM_U8;
 	if (strcmp(word, "u16") == 0) return TOK_PRIM_U16;
 	if (strcmp(word, "u32") == 0) return TOK_PRIM_U32;
 	if (strcmp(word, "u64") == 0) return TOK_PRIM_U64;
+	if (strcmp(word, "int") == 0) return TOK_PRIM_INT;
 	if (strcmp(word, "i8") == 0) return TOK_PRIM_I8;
 	if (strcmp(word, "i16") == 0) return TOK_PRIM_I16;
 	if (strcmp(word, "i32") == 0) return TOK_PRIM_I32;
@@ -42,6 +45,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "isize") == 0) return TOK_PRIM_ISIZE;
 	if (strcmp(word, "f32") == 0) return TOK_PRIM_F32;
 	if (strcmp(word, "f64") == 0) return TOK_PRIM_F64;
+	if (strcmp(word, "float") == 0) return TOK_PRIM_FLOAT;
 	if (strcmp(word, "bool") == 0) return TOK_PRIM_BOOL;
 	if (strcmp(word, "true") == 0) return TOK_LIT_TRUE;
 	if (strcmp(word, "false") == 0) return TOK_LIT_FALSE;
