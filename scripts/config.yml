@@ -14,10 +14,10 @@ words:
   - "word_switch"
   - "word_case"
   - "word_default"
-  - "word_dyn"
   - "word_type"
   - "word_record"
   - "word_const"
+  - "word_alias"
   - "word_fn"
   - "word_include"
   - "word_import"
@@ -42,6 +42,7 @@ words:
   - "prim_f32"
   - "prim_f64"
   - "prim_float"
+  - "prim_dyn"
   - "prim_bool"
   - "lit_true"
   - "lit_false"
@@ -73,6 +74,8 @@ shortSymbols:
   - ["equals",    "="]
   - ["vert_line", "|"]
   - ["ampersand", "&"]
+  - ["hash",      "#"]
+  - ["tilde",     "~"]
   - ["bang",      "!"]
   - ["question",  "?"]
   - ["caret",     "^"]
@@ -85,18 +88,17 @@ shortSymbols:
   - ["greater",   ">"]
 
 longSymbols:
-  - ["comp_eq",        "=="]
-  - ["comp_ne",        "!="]
-  - ["comp_le",        "<="]
-  - ["comp_ge",        ">="]
-  - ["arrow",          "->"]
-  - ["return_arrow",   "=>"]
-  - ["fwd_compose",    ">>"]
-  - ["plus_equals",    "+="]
-  - ["minus_equals",   "-="]
-  - ["star_equals",    "*="]
-  - ["slash_equals",   "/="]
-  - ["caret_equals",   "^="]
-  - ["percent_equals", "%="]
-  - ["range",          ".."]
-  - ["module",         "::"]
+  - ["comp_eq",      "=="]
+  - ["comp_ne",      "!="]
+  - ["comp_le",      "<="]
+  - ["comp_ge",      ">="]
+  - ["arrow",        "->"]
+  - ["return_arrow", "=>"]
+  - ["fwd_compose",  ">>"]
+  - ["range",        ".."]
+  - ["module",       "::"]
+  - ["concat",       "++"]
+  - ["bit_lsl",      ".<"]
+  - ["bit_lsr",      ".>"]
+  - ["bit_asl",      ":<"]
+  - ["bit_asr",      ":>"]

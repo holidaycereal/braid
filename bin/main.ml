@@ -73,6 +73,8 @@ let print_token token =
   | TokEquals -> "TokEquals"
   | TokVertLine -> "TokVertLine"
   | TokAmpersand -> "TokAmpersand"
+  | TokHash -> "TokHash"
+  | TokTilde -> "TokTilde"
   | TokBang -> "TokBang"
   | TokQuestion -> "TokQuestion"
   | TokCaret -> "TokCaret"
@@ -90,14 +92,13 @@ let print_token token =
   | TokArrow -> "TokArrow"
   | TokReturnArrow -> "TokReturnArrow"
   | TokFwdCompose -> "TokFwdCompose"
-  | TokPlusEquals -> "TokPlusEquals"
-  | TokMinusEquals -> "TokMinusEquals"
-  | TokStarEquals -> "TokStarEquals"
-  | TokSlashEquals -> "TokSlashEquals"
-  | TokCaretEquals -> "TokCaretEquals"
-  | TokPercentEquals -> "TokPercentEquals"
   | TokRange -> "TokRange"
   | TokModule -> "TokModule"
+  | TokConcat -> "TokConcat"
+  | TokBitLsl -> "TokBitLsl"
+  | TokBitLsr -> "TokBitLsr"
+  | TokBitAsl -> "TokBitAsl"
+  | TokBitAsr -> "TokBitAsr"
 (* GENERATE END PRINT }}} *)
   in
   let val_str = match token.token_value with

@@ -70,6 +70,8 @@ type token_type =
   | TokEquals
   | TokVertLine
   | TokAmpersand
+  | TokHash
+  | TokTilde
   | TokBang
   | TokQuestion
   | TokCaret
@@ -87,14 +89,13 @@ type token_type =
   | TokArrow
   | TokReturnArrow
   | TokFwdCompose
-  | TokPlusEquals
-  | TokMinusEquals
-  | TokStarEquals
-  | TokSlashEquals
-  | TokCaretEquals
-  | TokPercentEquals
   | TokRange
   | TokModule
+  | TokConcat
+  | TokBitLsl
+  | TokBitLsr
+  | TokBitAsl
+  | TokBitAsr
 (* GENERATE END TYPE }}} *)
 
 type token = {
@@ -176,31 +177,32 @@ let convert_token_type = function
   | 67 -> TokEquals
   | 68 -> TokVertLine
   | 69 -> TokAmpersand
-  | 70 -> TokBang
-  | 71 -> TokQuestion
-  | 72 -> TokCaret
-  | 73 -> TokMinus
-  | 74 -> TokPlus
-  | 75 -> TokStar
-  | 76 -> TokSlash
-  | 77 -> TokPercent
-  | 78 -> TokLess
-  | 79 -> TokGreater
-  | 80 -> TokCompEq
-  | 81 -> TokCompNe
-  | 82 -> TokCompLe
-  | 83 -> TokCompGe
-  | 84 -> TokArrow
-  | 85 -> TokReturnArrow
-  | 86 -> TokFwdCompose
-  | 87 -> TokPlusEquals
-  | 88 -> TokMinusEquals
-  | 89 -> TokStarEquals
-  | 90 -> TokSlashEquals
-  | 91 -> TokCaretEquals
-  | 92 -> TokPercentEquals
-  | 93 -> TokRange
-  | 94 -> TokModule
+  | 70 -> TokHash
+  | 71 -> TokTilde
+  | 72 -> TokBang
+  | 73 -> TokQuestion
+  | 74 -> TokCaret
+  | 75 -> TokMinus
+  | 76 -> TokPlus
+  | 77 -> TokStar
+  | 78 -> TokSlash
+  | 79 -> TokPercent
+  | 80 -> TokLess
+  | 81 -> TokGreater
+  | 82 -> TokCompEq
+  | 83 -> TokCompNe
+  | 84 -> TokCompLe
+  | 85 -> TokCompGe
+  | 86 -> TokArrow
+  | 87 -> TokReturnArrow
+  | 88 -> TokFwdCompose
+  | 89 -> TokRange
+  | 90 -> TokModule
+  | 91 -> TokConcat
+  | 92 -> TokBitLsl
+  | 93 -> TokBitLsr
+  | 94 -> TokBitAsl
+  | 95 -> TokBitAsr
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr
 
