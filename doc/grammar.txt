@@ -5,15 +5,16 @@ bnf grammar for braid
 x*  - 0 or more of x
 x+  - 1 or more of x
 
-<program>   ::= <directive>* <toplevel>* <entry>
-<entry>     ::= "main" "{" <statement>* "}"
-<directive> ::= <import> | <include>
+<program>   ::= <toplevel>* <main-fn>
+<main-fn>     ::= "main" "{" <statement>* "}"
 <toplevel>  ::= <assignment>
               | <decl>
               | <const-def>
               | <type-def>
               | <record-def>
               | <fn-def>
+              | <import>
+              | <include>
 
 <import>  ::= "import"  <module-path> ";"
 <include> ::= "include" <file-path>   ";"
@@ -28,13 +29,17 @@ x+  - 1 or more of x
 
 <statement> ::= <single-statement> ";" | <block>
 
-<single-statement> ::= <ident> ":" [<type>] "=" <expr>  // assignment
-                     | <ident> "=" <expr>               // reassignment
-                     | <ident> ":" <type>               // declaration
+<single-statement> ::= <assignment>
+                     | <reassignment>
+                     | <declaration>
                      | <fn-call>
-                     | "=>" <expr>                 // return statement
+                     | "=>" <expr>  // return statement
                      | "break" <positive-integer>  // break <depth>;
                      | "continue"
+
+<assignment>   ::= <ident> ":" [<type>] "=" <expr>
+<reassignment> ::= <ident> "=" <expr>
+<declaration>  ::= <ident> ":" <type>
 
 <fn-call>    ::= <ident> <arg-list> | <fn-call> <arg-list>
 <arg-list>   ::= "(" [<expr> ("," <expr>)*] ")"
