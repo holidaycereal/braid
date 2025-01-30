@@ -18,10 +18,10 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "switch") == 0) return TOK_WORD_SWITCH;
 	if (strcmp(word, "case") == 0) return TOK_WORD_CASE;
 	if (strcmp(word, "default") == 0) return TOK_WORD_DEFAULT;
-	if (strcmp(word, "dyn") == 0) return TOK_WORD_DYN;
 	if (strcmp(word, "type") == 0) return TOK_WORD_TYPE;
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "const") == 0) return TOK_WORD_CONST;
+	if (strcmp(word, "alias") == 0) return TOK_WORD_ALIAS;
 	if (strcmp(word, "fn") == 0) return TOK_WORD_FN;
 	if (strcmp(word, "include") == 0) return TOK_WORD_INCLUDE;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
@@ -46,6 +46,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "f32") == 0) return TOK_PRIM_F32;
 	if (strcmp(word, "f64") == 0) return TOK_PRIM_F64;
 	if (strcmp(word, "float") == 0) return TOK_PRIM_FLOAT;
+	if (strcmp(word, "dyn") == 0) return TOK_PRIM_DYN;
 	if (strcmp(word, "bool") == 0) return TOK_PRIM_BOOL;
 	if (strcmp(word, "true") == 0) return TOK_LIT_TRUE;
 	if (strcmp(word, "false") == 0) return TOK_LIT_FALSE;
