@@ -27,6 +27,7 @@ type token_type =
   | TokWordAnd
   | TokWordOr
   | TokWordXor
+  | TokWordNot
   | TokPrimByte
   | TokPrimUint
   | TokPrimU8
@@ -135,82 +136,83 @@ let convert_token_type = function
   | 24 -> TokWordAnd
   | 25 -> TokWordOr
   | 26 -> TokWordXor
-  | 27 -> TokPrimByte
-  | 28 -> TokPrimUint
-  | 29 -> TokPrimU8
-  | 30 -> TokPrimU16
-  | 31 -> TokPrimU32
-  | 32 -> TokPrimU64
-  | 33 -> TokPrimInt
-  | 34 -> TokPrimI8
-  | 35 -> TokPrimI16
-  | 36 -> TokPrimI32
-  | 37 -> TokPrimI64
-  | 38 -> TokPrimUsize
-  | 39 -> TokPrimIsize
-  | 40 -> TokPrimF32
-  | 41 -> TokPrimF64
-  | 42 -> TokPrimFloat
-  | 43 -> TokPrimDyn
-  | 44 -> TokPrimBool
-  | 45 -> TokLitTrue
-  | 46 -> TokLitFalse
-  | 47 -> TokIdent
-  | 48 -> TokLitIntDec
-  | 49 -> TokLitIntHex
-  | 50 -> TokLitIntOct
-  | 51 -> TokLitIntBin
-  | 52 -> TokLitFloat
-  | 53 -> TokLitChar
-  | 54 -> TokLitStr
-  | 55 -> TokLitStrRaw
-  | 56 -> TokErr
-  | 57 -> TokEof
-  | 58 -> TokParenL
-  | 59 -> TokParenR
-  | 60 -> TokBracketL
-  | 61 -> TokBracketR
-  | 62 -> TokBraceL
-  | 63 -> TokBraceR
-  | 64 -> TokDot
-  | 65 -> TokComma
-  | 66 -> TokSemicolon
-  | 67 -> TokColon
-  | 68 -> TokEquals
-  | 69 -> TokVertLine
-  | 70 -> TokAmpersand
-  | 71 -> TokHash
-  | 72 -> TokTilde
-  | 73 -> TokBang
-  | 74 -> TokQuestion
-  | 75 -> TokCaret
-  | 76 -> TokMinus
-  | 77 -> TokPlus
-  | 78 -> TokStar
-  | 79 -> TokSlash
-  | 80 -> TokPercent
-  | 81 -> TokLess
-  | 82 -> TokGreater
-  | 83 -> TokCompEq
-  | 84 -> TokCompNe
-  | 85 -> TokCompLe
-  | 86 -> TokCompGe
-  | 87 -> TokArrow
-  | 88 -> TokReturnArrow
-  | 89 -> TokFwdCompose
-  | 90 -> TokRange
-  | 91 -> TokModule
-  | 92 -> TokConcat
-  | 93 -> TokBitLsl
-  | 94 -> TokBitLsr
-  | 95 -> TokBitAsl
-  | 96 -> TokBitAsr
+  | 27 -> TokWordNot
+  | 28 -> TokPrimByte
+  | 29 -> TokPrimUint
+  | 30 -> TokPrimU8
+  | 31 -> TokPrimU16
+  | 32 -> TokPrimU32
+  | 33 -> TokPrimU64
+  | 34 -> TokPrimInt
+  | 35 -> TokPrimI8
+  | 36 -> TokPrimI16
+  | 37 -> TokPrimI32
+  | 38 -> TokPrimI64
+  | 39 -> TokPrimUsize
+  | 40 -> TokPrimIsize
+  | 41 -> TokPrimF32
+  | 42 -> TokPrimF64
+  | 43 -> TokPrimFloat
+  | 44 -> TokPrimDyn
+  | 45 -> TokPrimBool
+  | 46 -> TokLitTrue
+  | 47 -> TokLitFalse
+  | 48 -> TokIdent
+  | 49 -> TokLitIntDec
+  | 50 -> TokLitIntHex
+  | 51 -> TokLitIntOct
+  | 52 -> TokLitIntBin
+  | 53 -> TokLitFloat
+  | 54 -> TokLitChar
+  | 55 -> TokLitStr
+  | 56 -> TokLitStrRaw
+  | 57 -> TokErr
+  | 58 -> TokEof
+  | 59 -> TokParenL
+  | 60 -> TokParenR
+  | 61 -> TokBracketL
+  | 62 -> TokBracketR
+  | 63 -> TokBraceL
+  | 64 -> TokBraceR
+  | 65 -> TokDot
+  | 66 -> TokComma
+  | 67 -> TokSemicolon
+  | 68 -> TokColon
+  | 69 -> TokEquals
+  | 70 -> TokVertLine
+  | 71 -> TokAmpersand
+  | 72 -> TokHash
+  | 73 -> TokTilde
+  | 74 -> TokBang
+  | 75 -> TokQuestion
+  | 76 -> TokCaret
+  | 77 -> TokMinus
+  | 78 -> TokPlus
+  | 79 -> TokStar
+  | 80 -> TokSlash
+  | 81 -> TokPercent
+  | 82 -> TokLess
+  | 83 -> TokGreater
+  | 84 -> TokCompEq
+  | 85 -> TokCompNe
+  | 86 -> TokCompLe
+  | 87 -> TokCompGe
+  | 88 -> TokArrow
+  | 89 -> TokReturnArrow
+  | 90 -> TokFwdCompose
+  | 91 -> TokRange
+  | 92 -> TokModule
+  | 93 -> TokConcat
+  | 94 -> TokBitLsl
+  | 95 -> TokBitLsr
+  | 96 -> TokBitAsl
+  | 97 -> TokBitAsr
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr
 
-let convert_token (ttyp, tval) = {
-  token_type = convert_token_type ttyp;
-  token_value = if tval = "" then None else Some tval;
+let convert_token : int * string -> token = fun (c_typ, c_val) -> {
+  token_type = convert_token_type c_typ;
+  token_value = if c_val = "" then None else Some c_val;
 }
 
 let lex input =

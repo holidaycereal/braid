@@ -30,6 +30,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
 	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
+	if (strcmp(word, "not") == 0) return TOK_WORD_NOT;
 	if (strcmp(word, "byte") == 0) return TOK_PRIM_BYTE;
 	if (strcmp(word, "uint") == 0) return TOK_PRIM_UINT;
 	if (strcmp(word, "u8") == 0) return TOK_PRIM_U8;

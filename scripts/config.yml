@@ -26,6 +26,7 @@ words:
   - "word_and"
   - "word_or"
   - "word_xor"
+  - "word_not"
   - "prim_byte"
   - "prim_uint"
   - "prim_u8"

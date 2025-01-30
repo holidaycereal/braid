@@ -30,6 +30,7 @@ let print_token token =
   | TokWordAnd -> "TokWordAnd"
   | TokWordOr -> "TokWordOr"
   | TokWordXor -> "TokWordXor"
+  | TokWordNot -> "TokWordNot"
   | TokPrimByte -> "TokPrimByte"
   | TokPrimUint -> "TokPrimUint"
   | TokPrimU8 -> "TokPrimU8"
