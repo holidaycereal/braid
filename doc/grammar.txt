@@ -1,72 +1,86 @@
 vim:expandtab
 
-bnf grammar for braid
-[x] - x is optional
-x*  - 0 or more of x
-x+  - 1 or more of x
-
-<program>   ::= <toplevel>* <main-fn>
-<main-fn>     ::= "main" "{" <statement>* "}"
-<toplevel>  ::= <assignment>
-              | <decl>
+<program>   ::= <top-level>* <main-fn>
+<main-fn>   ::= <fn-def>
+<top-level> ::= <decl>
+              | <assign>
               | <const-def>
+              | <alias-def>
               | <type-def>
               | <record-def>
+              | <union-def>
               | <fn-def>
-              | <import>
-              | <include>
+              | <import-directive>
 
-<import>  ::= "import"  <module-path> ";"
-<include> ::= "include" <file-path>   ";"
+<decl>       ::= <ident> ":"  <type-expr> ";"
+<assign>     ::= <ident> ":" [<type-expr>] "=" <expr> ";"
+<const-def>  ::= "const" <assign>
+<alias-def>  ::= "alias"  <ident> "=" <expr> ";"
+<type-def>   ::= "type"   <ident> "=" <type-expr> ";"
+<record-def> ::= "record" <ident> "{" <decl>* "}"
+<fn-def>     ::= <fn-decl> <fn-body>
+<import>     ::= "import" <ident> ["as" <ident> | "::" <ident>*] ";"
+               | "include" <ident> ";"
 
-<const-def>  ::= "const"  <ident> ":" [<type>] "=" <expr> ";"
-<type-def>   ::= "type"   <ident> "=" <type> ";"
-<record-def> ::= "record" <ident> "{" (<decl> ";")* "}"
+import re;
+import math as m;
+import io::print, exit, echo, perror;
+include io;
 
-<fn-def>     ::= <fn-decl> ("=>" <expr> ";" | "{" <statement>* "}")
-<fn-decl>    ::= "fn" <ident> <param-list> | <fn-decl> <param-list>
+<fn-decl>    ::= <normal> | <curried>
+<normal>     ::= <ident> <param-list>
+<curried>    ::= <fn-decl> <param-list>
 <param-list> ::= "(" [<ident> ("," <ident>)*] ")"
+<fn-body>    ::= <return> | "{" <stmt>* "}"
 
-<statement> ::= <single-statement> ";" | <block>
+<stmt> ::= <decl>
+         | <assign>
+         | <reassign>
+         | <fn-call>
+         | <return>
+         | <break>
+         | <continue>
+         | <if-block>
+         | <switch-block>
+         | <while-block>
+         | <for-block>
 
-<single-statement> ::= <assignment>
-                     | <reassignment>
-                     | <declaration>
-                     | <fn-call>
-                     | "=>" <expr>  // return statement
-                     | "break" <positive-integer>  // break <depth>;
-                     | "continue"
+<reassign> ::= <ident> "=" <expr> ";"
+<fn-call>  ::= <ident> <arg-list> | <fn-call> <arg-list>
+<return>   ::= "=>" <expr> ";"
 
-<assignment>   ::= <ident> ":" [<type>] "=" <expr>
-<reassignment> ::= <ident> "=" <expr>
-<declaration>  ::= <ident> ":" <type>
+<arg-list> ::= "(" [<expr> ("," <expr>)*] ")"
 
-<fn-call>    ::= <ident> <arg-list> | <fn-call> <arg-list>
-<arg-list>   ::= "(" [<expr> ("," <expr>)*] ")"
+<expr> ::= <concrete-value>
+         | <unary-op-app>
+         | <binary-op-app>
+         | <ternary>
+         | <match-expr>
+         | <fn-app>
 
-<expr> ::= <match-expr> | <when-expr> | <const-expr> | <dyn-expr> | <fn-call>
+<concrete-value> ::= <int-value> | <float-value> | <bool-value>
+<unary-op-app>   ::= <unary-op> <expr>
+<binary-op-app>  ::= <expr> <binary-op> <expr>
+<ternary>        ::= "when" <cond> "->" <expr> "|" <expr>
 
-<match-expr> ::= "match" <expr> "with"
-                      (<expr> "->" <const-expr>)
-                 ("|" (<expr> "->" <const-expr>))*
-                 ["|" <expr>]
-
-<when-expr>  ::= "when"
-                      (<cond> "->" <expr>)
-                 ("|" (<cond> "->" <expr>))*
-                 "|" <expr>
+<match-expr>   ::= "match" <expr> "with" <match-body>
+<match-body>   ::= ["|"] <match-clause> ("|" <match-clause>)*
+<match-clause> ::= <expr> "->" <expr>
 
 <block> ::= <switch-block> | <if-block> | <for-block> | <while-block>
 
 <switch-block> ::= "switch" <expr> "{"
-                   ("case" <const-expr> ":" <statement>*)*
-                   ["default"           ":" <statement>*]
+                   ("case" <const-expr> ":" <stmt>*)*
+                   ["default"           ":" <stmt>*]
                    "}"
 
-<if-block>     ::= "if"    <cond> "{" <statement>* "}"
-                   ("elif" <cond> "{" <statement>* "}")*
-                   ["else"        "{" <statement>* "}"]
+<if-block>     ::= "if"    <cond> "{" <stmt>* "}"
+                   ("elif" <cond> "{" <stmt>* "}")*
+                   ["else"        "{" <stmt>* "}"]
 
-<for-block>    ::= "for" <param> "in" <iterable>    "{" <statement>* "}"
+<for-block>    ::= "for" <param> "in" <iterable>    "{" <stmt>* "}"
 
-<while-block>  ::= "while" <cond> ["," <statement>] "{" <statement>* "}"
+<while-block>  ::= "while" <cond> ["," <stmt>] "{" <stmt>* "}"
+
+<import>  ::= "import"  <module-path> ";"
+<include> ::= "include" <file-path>   ";"
