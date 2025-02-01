@@ -1,86 +1,149 @@
 vim:expandtab
 
-<program>   ::= <top-level>* <main-fn>
-<main-fn>   ::= <fn-def>
-<top-level> ::= <decl>
-              | <assign>
-              | <const-def>
-              | <alias-def>
-              | <type-def>
-              | <record-def>
-              | <union-def>
-              | <fn-def>
-              | <import-directive>
+<program> ::= <top-level>* <main-fn>
+<main-fn> ::= <fn-def>
+<top-level> ::=
+    <decl>
+  | <alias-def>
+  | <type-def>
+  | <record-def>
+  | <union-def>
+  | <fn-def>
+  | <import>
 
-<decl>       ::= <ident> ":"  <type-expr> ";"
-<assign>     ::= <ident> ":" [<type-expr>] "=" <expr> ";"
-<const-def>  ::= "const" <assign>
-<alias-def>  ::= "alias"  <ident> "=" <expr> ";"
-<type-def>   ::= "type"   <ident> "=" <type-expr> ";"
-<record-def> ::= "record" <ident> "{" <decl>* "}"
-<fn-def>     ::= <fn-decl> <fn-body>
-<import>     ::= "import" <ident> ["as" <ident> | "::" <ident>*] ";"
-               | "include" <ident> ";"
+<decl>       ::= <var_decl> | <immut>
+<var_decl>   ::=         <ident> ":" [<type>] ["=" <expr>] ";"
+<immut-decl> ::= "immut" <ident> ":" [<type>] ["=" <expr>] ";"
 
-import re;
-import math as m;
-import io::print, exit, echo, perror;
-include io;
+<alias-def> ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
+<type-def>  ::= "type" <ident> "=" <type> ";"
 
-<fn-decl>    ::= <normal> | <curried>
-<normal>     ::= <ident> <param-list>
-<curried>    ::= <fn-decl> <param-list>
-<param-list> ::= "(" [<ident> ("," <ident>)*] ")"
-<fn-body>    ::= <return> | "{" <stmt>* "}"
+alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
 
-<stmt> ::= <decl>
-         | <assign>
-         | <reassign>
-         | <fn-call>
-         | <return>
-         | <break>
-         | <continue>
-         | <if-block>
-         | <switch-block>
-         | <while-block>
-         | <for-block>
+<record-def> ::= "record" <ident> <record-body>
+<union-def>  ::= "union"  <ident> <union-body>
 
-<reassign> ::= <ident> "=" <expr> ";"
-<fn-call>  ::= <ident> <arg-list> | <fn-call> <arg-list>
-<return>   ::= "=>" <expr> ";"
+<union-body>  ::= "{" ["|"] <variant> ("|" <variant>)* "}"
+<record-body> ::= "{" ["^"] <field>   ("^" <field>)*   "}"
 
-<arg-list> ::= "(" [<expr> ("," <expr>)*] ")"
+<field> ::=
+    <ident> ":" <type> ["=" <expr>]
+  | <ident> <record-body>
+  | <ident> <union-body>
+<variant> ::=
+    <ident>
+  | <ident> "(" <type> ")")
+  | <ident> <record-body>
 
-<expr> ::= <concrete-value>
-         | <unary-op-app>
-         | <binary-op-app>
-         | <ternary>
-         | <match-expr>
-         | <fn-app>
+<fn-def> ::=
+    "fn" <ident>
+    ("(" <ident>* ")")+
+    [":" (<type> "->")+ <type>]
+    ("{" <stmt>* "}" | <return-stmt> ";")
 
-<concrete-value> ::= <int-value> | <float-value> | <bool-value>
-<unary-op-app>   ::= <unary-op> <expr>
-<binary-op-app>  ::= <expr> <binary-op> <expr>
-<ternary>        ::= "when" <cond> "->" <expr> "|" <expr>
+<import> ::= "import" (<ident> ["as" <ident>] | <ident>+ from <ident>) ";"
 
-<match-expr>   ::= "match" <expr> "with" <match-body>
-<match-body>   ::= ["|"] <match-clause> ("|" <match-clause>)*
-<match-clause> ::= <expr> "->" <expr>
+<stmt> ::=
+    <decl>
+  | <assign>
+  | <fn-call>
+  | <return>
+  | <break>
+  | <continue>
+  | <if-block>
+  | <switch-block>
+  | <while-block>
+  | <for-in-block>
+  | <for-to-block>
 
-<block> ::= <switch-block> | <if-block> | <for-block> | <while-block>
+<assign>   ::= <ident> "=" <expr>        ";"
+<fn-call>  ::= <ident> ("(" <expr> ")")+ ";"
+<return>   ::= "=>" <expr>               ";"
+<break>    ::= "break" <num-scopes>      ";"
+<continue> ::= "continue"                ";"
+<if-block> ::=
+    "if"     <expr> "{" <stmt>* "}"
+    ("elif"  <expr> "{" <stmt>* "}")*
+    ["else"         "{" <stmt>* "}"]
+<switch-block> ::=
+    "switch" <expr> "{"
+    ("case" <expr> ("|" <expr>)* ":" <stmt>*)*
+    ["default"                   ":" <stmt>*]
+    "}"
+<while-block>  ::=
+    "while" <expr> ["," <stmt>]
+    "{" <stmt>* "}"
+<for-in-block> ::=
+    "for" <ident> "in" <expr>
+    "{" <stmt>* "}"
+<for-to-block> ::=
+    "for" (<assign> | decl) "to" <expr> ["," <stmt>]
+    "{" <stmt>* "}"
 
-<switch-block> ::= "switch" <expr> "{"
-                   ("case" <const-expr> ":" <stmt>*)*
-                   ["default"           ":" <stmt>*]
-                   "}"
+<type> ::=
+    <primitive>
+  | <generic>
+  | <tuple-type>
+  | <array-type>
+  | <functor-app>
+  | <type-alias-ref>
+  | <record-ref>
+  | <union-ref>
+  | <inferred>
 
-<if-block>     ::= "if"    <cond> "{" <stmt>* "}"
-                   ("elif" <cond> "{" <stmt>* "}")*
-                   ["else"        "{" <stmt>* "}"]
+<primitive>      ::= (uint-type) | (int-type) | (float-type) | (bool-type)
+<generic>        ::= <ident>
+<tuple-type>     ::= "(" [<type>] ("," <type>)* ")"
+<array-type>     ::= "[" <type> "]"
+<functor-app>    ::= <ident> "[" <type> "]"
+<type-alias-ref> ::= <ident>
+<record-ref>     ::= <ident>
+<union-ref>      ::= <ident>
+<inferred>       ::= ()
 
-<for-block>    ::= "for" <param> "in" <iterable>    "{" <stmt>* "}"
+<expr> ::=
+    <literal>
+  | <alias-ref>
+  | <var-ref>
+  | <tuple>
+  | <list>
+  | <record>
+  | <match>
+  | <ternary>
+  | <unary-op-app>
+  | <binary-op-app>
+  | <fn-app>
+  | <lambda>
 
-<while-block>  ::= "while" <cond> ["," <stmt>] "{" <stmt>* "}"
+<literal>   ::= ([0-9]+) | ([0-9]+\.[0.9]+) | "\"" (*)* "\"" | "'" (*) "'"
+<alias-ref> ::= <ident>
+<var-ref>   ::= <ident>
+<tuple>     ::= "(" [<expr>] ("," <expr>)* ")"
+<list>      ::= "[" [<expr>] ("," <expr>)* "]"
+<record>    ::=
+    [<ident>] "{"
+    ["^"] <ident> "=" <expr>
+    ("^"  <ident> "=" <expr>)*
+    "}"
+<match>     ::=
+    "match" <expr> "{"
+    ["|"] <expr> "->" <expr>
+    ("|"  <expr> "->" <expr>)*
+    "}"
+<ternary>       ::= "when" <expr> "->" <expr> "|" <expr>
+<unary-op-app>  ::= <unary-op> <expr>
+<binary-op-app> ::= <expr> <binary-op> <expr>
+<fn-app>        ::= <ident> ("(" <expr> ")")*
+<lambda>        ::= "(" <ident-list> ")" "=>" <expr>
 
-<import>  ::= "import"  <module-path> ";"
-<include> ::= "include" <file-path>   ";"
+<unary-op>  ::= "~" | "!" | "&"
+<binary-op> ::=
+    ".<" | ".>" | ":<" | ":>"
+  | ".*" | ".+" | ".^"
+  | "and" | "or" | "xor"
+  | "==" | "!=" | "<=" | ">=" | "<" | ">"
+  | "+"  | "-"  | "*"  | "/"  | "%"
+  | "."  | "[]" | "++" | ".."
+
+<ident> ::= ([_a-zA-Z][_a-zA-Z0-9]+)
+<ident-list> ::= <ident> ("," <ident>)*

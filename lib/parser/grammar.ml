@@ -3,43 +3,49 @@ open Stdint
 type ident = string
 
 type unary_op =
-  | BitNot  (* a -> a    *)
-  | Not     (* a -> bool *)
+  | BitNot    (* a    -> a    *)
+  | Not       (* bool -> bool *)
+  | Reference (* a    -> &a   *)
 
 type binary_op =
-  | BitLsl | BitLsr | BitAsl | BitAsr  (* a    -> a    -> a    *)
-  | BitAnd | BitOr | BitXor            (* a    -> a    -> a    *)
-  | And | Or | Xor                     (* bool -> bool -> bool *)
-  | CompEq | CompNe | CompLe | CompGe  (* ord  -> ord  -> bool *)
-  | Add | Sub | Mul | Div | Pow | Mod  (* num  -> num  -> num  *)
-  | IndexAccess                        (* seq  -> uint -> a    *)
-  | Concat                             (* seq  -> seq  -> seq  *)
-  | Range                              (* int  -> int  -> iter *)
+  | BitLsl | BitLsr | BitAsl | BitAsr (* a    -> a    -> a     *)
+  | BitAnd | BitOr | BitXor
+  | And | Or | Xor                    (* bool -> bool -> bool  *)
+  | CompEq | CompNe | CompLe | CompGe (* ord  -> ord  -> bool  *)
+  | CompLt | CompGt
+  | Add | Sub | Mul | Div | Mod       (* num  -> num  -> num   *)
+  | MemberAccess                      (* record -> member -> a *)
+  | IndexAccess                       (* seq  -> uint -> a     *)
+  | Concat                            (* seq  -> seq  -> seq   *)
+  | Range                             (* int  -> int  -> iter  *)
 
 type width = W8 | W16 | W32 | W64
 
-type expr =
-  | IntValue of (uint64 * width)
-  | UintValue of (uint64 * width)
-  | FloatValue of (uint64 * width)
+type value = 
+  | IntValue of uint64 * width
+  | UintValue of uint64 * width
+  | FloatValue of uint64 * width
   | BoolValue of bool
+
+type expr =
+  | Value of value
+  | Literal of value
   | AliasRef of ident
-  | ConstRef of ident
   | VarRef of ident
-  | MemberRef of {
-    record : ident;
-    member : ident;
-  }
-  | TupleExpr of expr list
-  | ListExpr of expr list
-  | Ternary of {
-    cond : expr;
-    left : expr;
-    right : expr;
+  | TupleLiteral of expr list
+  | ListLiteral of expr list
+  | RecordLiteral of {
+    name : ident option;
+    fields : (ident * expr) list;
   }
   | MatchExpr of {
-    target : expr;
+    arg : expr;
     cases : (expr * expr) list;
+  }
+  | Ternary of {
+    cond : expr;
+    left_value : expr;
+    right_value : expr;
   }
   | UnaryOpApp of {
     operator : unary_op;
@@ -50,44 +56,55 @@ type expr =
     lhs : expr;
     rhs : expr;
   }
-  | FnApp of (ident * expr option)
+  | FnApp of ident * expr list
+  | Lambda of ident * expr
 
-type primitive =
-  | U8 | U16 | U32 | U64 | Usize | Uint
-  | I8 | I16 | I32 | I64 | Isize | Int
-  | F32 | F64 | Float
-  | Bool
+type primitive_type =
+  | FixedUintType of width | UsizeType | UintType
+  | FixedIntType of width | IsizeType | IntType
+  | FixedFloatType of width | FloatType
+  | BoolType
 
 type type_expr =
-  | Primitive of primitive
-  | Generic of ident
+  | PrimitiveType of primitive_type
+  | GenericType of ident
   | TupleType of type_expr list
-  | ArrayApp of type_expr
-  | FunctorApp of (ident * type_expr list)
-  | TypeSig of (type_expr * type_expr)
+  | ArrayType of type_expr
+  | FunctorApp of ident * type_expr list
   | TypeAliasRef of ident
   | RecordRef of ident
   | UnionRef of ident
+  | InferredType
 
 type decl = {
   name : ident;
-  type_expr : type_expr;
+  type_sig : type_expr;
+  value : expr option;
 }
 
 type assign = {
   name : ident;
-  type_expr : type_expr option;
+  value : expr;
+}
+
+type type_def = {
+  name : ident;
+  value : type_expr;
+}
+
+type alias_def = {
+  name : ident;
   value : expr;
 }
 
 type field =
-  | Decl of decl
-  | Assign of assign
-  | Union of variant list
+  | DeclField of decl
+  | UnionField of union_def
+  | RecordField of record_def
 and variant =
-  | Value of ident
-  | Construct of (ident * type_expr)
-  | Record of record_def
+  | PureVariant of ident
+  | AssociatedVariant of ident * type_expr
+  | RecordVariant of record_def
 and record_def = {
   record_name : ident;
   record_body : field list;
@@ -97,28 +114,39 @@ and union_def = {
   union_body : variant list;
 }
 
-type stmt =
-  | Decl of decl
+type if_block = {
+  if_cond : expr;
+  if_body : stmt list;
+  elif_clauses : elif_block list;
+  else_clause : stmt list option;
+}
+and elif_block = {
+  elif_cond : expr;
+  elif_body : stmt list;
+}
+and switch_block = {
+  switch_arg : expr;
+  switch_clauses : switch_clause list;
+  switch_default : stmt list option;
+}
+and switch_clause = {
+  switch_clause_cases : expr list;
+  switch_clause_body : stmt list;
+}
+and stmt =
+  | VarDecl of decl
+  | ImmutDecl of decl
   | Assign of assign
-  | Reassign of assign
-  | ConstDef of assign
-  | FnCall of (ident * expr option)
+  | AliasDef of alias_def
+  | FnCall of ident * expr list
   | ReturnStmt of expr
-  | Break
+  | Break of uint64
   | Continue
-  | IfBlock of {
-    initial_clause : (expr * stmt list);
-    elif_clauses : (expr * stmt list) list;
-    else_clause : stmt list option;
-  }
-  | SwitchBlock of {
-    target : expr;
-    cases : (expr list * stmt list) list;
-    default : stmt list option;
-  }
+  | IfBlock of if_block
+  | SwitchBlock of switch_block
   | WhileBlock of {
     cond : expr;
-    loop_stmt : stmt option;
+    step : stmt option;
     body : stmt list;
   }
   | ForInBlock of {
@@ -127,30 +155,32 @@ type stmt =
     body : stmt list;
   }
   | ForToBlock of {
-    init : assign;
+    init : init;
     limit : expr;
+    step : stmt option;
     body : stmt list;
   }
+and init =
+  | InitAssign of assign
+  | InitDecl of decl
 
 type fn_def = {
-  name : ident;
-  params : (ident list) list;
-  type_sig : type_expr;
-  body : stmt list;
+  fn_name : ident;
+  fn_params : (ident list) list;
+  fn_type : type_expr list;
+  fn_body : stmt list;
 }
 
 type import_directive =
-  | Normal of ident
-  | Include of ident
-  | WithAlias of (ident * ident)
-  | Explicit of (ident * ident list)
+  | NormalImport of string
+  | AsAliasImport of string * string
+  | ExplicitImport of string * string list
 
 type top_level =
-  | Decl of decl
-  | Assign of assign
-  | ConstDef of assign
-  | AliasDef of (ident * expr)
-  | TypeDef of (ident * type_expr)
+  | VarDecl of decl
+  | ImmutDecl of decl
+  | AliasDef of alias_def
+  | TypeDef of type_def
   | RecordDef of record_def
   | UnionDef of union_def
   | FnDef of fn_def
