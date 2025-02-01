@@ -6,28 +6,27 @@ words:
   - "word_for"
   - "word_do"
   - "word_in"
+  - "word_to"
   - "word_break"
   - "word_continue"
   - "word_match"
-  - "word_with"
   - "word_when"
   - "word_switch"
   - "word_case"
   - "word_default"
+  - "word_immut"
   - "word_type"
-  - "word_record"
-  - "word_const"
   - "word_alias"
+  - "word_record"
+  - "word_union"
   - "word_fn"
-  - "word_include"
   - "word_import"
   - "word_as"
-  - "word_exit"
+  - "word_from"
   - "word_and"
   - "word_or"
   - "word_xor"
   - "word_not"
-  - "prim_byte"
   - "prim_uint"
   - "prim_u8"
   - "prim_u16"
@@ -43,7 +42,6 @@ words:
   - "prim_f32"
   - "prim_f64"
   - "prim_float"
-  - "prim_dyn"
   - "prim_bool"
   - "lit_true"
   - "lit_false"
@@ -92,6 +90,11 @@ longSymbols:
   - ["comp_ne",      "!="]
   - ["comp_le",      "<="]
   - ["comp_ge",      ">="]
+  - ["add_assign",   "+="]
+  - ["sub_assign",   "-="]
+  - ["mul_assign",   "*="]
+  - ["div_assign",   "/="]
+  - ["mod_assign",   "%="]
   - ["arrow",        "->"]
   - ["return_arrow", "=>"]
   - ["fwd_compose",  ">>"]

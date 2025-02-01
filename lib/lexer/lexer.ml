@@ -7,28 +7,27 @@ type token_type =
   | TokWordFor
   | TokWordDo
   | TokWordIn
+  | TokWordTo
   | TokWordBreak
   | TokWordContinue
   | TokWordMatch
-  | TokWordWith
   | TokWordWhen
   | TokWordSwitch
   | TokWordCase
   | TokWordDefault
+  | TokWordImmut
   | TokWordType
-  | TokWordRecord
-  | TokWordConst
   | TokWordAlias
+  | TokWordRecord
+  | TokWordUnion
   | TokWordFn
-  | TokWordInclude
   | TokWordImport
   | TokWordAs
-  | TokWordExit
+  | TokWordFrom
   | TokWordAnd
   | TokWordOr
   | TokWordXor
   | TokWordNot
-  | TokPrimByte
   | TokPrimUint
   | TokPrimU8
   | TokPrimU16
@@ -44,7 +43,6 @@ type token_type =
   | TokPrimF32
   | TokPrimF64
   | TokPrimFloat
-  | TokPrimDyn
   | TokPrimBool
   | TokLitTrue
   | TokLitFalse
@@ -87,6 +85,11 @@ type token_type =
   | TokCompNe
   | TokCompLe
   | TokCompGe
+  | TokAddAssign
+  | TokSubAssign
+  | TokMulAssign
+  | TokDivAssign
+  | TokModAssign
   | TokArrow
   | TokReturnArrow
   | TokFwdCompose
@@ -118,99 +121,102 @@ let convert_token_type = function
   | 4 -> TokWordFor
   | 5 -> TokWordDo
   | 6 -> TokWordIn
-  | 7 -> TokWordBreak
-  | 8 -> TokWordContinue
-  | 9 -> TokWordMatch
-  | 10 -> TokWordWith
+  | 7 -> TokWordTo
+  | 8 -> TokWordBreak
+  | 9 -> TokWordContinue
+  | 10 -> TokWordMatch
   | 11 -> TokWordWhen
   | 12 -> TokWordSwitch
   | 13 -> TokWordCase
   | 14 -> TokWordDefault
-  | 15 -> TokWordType
-  | 16 -> TokWordRecord
-  | 17 -> TokWordConst
-  | 18 -> TokWordAlias
-  | 19 -> TokWordFn
-  | 20 -> TokWordInclude
+  | 15 -> TokWordImmut
+  | 16 -> TokWordType
+  | 17 -> TokWordAlias
+  | 18 -> TokWordRecord
+  | 19 -> TokWordUnion
+  | 20 -> TokWordFn
   | 21 -> TokWordImport
   | 22 -> TokWordAs
-  | 23 -> TokWordExit
+  | 23 -> TokWordFrom
   | 24 -> TokWordAnd
   | 25 -> TokWordOr
   | 26 -> TokWordXor
   | 27 -> TokWordNot
-  | 28 -> TokPrimByte
-  | 29 -> TokPrimUint
-  | 30 -> TokPrimU8
-  | 31 -> TokPrimU16
-  | 32 -> TokPrimU32
-  | 33 -> TokPrimU64
-  | 34 -> TokPrimInt
-  | 35 -> TokPrimI8
-  | 36 -> TokPrimI16
-  | 37 -> TokPrimI32
-  | 38 -> TokPrimI64
-  | 39 -> TokPrimUsize
-  | 40 -> TokPrimIsize
-  | 41 -> TokPrimF32
-  | 42 -> TokPrimF64
-  | 43 -> TokPrimFloat
-  | 44 -> TokPrimDyn
-  | 45 -> TokPrimBool
-  | 46 -> TokLitTrue
-  | 47 -> TokLitFalse
-  | 48 -> TokIdent
-  | 49 -> TokLitIntDec
-  | 50 -> TokLitIntHex
-  | 51 -> TokLitIntOct
-  | 52 -> TokLitIntBin
-  | 53 -> TokLitFloat
-  | 54 -> TokLitChar
-  | 55 -> TokLitStr
-  | 56 -> TokLitStrRaw
-  | 57 -> TokErr
-  | 58 -> TokEof
-  | 59 -> TokParenL
-  | 60 -> TokParenR
-  | 61 -> TokBracketL
-  | 62 -> TokBracketR
-  | 63 -> TokBraceL
-  | 64 -> TokBraceR
-  | 65 -> TokDot
-  | 66 -> TokComma
-  | 67 -> TokSemicolon
-  | 68 -> TokColon
-  | 69 -> TokEquals
-  | 70 -> TokVertLine
-  | 71 -> TokAmpersand
-  | 72 -> TokTilde
-  | 73 -> TokBang
-  | 74 -> TokQuestion
-  | 75 -> TokCaret
-  | 76 -> TokMinus
-  | 77 -> TokPlus
-  | 78 -> TokStar
-  | 79 -> TokSlash
-  | 80 -> TokPercent
-  | 81 -> TokLess
-  | 82 -> TokGreater
-  | 83 -> TokCompEq
-  | 84 -> TokCompNe
-  | 85 -> TokCompLe
-  | 86 -> TokCompGe
-  | 87 -> TokArrow
-  | 88 -> TokReturnArrow
-  | 89 -> TokFwdCompose
-  | 90 -> TokRange
-  | 91 -> TokModule
-  | 92 -> TokConcat
-  | 93 -> TokBitLsl
-  | 94 -> TokBitLsr
-  | 95 -> TokBitAsl
-  | 96 -> TokBitAsr
-  | 97 -> TokBitAnd
-  | 98 -> TokBitOr
-  | 99 -> TokBitXor
+  | 28 -> TokPrimUint
+  | 29 -> TokPrimU8
+  | 30 -> TokPrimU16
+  | 31 -> TokPrimU32
+  | 32 -> TokPrimU64
+  | 33 -> TokPrimInt
+  | 34 -> TokPrimI8
+  | 35 -> TokPrimI16
+  | 36 -> TokPrimI32
+  | 37 -> TokPrimI64
+  | 38 -> TokPrimUsize
+  | 39 -> TokPrimIsize
+  | 40 -> TokPrimF32
+  | 41 -> TokPrimF64
+  | 42 -> TokPrimFloat
+  | 43 -> TokPrimBool
+  | 44 -> TokLitTrue
+  | 45 -> TokLitFalse
+  | 46 -> TokIdent
+  | 47 -> TokLitIntDec
+  | 48 -> TokLitIntHex
+  | 49 -> TokLitIntOct
+  | 50 -> TokLitIntBin
+  | 51 -> TokLitFloat
+  | 52 -> TokLitChar
+  | 53 -> TokLitStr
+  | 54 -> TokLitStrRaw
+  | 55 -> TokErr
+  | 56 -> TokEof
+  | 57 -> TokParenL
+  | 58 -> TokParenR
+  | 59 -> TokBracketL
+  | 60 -> TokBracketR
+  | 61 -> TokBraceL
+  | 62 -> TokBraceR
+  | 63 -> TokDot
+  | 64 -> TokComma
+  | 65 -> TokSemicolon
+  | 66 -> TokColon
+  | 67 -> TokEquals
+  | 68 -> TokVertLine
+  | 69 -> TokAmpersand
+  | 70 -> TokTilde
+  | 71 -> TokBang
+  | 72 -> TokQuestion
+  | 73 -> TokCaret
+  | 74 -> TokMinus
+  | 75 -> TokPlus
+  | 76 -> TokStar
+  | 77 -> TokSlash
+  | 78 -> TokPercent
+  | 79 -> TokLess
+  | 80 -> TokGreater
+  | 81 -> TokCompEq
+  | 82 -> TokCompNe
+  | 83 -> TokCompLe
+  | 84 -> TokCompGe
+  | 85 -> TokAddAssign
+  | 86 -> TokSubAssign
+  | 87 -> TokMulAssign
+  | 88 -> TokDivAssign
+  | 89 -> TokModAssign
+  | 90 -> TokArrow
+  | 91 -> TokReturnArrow
+  | 92 -> TokFwdCompose
+  | 93 -> TokRange
+  | 94 -> TokModule
+  | 95 -> TokConcat
+  | 96 -> TokBitLsl
+  | 97 -> TokBitLsr
+  | 98 -> TokBitAsl
+  | 99 -> TokBitAsr
+  | 100 -> TokBitAnd
+  | 101 -> TokBitOr
+  | 102 -> TokBitXor
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr
 
