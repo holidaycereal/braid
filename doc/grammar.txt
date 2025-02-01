@@ -38,7 +38,7 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
 <fn-def> ::=
     "fn" <ident>
     ("(" <ident>* ")")+
-    [":" (<type> "->")+ <type>]
+    [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
     ("{" <stmt>* "}" | <return-stmt> ";")
 
 <import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"
