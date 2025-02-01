@@ -27,12 +27,23 @@ def gen_c_word(labels: List[str]) -> List[str]:
 def gen_c_symbol(short_entries, long_entries: List[List[str]]) -> List[str]:
     out = []
     for short_entry in short_entries:
-        parts = [f"\tcase '{short_entry[1]}': return"]
-        for long_entry in long_entries:
-            if short_entry[1] == long_entry[1][0]:
-                parts.append(f"c2 == '{long_entry[1][1]}' ? {c_name(long_entry[0])} :")
-        parts.append(f"{c_name(short_entry[0])};")
-        out.append(" ".join(parts))
+        matching_long_entries = [entry for entry in long_entries if short_entry[1] == entry[1][0]]
+
+        if not matching_long_entries:
+            out.append(f"\tcase '{short_entry[1]}': return {c_name(short_entry[0])};")
+            continue
+
+        parts = [f"\tcase '{short_entry[1]}':"]
+        parts.append("\t\tswitch (c2) {")
+
+        for long_entry in matching_long_entries:
+            parts.append(f"\t\tcase '{long_entry[1][1]}': return {c_name(long_entry[0])};")
+
+        parts.append(f"\t\tdefault: return {c_name(short_entry[0])};")
+        parts.append("\t\t}")
+
+        out.append("\n".join(parts))
+
     return out
 
 def gen_c_islong(labels: List[str]) -> List[str]:

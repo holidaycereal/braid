@@ -62,24 +62,79 @@ TokenType get_symbol_type(char c1, char c2) {
 	case ']': return TOK_BRACKET_R;
 	case '{': return TOK_BRACE_L;
 	case '}': return TOK_BRACE_R;
-	case '.': return c2 == '.' ? TOK_RANGE : c2 == '<' ? TOK_BIT_LSL : c2 == '>' ? TOK_BIT_LSR : c2 == '*' ? TOK_BIT_AND : c2 == '+' ? TOK_BIT_OR : c2 == '^' ? TOK_BIT_XOR : TOK_DOT;
+	case '.':
+		switch (c2) {
+		case '.': return TOK_RANGE;
+		case '<': return TOK_BIT_LSL;
+		case '>': return TOK_BIT_LSR;
+		case '*': return TOK_BIT_AND;
+		case '+': return TOK_BIT_OR;
+		case '^': return TOK_BIT_XOR;
+		default: return TOK_DOT;
+		}
 	case ',': return TOK_COMMA;
 	case ';': return TOK_SEMICOLON;
-	case ':': return c2 == ':' ? TOK_MODULE : c2 == '<' ? TOK_BIT_ASL : c2 == '>' ? TOK_BIT_ASR : TOK_COLON;
-	case '=': return c2 == '=' ? TOK_COMP_EQ : c2 == '>' ? TOK_RETURN_ARROW : TOK_EQUALS;
+	case ':':
+		switch (c2) {
+		case ':': return TOK_MODULE;
+		case '<': return TOK_BIT_ASL;
+		case '>': return TOK_BIT_ASR;
+		default: return TOK_COLON;
+		}
+	case '=':
+		switch (c2) {
+		case '=': return TOK_COMP_EQ;
+		case '>': return TOK_RETURN_ARROW;
+		default: return TOK_EQUALS;
+		}
 	case '|': return TOK_VERT_LINE;
 	case '&': return TOK_AMPERSAND;
 	case '~': return TOK_TILDE;
-	case '!': return c2 == '=' ? TOK_COMP_NE : TOK_BANG;
+	case '!':
+		switch (c2) {
+		case '=': return TOK_COMP_NE;
+		default: return TOK_BANG;
+		}
 	case '?': return TOK_QUESTION;
 	case '^': return TOK_CARET;
-	case '-': return c2 == '=' ? TOK_SUB_ASSIGN : c2 == '>' ? TOK_ARROW : TOK_MINUS;
-	case '+': return c2 == '=' ? TOK_ADD_ASSIGN : c2 == '+' ? TOK_CONCAT : TOK_PLUS;
-	case '*': return c2 == '=' ? TOK_MUL_ASSIGN : TOK_STAR;
-	case '/': return c2 == '=' ? TOK_DIV_ASSIGN : TOK_SLASH;
-	case '%': return c2 == '=' ? TOK_MOD_ASSIGN : TOK_PERCENT;
-	case '<': return c2 == '=' ? TOK_COMP_LE : TOK_LESS;
-	case '>': return c2 == '=' ? TOK_COMP_GE : c2 == '>' ? TOK_FWD_COMPOSE : TOK_GREATER;
+	case '-':
+		switch (c2) {
+		case '=': return TOK_SUB_ASSIGN;
+		case '>': return TOK_ARROW;
+		default: return TOK_MINUS;
+		}
+	case '+':
+		switch (c2) {
+		case '=': return TOK_ADD_ASSIGN;
+		case '+': return TOK_CONCAT;
+		default: return TOK_PLUS;
+		}
+	case '*':
+		switch (c2) {
+		case '=': return TOK_MUL_ASSIGN;
+		default: return TOK_STAR;
+		}
+	case '/':
+		switch (c2) {
+		case '=': return TOK_DIV_ASSIGN;
+		default: return TOK_SLASH;
+		}
+	case '%':
+		switch (c2) {
+		case '=': return TOK_MOD_ASSIGN;
+		default: return TOK_PERCENT;
+		}
+	case '<':
+		switch (c2) {
+		case '=': return TOK_COMP_LE;
+		default: return TOK_LESS;
+		}
+	case '>':
+		switch (c2) {
+		case '=': return TOK_COMP_GE;
+		case '>': return TOK_FWD_COMPOSE;
+		default: return TOK_GREATER;
+		}
 // GENERATE END SYMBOL }}}
 	default: return TOK_ERR;
 	}
