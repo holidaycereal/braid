@@ -174,7 +174,7 @@ type fn_def = {
 type import_directive =
   | NormalImport of string
   | AsAliasImport of string * string
-  | ExplicitImport of string * string list
+  | ExplicitImport of string list * string
 
 type top_level =
   | VarDecl of decl
