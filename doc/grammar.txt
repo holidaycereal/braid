@@ -62,23 +62,23 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
 <break>    ::= "break" <num-scopes>      ";"
 <continue> ::= "continue"                ";"
 <if-block> ::=
-    "if"     <expr> "{" <stmt>* "}"
-    ("elif"  <expr> "{" <stmt>* "}")*
-    ["else"         "{" <stmt>* "}"]
+    "if"    <expr> ("," <stmt> | "{" <stmt>* "}")
+    ("elif" <expr> ("," <stmt> | "{" <stmt>* "}"))*
+    ["else"        ("," <stmt> | "{" <stmt>* "}")]
 <switch-block> ::=
     "switch" <expr> "{"
     ("case" <expr> ("|" <expr>)* ":" <stmt>*)*
     ["default"                   ":" <stmt>*]
     "}"
 <while-block>  ::=
-    "while" <expr> ["," <stmt>]
-    "{" <stmt>* "}"
+    "while" <expr>
+    ("," <stmt> | ["," <stmt>] "{" <stmt>* "}")
 <for-in-block> ::=
     "for" <ident> "in" <expr>
-    "{" <stmt>* "}"
+    ("," <stmt> | "{" <stmt>* "}")
 <for-to-block> ::=
     "for" (<assign> | decl) "to" <expr> ["," <stmt>]
-    "{" <stmt>* "}"
+    ("," <stmt> | "{" <stmt>* "}")
 
 <type> ::=
     <primitive>
