@@ -1,5 +1,5 @@
 <program> ::= <top-level>* <main-fn>
-<main-fn> ::= "program" <fn-body>
+<main-fn> ::= "fn" "main" <fn-body>
 <top-level> ::=
     <immut-decl>
   | <alias-def>
@@ -24,9 +24,9 @@
     <ident>
   | <ident> "(" <type> ")")
   | <ident> <record-body>
-<fn-def>  ::= "fn" <fn-body>
+<fn-def>  ::= "fn" <ident> <fn-body>
 <fn-body> ::=
-    <ident> ("(" <ident>* ")")+
+    ("(" <ident>* ")")+
     [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
     ("{" <stmt>* "}" | <return> ";")
 <import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"
