@@ -2,7 +2,11 @@ type time = i64;
 type point = (int, int);
 
 union level { off | low | high }
-union maybe[a] { nothing | just(a) }
+
+union option[a] {
+	| none
+	| some(a)
+}
 
 record point3 { x : int ^ y : int ^ z : int }
 
