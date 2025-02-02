@@ -185,7 +185,6 @@ type import_directive =
   | ExplicitImport of string list * string
 
 type top_level =
-  | ImmutDecl of immut_decl
   | AliasDef of alias_def
   | TypeDef of type_def
   | RecordDef of record_def

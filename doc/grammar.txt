@@ -1,22 +1,24 @@
 <program> ::= <top-level>* <main-fn>
 <main-fn> ::= "fn" "main" <fn-body>
 <top-level> ::=
-    <immut-decl>
-  | <alias-def>
+    <alias-def>
   | <type-def>
   | <record-def>
   | <union-def>
   | <fn-def>
   | <import>
 
-<immut-decl> ::= "immut" <ident> ":" <type> "=" <expr> ";"
-<alias-def>  ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
-<type-def>   ::= "type"  <ident> "=" <type> ";"
+<alias-def> ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
+<type-def>  ::= "type"  <ident> "=" <type> ";"
 
-<record-def>  ::= "record" <ident> ["[" <ident-list> "]"] <record-body>
-<union-def>   ::= "union"  <ident> ["[" <ident-list> "]"] <union-body>
-<record-body> ::= "{" ["^"] <field>   ("^" <field>)*   "}"
-<union-body>  ::= "{" ["|"] <variant> ("|" <variant>)* "}"
+<record-def>  ::= "record" <ident> <record-body>
+<union-def>   ::= "union"  <ident> <union-body>
+<record-body> ::=
+    ["[" <ident-list> "]"]
+    "{" ["^"] <field>   ("^" <field>)*   "}"
+<union-body>  ::=
+    ["[" <ident-list> "]"]
+    "{" ["|"] <variant> ("|" <variant>)* "}"
 <field> ::=
     <ident> ":" <type> ["=" <expr>]
   | <ident> <record-body>
@@ -31,6 +33,7 @@
     ("(" <ident-list> ")")+
     [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
     ("{" <stmt>* "}" | <return> ";")
+
 <import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"
 
 <stmt> ::=
@@ -47,13 +50,14 @@
   | <for-in-block>
   | <for-to-block>
 
-<mut-decl> ::= <ident> ":" <type> ["=" <expr>] ";"
-<assign>   ::= <ident> "=" <expr>        ";"
-<fn-call>  ::= <ident> ("(" <expr> ")")+ ";"
-<return>   ::= "=>" <expr>               ";"
-<break>    ::= "break" <num-scopes>      ";"
-<continue> ::= "continue"                ";"
-<if-block> ::=
+<mut-decl>   ::=         <ident> ":" <type> ["=" <expr>] ";"
+<immut-decl> ::= "immut" <ident> ":" <type> "=" <expr> ";"
+<assign>     ::= <ident> "=" <expr>        ";"
+<fn-call>    ::= <ident> ("(" <expr> ")")+ ";"
+<return>     ::= "=>" <expr>               ";"
+<break>      ::= "break" <num-scopes>      ";"
+<continue>   ::= "continue"                ";"
+<if-block>   ::=
     "if"    <expr> ("," <stmt> | "{" <stmt>* "}")
     ("elif" <expr> ("," <stmt> | "{" <stmt>* "}"))*
     ["else"        ("," <stmt> | "{" <stmt>* "}")]
@@ -62,7 +66,7 @@
     ("case" <expr> ("|" <expr>)* ":" <stmt>*)*
     ["default"                   ":" <stmt>*]
     "}"
-<while-block>  ::=
+<while-block> ::=
     "while" <expr>
     ("," <stmt> | ["," <stmt>] "{" <stmt>* "}")
 <for-in-block> ::=
