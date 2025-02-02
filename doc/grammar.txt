@@ -1,9 +1,7 @@
-vim:expandtab
-
 <program> ::= <top-level>* <main-fn>
-<main-fn> ::= <fn-def>
+<main-fn> ::= "program" <fn-body>
 <top-level> ::=
-    <decl>
+    <immut-decl>
   | <alias-def>
   | <type-def>
   | <record-def>
@@ -11,21 +9,13 @@ vim:expandtab
   | <fn-def>
   | <import>
 
-<decl>       ::= <var_decl> | <immut>
-<var_decl>   ::=         <ident> ":" [<type>] ["=" <expr>] ";"
-<immut-decl> ::= "immut" <ident> ":" [<type>] ["=" <expr>] ";"
-
-<alias-def> ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
-<type-def>  ::= "type" <ident> "=" <type> ";"
-
-alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
-
-<record-def> ::= "record" <ident> <record-body>
-<union-def>  ::= "union"  <ident> <union-body>
-
+<immut-decl>  ::= "immut"  <ident> ":" <type> "=" <expr> ";"
+<alias-def>   ::= "alias"  <ident> ["(" <ident-list> ")"] "=" <expr> ";"
+<type-def>    ::= "type"   <ident> "=" <type> ";"
+<record-def>  ::= "record" <ident> <record-body>
+<union-def>   ::= "union"  <ident> <union-body>
 <union-body>  ::= "{" ["|"] <variant> ("|" <variant>)* "}"
 <record-body> ::= "{" ["^"] <field>   ("^" <field>)*   "}"
-
 <field> ::=
     <ident> ":" <type> ["=" <expr>]
   | <ident> <record-body>
@@ -34,17 +24,16 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
     <ident>
   | <ident> "(" <type> ")")
   | <ident> <record-body>
-
-<fn-def> ::=
-    "fn" <ident>
-    ("(" <ident>* ")")+
+<fn-def>  ::= "fn" <fn-body>
+<fn-body> ::=
+    <ident> ("(" <ident>* ")")+
     [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
-    ("{" <stmt>* "}" | <return-stmt> ";")
-
+    ("{" <stmt>* "}" | <return> ";")
 <import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"
 
 <stmt> ::=
-    <decl>
+    <mut-decl>
+  | <immut-decl>
   | <assign>
   | <fn-call>
   | <return>
@@ -56,6 +45,7 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
   | <for-in-block>
   | <for-to-block>
 
+<mut-decl> ::= <ident> ":" <type> ["=" <expr>] ";"
 <assign>   ::= <ident> "=" <expr>        ";"
 <fn-call>  ::= <ident> ("(" <expr> ")")+ ";"
 <return>   ::= "=>" <expr>               ";"
@@ -102,12 +92,12 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
 <inferred>       ::= ()
 
 <expr> ::=
-    <literal>
+    <value-literal>
   | <alias-ref>
   | <var-ref>
-  | <tuple>
-  | <list>
-  | <record>
+  | <tuple-literal>
+  | <list-literal>
+  | <record-literal>
   | <match>
   | <ternary>
   | <unary-op-app>
@@ -115,17 +105,17 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
   | <fn-app>
   | <lambda>
 
-<literal>   ::= ([0-9]+) | ([0-9]+\.[0.9]+) | "\"" (*)* "\"" | "'" (*) "'"
-<alias-ref> ::= <ident>
-<var-ref>   ::= <ident>
-<tuple>     ::= "(" [<expr>] ("," <expr>)* ")"
-<list>      ::= "[" [<expr>] ("," <expr>)* "]"
-<record>    ::=
+<value_literal>  ::= ([0-9]+) | ([0-9]+\.[0.9]+) | "'" (*) "'"
+<alias-ref>      ::= <ident>
+<var-ref>        ::= <ident>
+<tuple-literal>  ::= "(" [<expr>] ("," <expr>)* ")"
+<list-literal>   ::= "[" [<expr>] ("," <expr>)* "]" | "\"" (*)* "\""
+<record-literal> ::=
     [<ident>] "{"
     ["^"] <ident> "=" <expr>
     ("^"  <ident> "=" <expr>)*
     "}"
-<match>     ::=
+<match> ::=
     "match" <expr> "{"
     ["|"] <expr> "->" <expr>
     ("|"  <expr> "->" <expr>)*
@@ -147,3 +137,5 @@ alias vec_add(a, b) = (a.x + b.x, a.y + b.y);
 
 <ident> ::= ([_a-zA-Z][_a-zA-Z0-9]+)
 <ident-list> ::= <ident> ("," <ident>)*
+
+vim:expandtab

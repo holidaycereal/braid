@@ -28,8 +28,7 @@ type value =
   | BoolValue of bool
 
 type expr =
-  | Value of value
-  | Literal of value
+  | ValueLiteral of value
   | AliasRef of ident
   | VarRef of ident
   | TupleLiteral of expr list
@@ -76,10 +75,16 @@ type type_expr =
   | UnionRef of ident
   | InferredType
 
-type decl = {
+type mut_decl = {
   name : ident;
   type_sig : type_expr;
   value : expr option;
+}
+
+type immut_decl = {
+  name : ident;
+  type_sig : type_expr;
+  value : expr;
 }
 
 type assign = {
@@ -94,11 +99,12 @@ type type_def = {
 
 type alias_def = {
   name : ident;
+  params : ident list;
   value : expr;
 }
 
 type field =
-  | DeclField of decl
+  | DeclField of mut_decl
   | UnionField of union_def
   | RecordField of record_def
 and variant =
@@ -134,8 +140,8 @@ and switch_clause = {
   switch_clause_body : stmt list;
 }
 and stmt =
-  | VarDecl of decl
-  | ImmutDecl of decl
+  | MutDecl of mut_decl
+  | ImmutDecl of immut_decl
   | Assign of assign
   | AliasDef of alias_def
   | FnCall of ident * expr list
@@ -162,13 +168,13 @@ and stmt =
   }
 and init =
   | InitAssign of assign
-  | InitDecl of decl
+  | InitDecl of mut_decl
 
 type fn_def = {
-  fn_name : ident;
-  fn_params : (ident list) list;
-  fn_type : type_expr list;
-  fn_body : stmt list;
+  name : ident;
+  params : (ident list) list;
+  type_sig : type_expr list;
+  body : stmt list;
 }
 
 type import_directive =
@@ -177,8 +183,7 @@ type import_directive =
   | ExplicitImport of string list * string
 
 type top_level =
-  | VarDecl of decl
-  | ImmutDecl of decl
+  | ImmutDecl of immut_decl
   | AliasDef of alias_def
   | TypeDef of type_def
   | RecordDef of record_def
