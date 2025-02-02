@@ -18,7 +18,7 @@ record user {
 alice : user = {
 	^ id = 0x01
 	^ name = "alice"
-	^ status = active(os::now())
+	^ status = active { time_joined = os::now() }
 };
 
 bob : user = (0x02, "bob", inactive);
