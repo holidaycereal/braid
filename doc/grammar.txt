@@ -9,13 +9,14 @@
   | <fn-def>
   | <import>
 
-<immut-decl>  ::= "immut"  <ident> ":" <type> "=" <expr> ";"
-<alias-def>   ::= "alias"  <ident> ["(" <ident-list> ")"] "=" <expr> ";"
-<type-def>    ::= "type"   <ident> "=" <type> ";"
-<record-def>  ::= "record" <ident> <record-body>
-<union-def>   ::= "union"  <ident> <union-body>
-<union-body>  ::= "{" ["|"] <variant> ("|" <variant>)* "}"
+<immut-decl> ::= "immut" <ident> ":" <type> "=" <expr> ";"
+<alias-def>  ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
+<type-def>   ::= "type"  <ident> "=" <type> ";"
+
+<record-def>  ::= "record" <ident> ["[" <ident-list> "]"] <record-body>
+<union-def>   ::= "union"  <ident> ["[" <ident-list> "]"] <union-body>
 <record-body> ::= "{" ["^"] <field>   ("^" <field>)*   "}"
+<union-body>  ::= "{" ["|"] <variant> ("|" <variant>)* "}"
 <field> ::=
     <ident> ":" <type> ["=" <expr>]
   | <ident> <record-body>
@@ -24,9 +25,10 @@
     <ident>
   | <ident> "(" <type> ")")
   | <ident> <record-body>
+
 <fn-def>  ::= "fn" <ident> <fn-body>
 <fn-body> ::=
-    ("(" <ident>* ")")+
+    ("(" <ident-list> ")")+
     [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
     ("{" <stmt>* "}" | <return> ";")
 <import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"

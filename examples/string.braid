@@ -4,10 +4,10 @@ fn main(argv) : vec[string] -> () {
 	greeting_v1 : string = "hello " ++ name;
 	greeting_v2 : string = fmt("hello %s", [name]);
 
-	number : option[int] = argv[2] >> string_to_int;
+	number : maybe[int] = argv[2] >> string_to_int;
 
 	greeting_v3 : string = match number {
-		| none -> "not a valid numeric value"
-		| some(n) -> fmt("hello %s, %d is my favourite number", [name, n])
+		| nothing -> "not a valid numeric value"
+		| just(n) -> fmt("hello %s, %d is my favourite number", [name, n])
 	};
 }

@@ -3,9 +3,9 @@ type point = (int, int);
 
 union level { off | low | high }
 
-union option[a] {
-	| none
-	| some(a)
+union maybe[a] {
+	| nothing
+	| just(a)
 }
 
 record point3 { x : int ^ y : int ^ z : int }
