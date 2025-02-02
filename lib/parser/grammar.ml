@@ -113,10 +113,12 @@ and variant =
   | RecordVariant of record_def
 and record_def = {
   record_name : ident;
+  record_type_params : ident list;
   record_body : field list;
 }
 and union_def = {
   union_name : ident;
+  union_type_params : ident list;
   union_body : variant list;
 }
 
