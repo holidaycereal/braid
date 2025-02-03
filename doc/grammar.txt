@@ -72,7 +72,11 @@
 <else-clause> ::= "else" <block-body>
 
 <pattern-list> ::= <pattern> ("|" <pattern>)*
-<pattern> ::= <expr> | <ident> | <ident> "(" <ident-list> ")"
+<pattern> ::=
+    <expr>
+  | <ident>
+  | <ident> "(" <constructor-list> ")"
+<constructor-list> ::= <pattern> ("," <pattern>)*
 
 <type> ::=
     <primitive>

@@ -58,9 +58,12 @@ type expr =
   | FnApp of ident * expr list
   | Lambda of ident * expr
 and pattern =
-  | Capture of ident
   | ConstantExpr of expr
-  | ConstructorPattern of ident * ident list
+  | Capture of ident
+  | ConstructorPattern of {
+    constructor : ident;
+    args : pattern list;
+  }
 
 type primitive_type =
   | FixedUintType of width | UsizeType | UintType
