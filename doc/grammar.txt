@@ -72,9 +72,6 @@
 <for-in-block> ::=
     "for" <ident> "in" <expr>
     ("," <stmt> | "{" <stmt>* "}")
-<for-to-block> ::=
-    "for" (<assign> | decl) "to" <expr> ["," <stmt>]
-    ("," <stmt> | "{" <stmt>* "}")
 
 <type> ::=
     <primitive>

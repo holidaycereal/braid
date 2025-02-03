@@ -157,15 +157,9 @@ and stmt =
     step : stmt option;
     body : stmt list;
   }
-  | ForInBlock of {
+  | ForBlock of {
     capture : ident;
     iterator : expr;
-    body : stmt list;
-  }
-  | ForToBlock of {
-    init : init;
-    limit : expr;
-    step : stmt option;
     body : stmt list;
   }
 and init =
