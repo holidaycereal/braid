@@ -9,7 +9,7 @@
   | <import>
 
 <alias-def> ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
-<type-def>  ::= "type"  <ident> "=" <type> ";"
+<type-def>  ::= "type"  <ident> ["[" <ident-list> "]"] "=" <type> ";"
 
 <record-def>  ::= "record" <ident> <record-body>
 <union-def>   ::= "union"  <ident> <union-body>
