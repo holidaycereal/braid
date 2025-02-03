@@ -67,8 +67,8 @@
     ["default"                   ":" <stmt>*]
     "}"
 <while-block> ::=
-    "while" <expr>
-    ("," <stmt> | ["," <stmt>] "{" <stmt>* "}")
+    "while" <expr> ["," <stmt>]
+    ("," <stmt> | "{" <stmt>* "}")
 <for-in-block> ::=
     "for" <ident> "in" <expr>
     ("," <stmt> | "{" <stmt>* "}")
