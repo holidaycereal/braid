@@ -162,9 +162,6 @@ and stmt =
     iterator : expr;
     body : stmt list;
   }
-and init =
-  | InitAssign of assign
-  | InitDecl of mut_decl
 
 type fn_def = {
   name : ident;
