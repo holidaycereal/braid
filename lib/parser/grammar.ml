@@ -39,7 +39,7 @@ type expr =
   }
   | MatchExpr of {
     arg : expr;
-    cases : (expr * expr) list;
+    cases : (pattern * expr) list;
   }
   | Ternary of {
     cond : expr;
@@ -57,6 +57,10 @@ type expr =
   }
   | FnApp of ident * expr list
   | Lambda of ident * expr
+and pattern =
+  | Capture of ident
+  | ConstantExpr of expr
+  | ConstructorPattern of ident * ident list
 
 type primitive_type =
   | FixedUintType of width | UsizeType | UintType
@@ -109,7 +113,7 @@ type field =
   | RecordField of record_def
 and variant =
   | PureVariant of ident
-  | AssociatedVariant of ident * type_expr
+  | ConstructorVariant of ident * type_expr
   | RecordVariant of record_def
 and record_def = {
   record_name : ident;
@@ -122,26 +126,7 @@ and union_def = {
   union_body : variant list;
 }
 
-type if_block = {
-  if_cond : expr;
-  if_body : stmt list;
-  elif_clauses : elif_block list;
-  else_clause : stmt list option;
-}
-and elif_block = {
-  elif_cond : expr;
-  elif_body : stmt list;
-}
-and switch_block = {
-  switch_arg : expr;
-  switch_clauses : switch_clause list;
-  switch_default : stmt list option;
-}
-and switch_clause = {
-  switch_clause_cases : expr list;
-  switch_clause_body : stmt list;
-}
-and stmt =
+type stmt =
   | MutDecl of mut_decl
   | ImmutDecl of immut_decl
   | Assign of assign
@@ -150,8 +135,17 @@ and stmt =
   | ReturnStmt of expr
   | Break of uint64
   | Continue
-  | IfBlock of if_block
-  | SwitchBlock of switch_block
+  | IfBlock of {
+    cond : expr;
+    body : stmt list;
+    else_clause : stmt list option;
+  }
+  | WithBlock of {
+    pattern : pattern;
+    arg : expr;
+    body : stmt list;
+    else_clause : stmt list option;
+  }
   | WhileBlock of {
     cond : expr;
     step : stmt option;
@@ -162,6 +156,15 @@ and stmt =
     iterator : expr;
     body : stmt list;
   }
+  | SwitchBlock of {
+    arg : expr;
+    clauses : switch_clause list;
+    default : stmt list option;
+  }
+and switch_clause = {
+  switch_clause_cases : pattern list;
+  switch_clause_body : stmt list;
+}
 
 type fn_def = {
   name : ident;

@@ -44,34 +44,35 @@
   | <return>
   | <break>
   | <continue>
-  | <if-block>
-  | <switch-block>
   | <while-block>
-  | <for-in-block>
-  | <for-to-block>
+  | <for-block>
+  | <if-block>
+  | <with-block>
+  | <switch-block>
 
 <mut-decl>   ::=         <ident> ":" <type> ["=" <expr>] ";"
-<immut-decl> ::= "immut" <ident> ":" <type> "=" <expr> ";"
+<immut-decl> ::= "immut" <ident> ":" <type>  "=" <expr>  ";"
 <assign>     ::= <ident> "=" <expr>        ";"
 <fn-call>    ::= <ident> ("(" <expr> ")")+ ";"
 <return>     ::= "=>" <expr>               ";"
 <break>      ::= "break" <num-scopes>      ";"
 <continue>   ::= "continue"                ";"
-<if-block>   ::=
-    "if"    <expr> ("," <stmt> | "{" <stmt>* "}")
-    ("elif" <expr> ("," <stmt> | "{" <stmt>* "}"))*
-    ["else"        ("," <stmt> | "{" <stmt>* "}")]
+
+<while-block>  ::= "while" <expr> ["," <stmt>] <block-body>
+<for-block>    ::= "for" <ident> "in" <expr> <block-body>
+<if-block>     ::= "if" <expr> <block-body> <else-clause>
+<with-block>   ::= "with" <pattern> "from" <expr> <block-body> <else-clause>
 <switch-block> ::=
     "switch" <expr> "{"
-    ("case" <expr> ("|" <expr>)* ":" <stmt>*)*
-    ["default"                   ":" <stmt>*]
+    ("case" <pattern-list> ":" <stmt>*)*
+    ["default"             ":" <stmt>*]
     "}"
-<while-block> ::=
-    "while" <expr> ["," <stmt>]
-    ("," <stmt> | "{" <stmt>* "}")
-<for-in-block> ::=
-    "for" <ident> "in" <expr>
-    ("," <stmt> | "{" <stmt>* "}")
+
+<block-body>  ::= "," <stmt> | "{" <stmt>* "}"
+<else-clause> ::= "else" <block-body>
+
+<pattern-list> ::= <pattern> ("|" <pattern>)*
+<pattern> ::= <expr> | <ident> | <ident> "(" <ident-list> ")"
 
 <type> ::=
     <primitive>
@@ -120,8 +121,8 @@
     "}"
 <match> ::=
     "match" <expr> "{"
-    ["|"] <expr> "->" <expr>
-    ("|"  <expr> "->" <expr>)*
+    ["|"] <pattern-list> "->" <expr>
+    ("|"  <pattern-list> "->" <expr>)*
     "}"
 <ternary>       ::= "when" <expr> "->" <expr> "|" <expr>
 <unary-op-app>  ::= <unary-op> <expr>

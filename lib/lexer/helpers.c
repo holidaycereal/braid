@@ -4,12 +4,11 @@
 TokenType get_word_type(const char* word) {
 // GENERATE BEGIN WORD {{{
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
+	if (strcmp(word, "with") == 0) return TOK_WORD_WITH;
 	if (strcmp(word, "else") == 0) return TOK_WORD_ELSE;
-	if (strcmp(word, "elif") == 0) return TOK_WORD_ELIF;
 	if (strcmp(word, "while") == 0) return TOK_WORD_WHILE;
 	if (strcmp(word, "for") == 0) return TOK_WORD_FOR;
 	if (strcmp(word, "in") == 0) return TOK_WORD_IN;
-	if (strcmp(word, "to") == 0) return TOK_WORD_TO;
 	if (strcmp(word, "break") == 0) return TOK_WORD_BREAK;
 	if (strcmp(word, "continue") == 0) return TOK_WORD_CONTINUE;
 	if (strcmp(word, "match") == 0) return TOK_WORD_MATCH;

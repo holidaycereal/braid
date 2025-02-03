@@ -1,11 +1,10 @@
 words:
   - "word_if"
+  - "word_with"
   - "word_else"
-  - "word_elif"
   - "word_while"
   - "word_for"
   - "word_in"
-  - "word_to"
   - "word_break"
   - "word_continue"
   - "word_match"

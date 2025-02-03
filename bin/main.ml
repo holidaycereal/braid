@@ -4,12 +4,11 @@ let print_token token =
   let typ_str = match token.token_type with
 (* GENERATE BEGIN PRINT {{{ *)
   | TokWordIf -> "TokWordIf"
+  | TokWordWith -> "TokWordWith"
   | TokWordElse -> "TokWordElse"
-  | TokWordElif -> "TokWordElif"
   | TokWordWhile -> "TokWordWhile"
   | TokWordFor -> "TokWordFor"
   | TokWordIn -> "TokWordIn"
-  | TokWordTo -> "TokWordTo"
   | TokWordBreak -> "TokWordBreak"
   | TokWordContinue -> "TokWordContinue"
   | TokWordMatch -> "TokWordMatch"
