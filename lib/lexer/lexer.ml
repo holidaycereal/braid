@@ -104,8 +104,8 @@ type token_type =
 (* GENERATE END TYPE }}} *)
 
 type token = {
-  token_type : token_type;
-  token_value : string option;
+  ttyp : token_type;
+  tval : string option;
 }
 
 external c_lex : string -> (int * string) array = "c_lex"
@@ -216,9 +216,9 @@ let convert_token_type = function
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr
 
-let convert_token : int * string -> token = fun (c_typ, c_val) -> {
-  token_type = convert_token_type c_typ;
-  token_value = if c_val = "" then None else Some c_val;
+let convert_token : int * string -> token = fun (c_ttyp, c_tval) -> {
+  ttyp = convert_token_type c_ttyp;
+  tval = if c_tval = "" then None else Some c_tval;
 }
 
 let lex input =
