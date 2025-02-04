@@ -1,7 +1,8 @@
 open Lexer
+open Printf
 
 let print_token token =
-  let typ_str = match token.token_type with
+  let typ_str = match token.ttyp with
 (* GENERATE BEGIN PRINT {{{ *)
   | TokWordIf -> "TokWordIf"
   | TokWordWith -> "TokWordWith"
@@ -106,15 +107,15 @@ let print_token token =
   | TokBitXor -> "TokBitXor"
 (* GENERATE END PRINT }}} *)
   in
-  let val_str = match token.token_value with
+  let val_str = match token.tval with
   | None -> ""
   | Some v -> v
   in
-  Printf.printf "%s \027[34m%s\027[0m\n" typ_str val_str
+  printf "%s \027[34m%s\027[0m\n" typ_str val_str
 
 let () =
   if Array.length Sys.argv <> 2 then (
-    Printf.eprintf "Usage: %s <filename>\n" Sys.argv.(0);
+    eprintf "Usage: %s <filename>\n" Sys.argv.(0);
     exit 1
   );
 
@@ -127,7 +128,7 @@ let () =
       content
     with
     | Sys_error msg ->
-        Printf.eprintf "Error: %s\n" msg;
+        eprintf "Error: %s\n" msg;
         exit 1
   in
 
