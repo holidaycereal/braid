@@ -1,0 +1,20 @@
+-* match expression *-
+
+-- immediate return
+fn factorial(x) : int -> int
+	=> match x {
+		0 -> 1,
+		n -> n * factorial(n - 1),
+	};
+
+-- some imperative boilerplate, then return
+fn process(x) : int -> int {
+	if not valid(x) then
+		log_error();
+		=> -1;
+	end
+	=> match computation(x).value {
+		ok(v) -> v,
+		err(_) -> -2,
+	};
+}

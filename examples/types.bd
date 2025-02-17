@@ -1,0 +1,35 @@
+-* algebraic type system *-
+
+-- type aliases
+type time = i64;
+type point = (int, int);
+
+-- sum type (union)
+union level { off, low, high }
+
+union maybe[a] {
+	nothing,
+	just(a),
+}
+
+-- product type (record)
+record point3 { x : int, y : int, z : int }
+
+record user {
+	id : u8,
+	name : string,
+	status { -- nested union
+		inactive,
+		active { time_joined : time }, -- nested record WITHIN the nested union
+	},
+}
+
+-- record literal syntax
+alice : user = {
+	id = 0x01,
+	name = "alice",
+	status = active { time_joined = os::now() },
+};
+
+-- tuple syntax
+bob : user = (0x02, "bob", inactive);

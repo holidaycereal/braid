@@ -1,0 +1,17 @@
+-* common string operations *-
+
+fn main(argv) : vec[string] -> () {
+	name : string = argv[1];
+
+	greet1 : string = "hello " ++ name; -- using sequence concatenation
+	greet2 : string = fmt("hello %s", [name]); -- equivalent to `greet1`
+
+	user_input : maybe[int] = argv[2] >> parse_int;
+
+	greet3 : string = match user_input {
+		nothing -> "not a valid numeric value",
+		just(n) -> fmt("hello %s, %d is my favourite number", [name, n]),
+	};
+
+	io::echo([greet1, greet2, greet3] >> join("\n"));
+}

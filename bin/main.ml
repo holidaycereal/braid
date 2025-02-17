@@ -2,63 +2,44 @@ open Lexer
 open Printf
 
 let print_token token =
-  let typ_str = match token.ttyp with
+  let token_string = match token with
 (* GENERATE BEGIN PRINT {{{ *)
+  | TokIdent s -> "TokIdent " ^ s
+  | TokLitInt s -> "TokLitInt " ^ s
+  | TokLitFloat s -> "TokLitFloat " ^ s
+  | TokLitChar s -> "TokLitChar " ^ s
+  | TokLitStr s -> "TokLitStr " ^ s
+  | TokLitStrRaw s -> "TokLitStrRaw " ^ s
+  | TokErr s -> "TokErr " ^ s
+  | TokEof -> "TokEof"
   | TokWordIf -> "TokWordIf"
-  | TokWordWith -> "TokWordWith"
+  | TokWordThen -> "TokWordThen"
   | TokWordElse -> "TokWordElse"
+  | TokWordElif -> "TokWordElif"
+  | TokWordCase -> "TokWordCase"
+  | TokWordOf -> "TokWordOf"
+  | TokWordEnd -> "TokWordEnd"
   | TokWordWhile -> "TokWordWhile"
   | TokWordFor -> "TokWordFor"
   | TokWordIn -> "TokWordIn"
+  | TokWordDo -> "TokWordDo"
+  | TokWordDone -> "TokWordDone"
   | TokWordBreak -> "TokWordBreak"
   | TokWordContinue -> "TokWordContinue"
   | TokWordMatch -> "TokWordMatch"
   | TokWordWhen -> "TokWordWhen"
-  | TokWordSwitch -> "TokWordSwitch"
-  | TokWordCase -> "TokWordCase"
-  | TokWordDefault -> "TokWordDefault"
-  | TokWordImmut -> "TokWordImmut"
   | TokWordType -> "TokWordType"
-  | TokWordAlias -> "TokWordAlias"
   | TokWordRecord -> "TokWordRecord"
   | TokWordUnion -> "TokWordUnion"
   | TokWordFn -> "TokWordFn"
+  | TokWordLet -> "TokWordLet"
   | TokWordImport -> "TokWordImport"
-  | TokWordAs -> "TokWordAs"
-  | TokWordFrom -> "TokWordFrom"
+  | TokWordUse -> "TokWordUse"
   | TokWordAnd -> "TokWordAnd"
   | TokWordOr -> "TokWordOr"
   | TokWordXor -> "TokWordXor"
-  | TokWordNot -> "TokWordNot"
-  | TokPrimU8 -> "TokPrimU8"
-  | TokPrimU16 -> "TokPrimU16"
-  | TokPrimU32 -> "TokPrimU32"
-  | TokPrimU64 -> "TokPrimU64"
-  | TokPrimI8 -> "TokPrimI8"
-  | TokPrimI16 -> "TokPrimI16"
-  | TokPrimI32 -> "TokPrimI32"
-  | TokPrimI64 -> "TokPrimI64"
-  | TokPrimUint -> "TokPrimUint"
-  | TokPrimInt -> "TokPrimInt"
-  | TokPrimUsize -> "TokPrimUsize"
-  | TokPrimIsize -> "TokPrimIsize"
-  | TokPrimF32 -> "TokPrimF32"
-  | TokPrimF64 -> "TokPrimF64"
-  | TokPrimFloat -> "TokPrimFloat"
-  | TokPrimBool -> "TokPrimBool"
   | TokLitTrue -> "TokLitTrue"
   | TokLitFalse -> "TokLitFalse"
-  | TokIdent -> "TokIdent"
-  | TokLitIntDec -> "TokLitIntDec"
-  | TokLitIntHex -> "TokLitIntHex"
-  | TokLitIntOct -> "TokLitIntOct"
-  | TokLitIntBin -> "TokLitIntBin"
-  | TokLitFloat -> "TokLitFloat"
-  | TokLitChar -> "TokLitChar"
-  | TokLitStr -> "TokLitStr"
-  | TokLitStrRaw -> "TokLitStrRaw"
-  | TokErr -> "TokErr"
-  | TokEof -> "TokEof"
   | TokParenL -> "TokParenL"
   | TokParenR -> "TokParenR"
   | TokBracketL -> "TokBracketL"
@@ -71,11 +52,7 @@ let print_token token =
   | TokColon -> "TokColon"
   | TokEquals -> "TokEquals"
   | TokVertLine -> "TokVertLine"
-  | TokAmpersand -> "TokAmpersand"
-  | TokTilde -> "TokTilde"
   | TokBang -> "TokBang"
-  | TokQuestion -> "TokQuestion"
-  | TokCaret -> "TokCaret"
   | TokMinus -> "TokMinus"
   | TokPlus -> "TokPlus"
   | TokStar -> "TokStar"
@@ -87,31 +64,15 @@ let print_token token =
   | TokCompNe -> "TokCompNe"
   | TokCompLe -> "TokCompLe"
   | TokCompGe -> "TokCompGe"
-  | TokAddAssign -> "TokAddAssign"
-  | TokSubAssign -> "TokSubAssign"
-  | TokMulAssign -> "TokMulAssign"
-  | TokDivAssign -> "TokDivAssign"
-  | TokModAssign -> "TokModAssign"
   | TokArrow -> "TokArrow"
   | TokReturnArrow -> "TokReturnArrow"
   | TokFwdCompose -> "TokFwdCompose"
   | TokRange -> "TokRange"
   | TokModule -> "TokModule"
   | TokConcat -> "TokConcat"
-  | TokBitLsl -> "TokBitLsl"
-  | TokBitLsr -> "TokBitLsr"
-  | TokBitAsl -> "TokBitAsl"
-  | TokBitAsr -> "TokBitAsr"
-  | TokBitAnd -> "TokBitAnd"
-  | TokBitOr -> "TokBitOr"
-  | TokBitXor -> "TokBitXor"
 (* GENERATE END PRINT }}} *)
   in
-  let val_str = match token.tval with
-  | None -> ""
-  | Some v -> v
-  in
-  printf "%s \027[34m%s\027[0m\n" typ_str val_str
+  printf "%s\n" token_string
 
 let () =
   if Array.length Sys.argv <> 2 then (
@@ -131,6 +92,5 @@ let () =
         eprintf "Error: %s\n" msg;
         exit 1
   in
-
   let tokens = lex input in
-  List.iter print_token tokens
+  Array.iter print_token tokens

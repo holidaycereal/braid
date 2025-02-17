@@ -14,7 +14,7 @@ def ml_name(label: str) -> str:
         parts.append(part.capitalize())
     return "".join(parts)
 
-def br_word(label: str) -> str:
+def braid_word(label: str) -> str:
     return label.split("_")[1]
 
 # C code generation
@@ -22,15 +22,15 @@ def gen_c_type(labels: List[str]) -> List[str]:
     return [f"\t{c_name(label)}," for label in labels]
 
 def gen_c_word(labels: List[str]) -> List[str]:
-    return [f"\tif (strcmp(word, \"{br_word(label)}\") == 0) return {c_name(label)};" for label in labels]
+    return [f"\tif (strcmp(word, \"{braid_word(label)}\") == 0) return {c_name(label)};" for label in labels]
 
 def gen_c_symbol(short_entries, long_entries: List[List[str]]) -> List[str]:
-    out = []
+    accum = []
     for short_entry in short_entries:
         matching_long_entries = [entry for entry in long_entries if short_entry[1] == entry[1][0]]
 
         if not matching_long_entries:
-            out.append(f"\tcase '{short_entry[1]}': return {c_name(short_entry[0])};")
+            accum.append(f"\tcase '{short_entry[1]}': return {c_name(short_entry[0])};")
             continue
 
         parts = [f"\tcase '{short_entry[1]}':"]
@@ -42,22 +42,31 @@ def gen_c_symbol(short_entries, long_entries: List[List[str]]) -> List[str]:
         parts.append(f"\t\tdefault: return {c_name(short_entry[0])};")
         parts.append("\t\t}")
 
-        out.append("\n".join(parts))
+        accum.append("\n".join(parts))
 
-    return out
+    return accum
 
 def gen_c_islong(labels: List[str]) -> List[str]:
     return [f"\tcase {c_name(label)}: return false;" for label in labels]
 
 # OCaml code generation
-def gen_ml_type(labels: List[str]) -> List[str]:
-    return [f"  | {ml_name(label)}" for label in labels]
+def gen_ml_type(valued, plain: List[str]) -> List[str]:
+    accum = []
+    for label in valued: accum.append(f"  | {ml_name(label)} of string")
+    for label in plain: accum.append(f"  | {ml_name(label)}")
+    return accum
 
-def gen_ml_convert(labels: List[str]) -> List[str]:
-    return [f"  | {i} -> {ml_name(label)}" for i, label in enumerate(labels)]
+def gen_ml_convert(valued, plain: List[str]) -> List[str]:
+    accum = []
+    for i, label in enumerate(valued): accum.append(f"  | ({i}, s) -> {ml_name(label)} s")
+    for i, label in enumerate(plain, len(valued)): accum.append(f"  | ({i}, _) -> {ml_name(label)}")
+    return accum
 
-def gen_ml_print(labels: List[str]) -> List[str]:
-    return [f"  | {name} -> \"{name}\"" for name in (ml_name(label) for label in labels)]
+def gen_ml_print(valued, plain: List[str]) -> List[str]:
+    accum = []
+    for label in valued: accum.append(f"  | {ml_name(label)} s -> \"{ml_name(label)} \" ^ s")
+    for label in plain: accum.append(f"  | {ml_name(label)} -> \"{ml_name(label)}\"")
+    return accum
 
 # File IO
 def gen_section(filename: str, marker: str, new_content: List[str]) -> None:
@@ -90,12 +99,14 @@ def main():
         data = yaml.safe_load(f)
 
     words = data["words"]
-    special = data["special"]
+    valued = data["valued"]
+    eof_token = data["eofToken"]
     short_entries = data["shortSymbols"]
     long_entries = data["longSymbols"]
     short_symbols = [entry[0] for entry in short_entries]
     long_symbols = [entry[0] for entry in long_entries]
-    all = words + special + short_symbols + long_symbols
+    plain = eof_token + words + short_symbols + long_symbols
+    all = valued + plain
 
     src = project_root/"lib"/"lexer"
     bin = project_root/"bin"
@@ -103,9 +114,9 @@ def main():
     gen_section(src/"helpers.c", "WORD", gen_c_word(words))
     gen_section(src/"helpers.c", "SYMBOL", gen_c_symbol(short_entries, long_entries))
     gen_section(src/"helpers.c", "ISLONG", gen_c_islong(short_symbols))
-    gen_section(src/"lexer.ml", "TYPE", gen_ml_type(all))
-    gen_section(src/"lexer.ml", "CONVERT", gen_ml_convert(all))
-    gen_section(bin/"main.ml", "PRINT", gen_ml_print(all))
+    gen_section(src/"lexer.ml", "TYPE", gen_ml_type(valued, plain))
+    gen_section(src/"lexer.ml", "CONVERT", gen_ml_convert(valued, plain))
+    gen_section(bin/"main.ml", "PRINT", gen_ml_print(valued, plain))
 
 if __name__ == "__main__":
     main()

@@ -6,10 +6,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#define CUR input[pos]
-#define NEXT input[pos + 1]
+#define CUR      input[pos]
+#define NEXT     input[pos + 1]
 #define NEXTNEXT input[pos + 2]
-#define PREV input[pos - 1]
+#define PREV     input[pos - 1]
 
 Token make_token(TokenType type, const char* value) {
 	return (Token) {
@@ -31,23 +31,23 @@ Token* lex(const char* input) {
 			continue;
 		}
 		// Skip one-line comments
-		if (CUR == '/' && NEXT == '/') {
+		if (CUR == '-' && NEXT == '-') {
 			pos += 2;
 			while (CUR != '\0' && CUR != '\n') pos++;
 			continue;
 		}
 		// Skip block comments
-		if (CUR == '/' && NEXT == '*') {
+		if (CUR == '-' && NEXT == '*') {
 			pos += 2;
-			size_t nest_levels = 1;
+			size_t depth = 1;
 			while (CUR != '\0') {
-				if (CUR == '/' && NEXT == '*') {
+				if (CUR == '-' && NEXT == '*') {
 					pos += 2;
-					nest_levels++;
-				} else if (CUR == '*' && NEXT == '/') {
+					depth++;
+				} else if (CUR == '*' && NEXT == '-') {
 					pos += 2;
-					nest_levels--;
-					if (nest_levels == 0) break;
+					depth--;
+					if (depth == 0) break;
 				} else {
 					pos++;
 				}
@@ -75,32 +75,24 @@ Token* lex(const char* input) {
 		else if (isdigit(CUR)) {
 			size_t start = pos;
 			bool has_dot = false;
-			TokenType type = TOK_LIT_INT_DEC;
+			TokenType type = TOK_LIT_INT;
 
 			// Hexadecimal
 			if (CUR == '0' && (NEXT == 'x' || NEXT == 'X')) {
-				type = TOK_LIT_INT_HEX;
 				pos += 2;
 				while (isxdigit(CUR)) pos++;
-			}
-			// Octal
+			} // Octal
 			else if (CUR == '0' && (NEXT == 'o' || NEXT == 'O')) {
-				type = TOK_LIT_INT_OCT;
 				pos += 2;
 				while (CUR >= '0' && CUR <= '7') pos++;
-			}
-			// Binary
+			} // Binary
 			else if (CUR == '0' && (NEXT == 'b' || NEXT == 'B')) {
-				type = TOK_LIT_INT_BIN;
 				pos += 2;
 				while (CUR == '0' || CUR == '1') pos++;
-			}
-			// Decimal
+			} // Decimal
 			else {
-				while (isdigit(CUR)
-						|| (CUR == '.'
-							&& !has_dot
-							&& isdigit(NEXT))) {
+				while (isdigit(CUR) ||
+						(CUR == '.' && !has_dot && isdigit(NEXT))) {
 					if (CUR == '.') has_dot = true;
 					pos++;
 				}

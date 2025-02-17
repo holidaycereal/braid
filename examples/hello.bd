@@ -1,3 +1,5 @@
+-* obligatory... *-
+
 fn main() -> () {
 	io::echo("hello, world");
 }

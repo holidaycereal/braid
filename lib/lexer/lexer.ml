@@ -1,60 +1,41 @@
-type token_type =
+type token =
 (* GENERATE BEGIN TYPE {{{ *)
+  | TokIdent of string
+  | TokLitInt of string
+  | TokLitFloat of string
+  | TokLitChar of string
+  | TokLitStr of string
+  | TokLitStrRaw of string
+  | TokErr of string
+  | TokEof
   | TokWordIf
-  | TokWordWith
+  | TokWordThen
   | TokWordElse
+  | TokWordElif
+  | TokWordCase
+  | TokWordOf
+  | TokWordEnd
   | TokWordWhile
   | TokWordFor
   | TokWordIn
+  | TokWordDo
+  | TokWordDone
   | TokWordBreak
   | TokWordContinue
   | TokWordMatch
   | TokWordWhen
-  | TokWordSwitch
-  | TokWordCase
-  | TokWordDefault
-  | TokWordImmut
   | TokWordType
-  | TokWordAlias
   | TokWordRecord
   | TokWordUnion
   | TokWordFn
+  | TokWordLet
   | TokWordImport
-  | TokWordAs
-  | TokWordFrom
+  | TokWordUse
   | TokWordAnd
   | TokWordOr
   | TokWordXor
-  | TokWordNot
-  | TokPrimU8
-  | TokPrimU16
-  | TokPrimU32
-  | TokPrimU64
-  | TokPrimI8
-  | TokPrimI16
-  | TokPrimI32
-  | TokPrimI64
-  | TokPrimUint
-  | TokPrimInt
-  | TokPrimUsize
-  | TokPrimIsize
-  | TokPrimF32
-  | TokPrimF64
-  | TokPrimFloat
-  | TokPrimBool
   | TokLitTrue
   | TokLitFalse
-  | TokIdent
-  | TokLitIntDec
-  | TokLitIntHex
-  | TokLitIntOct
-  | TokLitIntBin
-  | TokLitFloat
-  | TokLitChar
-  | TokLitStr
-  | TokLitStrRaw
-  | TokErr
-  | TokEof
   | TokParenL
   | TokParenR
   | TokBracketL
@@ -67,11 +48,7 @@ type token_type =
   | TokColon
   | TokEquals
   | TokVertLine
-  | TokAmpersand
-  | TokTilde
   | TokBang
-  | TokQuestion
-  | TokCaret
   | TokMinus
   | TokPlus
   | TokStar
@@ -83,144 +60,88 @@ type token_type =
   | TokCompNe
   | TokCompLe
   | TokCompGe
-  | TokAddAssign
-  | TokSubAssign
-  | TokMulAssign
-  | TokDivAssign
-  | TokModAssign
   | TokArrow
   | TokReturnArrow
   | TokFwdCompose
   | TokRange
   | TokModule
   | TokConcat
-  | TokBitLsl
-  | TokBitLsr
-  | TokBitAsl
-  | TokBitAsr
-  | TokBitAnd
-  | TokBitOr
-  | TokBitXor
 (* GENERATE END TYPE }}} *)
-
-type token = {
-  ttyp : token_type;
-  tval : string option;
-}
 
 external c_lex : string -> (int * string) array = "c_lex"
 
-let convert_token_type = function
+let convert_c_token c_token =
+  match c_token with
 (* GENERATE BEGIN CONVERT {{{ *)
-  | 0 -> TokWordIf
-  | 1 -> TokWordWith
-  | 2 -> TokWordElse
-  | 3 -> TokWordWhile
-  | 4 -> TokWordFor
-  | 5 -> TokWordIn
-  | 6 -> TokWordBreak
-  | 7 -> TokWordContinue
-  | 8 -> TokWordMatch
-  | 9 -> TokWordWhen
-  | 10 -> TokWordSwitch
-  | 11 -> TokWordCase
-  | 12 -> TokWordDefault
-  | 13 -> TokWordImmut
-  | 14 -> TokWordType
-  | 15 -> TokWordAlias
-  | 16 -> TokWordRecord
-  | 17 -> TokWordUnion
-  | 18 -> TokWordFn
-  | 19 -> TokWordImport
-  | 20 -> TokWordAs
-  | 21 -> TokWordFrom
-  | 22 -> TokWordAnd
-  | 23 -> TokWordOr
-  | 24 -> TokWordXor
-  | 25 -> TokWordNot
-  | 26 -> TokPrimU8
-  | 27 -> TokPrimU16
-  | 28 -> TokPrimU32
-  | 29 -> TokPrimU64
-  | 30 -> TokPrimI8
-  | 31 -> TokPrimI16
-  | 32 -> TokPrimI32
-  | 33 -> TokPrimI64
-  | 34 -> TokPrimUint
-  | 35 -> TokPrimInt
-  | 36 -> TokPrimUsize
-  | 37 -> TokPrimIsize
-  | 38 -> TokPrimF32
-  | 39 -> TokPrimF64
-  | 40 -> TokPrimFloat
-  | 41 -> TokPrimBool
-  | 42 -> TokLitTrue
-  | 43 -> TokLitFalse
-  | 44 -> TokIdent
-  | 45 -> TokLitIntDec
-  | 46 -> TokLitIntHex
-  | 47 -> TokLitIntOct
-  | 48 -> TokLitIntBin
-  | 49 -> TokLitFloat
-  | 50 -> TokLitChar
-  | 51 -> TokLitStr
-  | 52 -> TokLitStrRaw
-  | 53 -> TokErr
-  | 54 -> TokEof
-  | 55 -> TokParenL
-  | 56 -> TokParenR
-  | 57 -> TokBracketL
-  | 58 -> TokBracketR
-  | 59 -> TokBraceL
-  | 60 -> TokBraceR
-  | 61 -> TokDot
-  | 62 -> TokComma
-  | 63 -> TokSemicolon
-  | 64 -> TokColon
-  | 65 -> TokEquals
-  | 66 -> TokVertLine
-  | 67 -> TokAmpersand
-  | 68 -> TokTilde
-  | 69 -> TokBang
-  | 70 -> TokQuestion
-  | 71 -> TokCaret
-  | 72 -> TokMinus
-  | 73 -> TokPlus
-  | 74 -> TokStar
-  | 75 -> TokSlash
-  | 76 -> TokPercent
-  | 77 -> TokLess
-  | 78 -> TokGreater
-  | 79 -> TokCompEq
-  | 80 -> TokCompNe
-  | 81 -> TokCompLe
-  | 82 -> TokCompGe
-  | 83 -> TokAddAssign
-  | 84 -> TokSubAssign
-  | 85 -> TokMulAssign
-  | 86 -> TokDivAssign
-  | 87 -> TokModAssign
-  | 88 -> TokArrow
-  | 89 -> TokReturnArrow
-  | 90 -> TokFwdCompose
-  | 91 -> TokRange
-  | 92 -> TokModule
-  | 93 -> TokConcat
-  | 94 -> TokBitLsl
-  | 95 -> TokBitLsr
-  | 96 -> TokBitAsl
-  | 97 -> TokBitAsr
-  | 98 -> TokBitAnd
-  | 99 -> TokBitOr
-  | 100 -> TokBitXor
+  | (0, s) -> TokIdent s
+  | (1, s) -> TokLitInt s
+  | (2, s) -> TokLitFloat s
+  | (3, s) -> TokLitChar s
+  | (4, s) -> TokLitStr s
+  | (5, s) -> TokLitStrRaw s
+  | (6, s) -> TokErr s
+  | (7, _) -> TokEof
+  | (8, _) -> TokWordIf
+  | (9, _) -> TokWordThen
+  | (10, _) -> TokWordElse
+  | (11, _) -> TokWordElif
+  | (12, _) -> TokWordCase
+  | (13, _) -> TokWordOf
+  | (14, _) -> TokWordEnd
+  | (15, _) -> TokWordWhile
+  | (16, _) -> TokWordFor
+  | (17, _) -> TokWordIn
+  | (18, _) -> TokWordDo
+  | (19, _) -> TokWordDone
+  | (20, _) -> TokWordBreak
+  | (21, _) -> TokWordContinue
+  | (22, _) -> TokWordMatch
+  | (23, _) -> TokWordWhen
+  | (24, _) -> TokWordType
+  | (25, _) -> TokWordRecord
+  | (26, _) -> TokWordUnion
+  | (27, _) -> TokWordFn
+  | (28, _) -> TokWordLet
+  | (29, _) -> TokWordImport
+  | (30, _) -> TokWordUse
+  | (31, _) -> TokWordAnd
+  | (32, _) -> TokWordOr
+  | (33, _) -> TokWordXor
+  | (34, _) -> TokLitTrue
+  | (35, _) -> TokLitFalse
+  | (36, _) -> TokParenL
+  | (37, _) -> TokParenR
+  | (38, _) -> TokBracketL
+  | (39, _) -> TokBracketR
+  | (40, _) -> TokBraceL
+  | (41, _) -> TokBraceR
+  | (42, _) -> TokDot
+  | (43, _) -> TokComma
+  | (44, _) -> TokSemicolon
+  | (45, _) -> TokColon
+  | (46, _) -> TokEquals
+  | (47, _) -> TokVertLine
+  | (48, _) -> TokBang
+  | (49, _) -> TokMinus
+  | (50, _) -> TokPlus
+  | (51, _) -> TokStar
+  | (52, _) -> TokSlash
+  | (53, _) -> TokPercent
+  | (54, _) -> TokLess
+  | (55, _) -> TokGreater
+  | (56, _) -> TokCompEq
+  | (57, _) -> TokCompNe
+  | (58, _) -> TokCompLe
+  | (59, _) -> TokCompGe
+  | (60, _) -> TokArrow
+  | (61, _) -> TokReturnArrow
+  | (62, _) -> TokFwdCompose
+  | (63, _) -> TokRange
+  | (64, _) -> TokModule
+  | (65, _) -> TokConcat
 (* GENERATE END CONVERT }}} *)
-  | _ -> TokErr
-
-let convert_token : int * string -> token = fun (c_ttyp, c_tval) -> {
-  ttyp = convert_token_type c_ttyp;
-  tval = if c_tval = "" then None else Some c_tval;
-}
+  | _ -> TokErr "Unreachable: C enum went out of its range"
 
 let lex input =
-  let c_tokens = c_lex input in
-  Array.map convert_token c_tokens |> Array.to_list
+  let tokens = c_lex input in
+  Array.map convert_c_token tokens

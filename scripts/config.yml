@@ -1,60 +1,43 @@
-words:
-  - "word_if"
-  - "word_with"
-  - "word_else"
-  - "word_while"
-  - "word_for"
-  - "word_in"
-  - "word_break"
-  - "word_continue"
-  - "word_match"
-  - "word_when"
-  - "word_switch"
-  - "word_case"
-  - "word_default"
-  - "word_immut"
-  - "word_type"
-  - "word_alias"
-  - "word_record"
-  - "word_union"
-  - "word_fn"
-  - "word_import"
-  - "word_as"
-  - "word_from"
-  - "word_and"
-  - "word_or"
-  - "word_xor"
-  - "word_not"
-  - "prim_u8"
-  - "prim_u16"
-  - "prim_u32"
-  - "prim_u64"
-  - "prim_i8"
-  - "prim_i16"
-  - "prim_i32"
-  - "prim_i64"
-  - "prim_uint"
-  - "prim_int"
-  - "prim_usize"
-  - "prim_isize"
-  - "prim_f32"
-  - "prim_f64"
-  - "prim_float"
-  - "prim_bool"
-  - "lit_true"
-  - "lit_false"
-
-special:
+valued:
   - "ident"
-  - "lit_int_dec"
-  - "lit_int_hex"
-  - "lit_int_oct"
-  - "lit_int_bin"
+  - "lit_int"
   - "lit_float"
   - "lit_char"
   - "lit_str"
   - "lit_str_raw"
   - "err"
+  
+words:
+  - "word_if"
+  - "word_then"
+  - "word_else"
+  - "word_elif"
+  - "word_case"
+  - "word_of"
+  - "word_end"
+  - "word_while"
+  - "word_for"
+  - "word_in"
+  - "word_do"
+  - "word_done"
+  - "word_break"
+  - "word_continue"
+  - "word_match"
+  - "word_when"
+  - "word_type"
+  - "word_record"
+  - "word_union"
+  - "word_fn"
+  - "word_let"
+  - "word_import"
+  - "word_use"
+  - "word_and"
+  - "word_or"
+  - "word_xor"
+  - "lit_true"
+  - "lit_false"
+
+eofToken:
   - "eof"
 
 shortSymbols:
@@ -70,11 +53,7 @@ shortSymbols:
   - ["colon",     ":"]
   - ["equals",    "="]
   - ["vert_line", "|"]
-  - ["ampersand", "&"]
-  - ["tilde",     "~"]
   - ["bang",      "!"]
-  - ["question",  "?"]
-  - ["caret",     "^"]
   - ["minus",     "-"]
   - ["plus",      "+"]
   - ["star",      "*"]
@@ -88,21 +67,9 @@ longSymbols:
   - ["comp_ne",      "!="]
   - ["comp_le",      "<="]
   - ["comp_ge",      ">="]
-  - ["add_assign",   "+="]
-  - ["sub_assign",   "-="]
-  - ["mul_assign",   "*="]
-  - ["div_assign",   "/="]
-  - ["mod_assign",   "%="]
   - ["arrow",        "->"]
   - ["return_arrow", "=>"]
   - ["fwd_compose",  ">>"]
   - ["range",        ".."]
   - ["module",       "::"]
   - ["concat",       "++"]
-  - ["bit_lsl",      ".<"]
-  - ["bit_lsr",      ".>"]
-  - ["bit_asl",      ":<"]
-  - ["bit_asr",      ":>"]
-  - ["bit_and",      ".*"]
-  - ["bit_or",       ".+"]
-  - ["bit_xor",      ".^"]
