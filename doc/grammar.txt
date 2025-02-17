@@ -1,149 +1,119 @@
+vim:expandtab
+# bnf grammar for my programming language, braid
+# --
+# this grammar is very incomplete, and inaccurate in some places.
+# for example, i don't properly encode rules about trailing commas.
+# this file is just here for documentation, to give you a general idea.
+
 <program> ::= <top-level>* <main-fn>
-<main-fn> ::= "fn" "main" <fn-body>
+
+<main-fn> ::= 'fn' 'main' <fn-params> [<fn-type-sig>] '{' <statement>* '}'
+
 <top-level> ::=
-    <alias-def>
+    <import>
+  | <expr-def>
   | <type-def>
-  | <record-def>
   | <union-def>
+  | <record-def>
   | <fn-def>
-  | <import>
 
-<alias-def> ::= "alias" <ident> ["(" <ident-list> ")"] "=" <expr> ";"
-<type-def>  ::= "type"  <ident> ["[" <ident-list> "]"] "=" <type> ";"
+<import> ::= 'import' <module> ['::' <item-list>] ';'
+<expr-def> ::= 'let' <ident> '=' <expr> ';'
+<fn-def> ::= 'fn' <ident> <fn-params> [<fn-type-sig>] <fn-body>
+<type-def> ::= 'type' <ident> [<type-params>] '=' <type-expr> ';'
+<union-def> ::= 'union' <ident> [<type-params>] '{' (<variant> ',')+ '}'
+<record-def> ::= 'record' <ident> [<type-params>] '{' (<field> ',')+ '}'
 
-<record-def>  ::= "record" <ident> <record-body>
-<union-def>   ::= "union"  <ident> <union-body>
-<record-body> ::=
-    ["[" <ident-list> "]"]
-    "{" ["^"] <field>   ("^" <field>)*   "}"
-<union-body>  ::=
-    ["[" <ident-list> "]"]
-    "{" ["|"] <variant> ("|" <variant>)* "}"
-<field> ::=
-    <ident> ":" <type> ["=" <expr>]
-  | <ident> <record-body>
-  | <ident> <union-body>
-<variant> ::=
-    <ident>
-  | <ident> "(" <type> ")")
-  | <ident> <record-body>
-
-<fn-def>  ::= "fn" <ident> <fn-body>
-<fn-body> ::=
-    ("(" <ident-list> ")")+
-    [":" (<type> "->")+ <type> | "->" (<type> "->")* <type>]
-    ("{" <stmt>* "}" | <return> ";")
-
-<import> ::= "import" (<ident> ["as" <ident>] | <ident>+ "from" <ident>) ";"
-
-<stmt> ::=
-    <mut-decl>
-  | <immut-decl>
-  | <assign>
-  | <fn-call>
-  | <return>
-  | <break>
-  | <continue>
-  | <while-block>
-  | <for-block>
-  | <if-block>
-  | <with-block>
-  | <switch-block>
-
-<mut-decl>   ::=         <ident> ":" <type> ["=" <expr>] ";"
-<immut-decl> ::= "immut" <ident> ":" <type>  "=" <expr>  ";"
-<assign>     ::= <ident> "=" <expr>        ";"
-<fn-call>    ::= <ident> ("(" <expr> ")")+ ";"
-<return>     ::= "=>" <expr>               ";"
-<break>      ::= "break" <num-scopes>      ";"
-<continue>   ::= "continue"                ";"
-
-<while-block>  ::= "while" <expr> ["," <stmt>] <block-body>
-<for-block>    ::= "for" <ident> "in" <expr> <block-body>
-<if-block>     ::= "if" <expr> <block-body> <else-clause>
-<with-block>   ::= "with" <pattern> "from" <expr> <block-body> <else-clause>
-<switch-block> ::=
-    "switch" <expr> "{"
-    ("case" <pattern-list> ":" <stmt>*)*
-    ["default"             ":" <stmt>*]
-    "}"
-
-<block-body>  ::= "," <stmt> | "{" <stmt>* "}"
-<else-clause> ::= "else" <block-body>
-
-<pattern-list> ::= <pattern> ("|" <pattern>)*
-<pattern> ::=
-    <expr>
-  | <ident>
-  | <ident> "(" <constructor-list> ")"
-<constructor-list> ::= <pattern> ("," <pattern>)*
-
-<type> ::=
-    <primitive>
-  | <generic>
-  | <tuple-type>
-  | <array-type>
-  | <functor-app>
-  | <type-alias-ref>
-  | <record-ref>
-  | <union-ref>
-  | <inferred>
-
-<primitive>      ::= (uint-type) | (int-type) | (float-type) | (bool-type)
-<generic>        ::= <ident>
-<tuple-type>     ::= "(" [<type>] ("," <type>)* ")"
-<array-type>     ::= "[" <type> "]"
-<functor-app>    ::= <ident> "[" <type> "]"
-<type-alias-ref> ::= <ident>
-<record-ref>     ::= <ident>
-<union-ref>      ::= <ident>
-<inferred>       ::= ()
+<fn-params> ::= ('(' <ident-list> ')')+
+<fn-type-sig> ::= ':' <type-expr> '->' (<type-expr> | <fn-type-sig>)
+<fn-body> ::= '=>' <expr> ';' | '{' <statement>* '}'
+<type-params> ::= '[' <ident-list> ']'
+<variant> ::= <ident> | <constructor> | <record-variant>
+<field> ::= <ident> ':' <type-expr> | <union-field>
 
 <expr> ::=
-    <value-literal>
-  | <alias-ref>
-  | <var-ref>
-  | <tuple-literal>
-  | <list-literal>
-  | <record-literal>
+    <unit>
+  | <ident>
+  | <literal>
+  | <list>
+  | <tuple>
   | <match>
+  | <record>
   | <ternary>
-  | <unary-op-app>
-  | <binary-op-app>
+  | <bin-op-app>
+  | <un-op-app>
   | <fn-app>
   | <lambda>
 
-<value_literal>  ::= ([0-9]+) | ([0-9]+\.[0.9]+) | "'" (*) "'"
-<alias-ref>      ::= <ident>
-<var-ref>        ::= <ident>
-<tuple-literal>  ::= "(" [<expr>] ("," <expr>)* ")"
-<list-literal>   ::= "[" [<expr>] ("," <expr>)* "]" | "\"" (*)* "\""
-<record-literal> ::=
-    [<ident>] "{"
-    ["^"] <ident> "=" <expr>
-    ("^"  <ident> "=" <expr>)*
-    "}"
-<match> ::=
-    "match" <expr> "{"
-    ["|"] <pattern-list> "->" <expr>
-    ("|"  <pattern-list> "->" <expr>)*
-    "}"
-<ternary>       ::= "when" <expr> "->" <expr> "|" <expr>
-<unary-op-app>  ::= <unary-op> <expr>
-<binary-op-app> ::= <expr> <binary-op> <expr>
-<fn-app>        ::= <ident> ("(" <expr> ")")*
-<lambda>        ::= "(" <ident-list> ")" "=>" <expr>
+<literal> ::= <int> | <float> | <bool> | <char>
+<list> ::= '[' (<expr> ',')* ']' | <string>
+<tuple> ::= '(' (<expr> ',')* ')'
+<match> ::= 'match' <expr> '{' (<pattern> '->' <expr> ',')+
+<record> ::= [<ident>] '{' (<ident> '=' <expr> ',')+ '}'
+<ternary> ::= 'when' <condition> '->' <expr> '||' <expr>
+<bin-op-app> ::= <expr> <bin-op> <expr>
+<un-op-app> ::= <un-op> <expr>
+<fn-app> ::= <normal-fn-app> | <infix-fn-app> | <fwd-composed-fn-app>
+<lambda> ::= '(' <ident-list> ')' '->' <expr>
 
-<unary-op>  ::= "~" | "!" | "&"
-<binary-op> ::=
-    ".<" | ".>" | ":<" | ":>"
-  | ".*" | ".+" | ".^"
-  | "and" | "or" | "xor"
-  | "==" | "!=" | "<=" | ">=" | "<" | ">"
-  | "+"  | "-"  | "*"  | "/"  | "%"
-  | "."  | "[]" | "++" | ".."
+<bin-op> ::=
+    '::' | '.'
+  | '*'  | '/' | '%'
+  | '+'  | '-'
+  | '++' | '..'
+  | '<'  | '>' | '<=' | '>=' | '==' | '!='
+  | 'and' | 'xor' | 'or'
+<un-op> ::= '-' | 'not'
+<normal-fn-app> ::= <ident> <tuple>+
+<infix-fn-app> ::= <expr> '|' (<normal-fn-app> | <ident>) '|' <expr>
+<fwd-composed-fn-app> ::= <expr> '>>' <normal-fn-app>
 
-<ident> ::= ([_a-zA-Z][_a-zA-Z0-9]+)
-<ident-list> ::= <ident> ("," <ident>)*
+<pattern> ::=
+    <const-expr>
+  | <ident>
+  | <constructor-pattern>
+  | <pattern> '|' <pattern>
 
-vim:expandtab
+<type-expr> ::=
+    <inferred>
+  | <ident>
+  | <tuple-type>
+  | <constructor-app>
+
+<tuple-type> ::= '(' (<type-expr> ',')* ')'
+<constructor-app> ::= <ident> '[' (<type-expr> ',')+ ']'
+
+<statement> ::=
+    <declaration>
+  | <assignment>
+  | <fn-call>
+  | <return>
+  | 'continue'
+  | 'break'
+  | <while-loop>
+  | <for-loop>
+  | <if-block>
+  | <case-block>
+
+<declaration> ::= <ident> ':' <type-expr> ['=' <expr>] ';'
+<assignment> ::= <ident> '=' <expr> ';'
+<fn-call> ::= <fn-app> ';'
+<return> ::= '=>' <expr> ';'
+<while-loop> ::=
+    'while' <condition> 'do'
+    <statement>*
+    'done'
+<for-loop> ::=
+    'for' (<ident> | '(' <ident-list> ')') 'in' <iterator> 'do'
+    <statement>*
+    'done'
+<if-block> ::=
+    'if' <condition> 'then' <statement>*
+    ('elif' <condition> 'then' <statement>*)*
+    ['else' <statement>*]
+    'end'
+<case-block> ::=
+    'case' <expr> 'of'
+    (<pattern> ':' <statement>*)*
+    ['else' <statement>*]
+    'end'
