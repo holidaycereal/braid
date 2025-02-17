@@ -5,20 +5,25 @@ open Stdint
 let (>>=) = Result.bind
 
 type state =
-  { stream : token array
+  { stream : token list
   ; pos : int
   }
 
 type parser_error =
+  (* Propagate lexer error *)
   | LexerError of string
+  (* Unclosed statements or expressions *)
   | MissingCloseDelim
   | UnterminatedExpr
   | UnterminatedStmt
   | UnterminatedLiteral
-  | ExpectedTopLevel
-  | ExpectedLiteralOrIdentifier
+  (* Expected tokens vs actual token *)
+  | Expected of token list * token
+  | ExpectedIdent of token
+  | ExpectedLiteral of token
+  | ExpectedTopLevel of token
 
-let peek state = state.stream.(state.pos)
+let peek state = List.nth state.stream state.pos
 let move state n = { state with pos = state.pos + n }
 let look state n = peek (move state n)
 let next state = move state 1
@@ -38,18 +43,18 @@ let op_prec = function
 (* Helper to get tokens until the first instance of delim *)
 let tokens_til delim state =
   let rec aux pos accum =
-    if pos >= Array.length state.stream then Error MissingCloseDelim
-    else if state.stream.(pos) = delim then Ok (List.rev accum)
-    else aux (pos + 1) (state.stream.(pos) :: accum)
+    if pos >= List.length state.stream then Error MissingCloseDelim
+    else if List.nth state.stream pos = delim then Ok (List.rev accum)
+    else aux (pos + 1) (List.nth state.stream pos :: accum)
   in
   aux state.pos []
 
 (* Helpers to get tokens in a pair of parens, brackets or braces *)
 let tokens_in opener closer state =
   let rec aux pos depth accum =
-    if pos >= Array.length state.stream then Error MissingCloseDelim
+    if pos >= List.length state.stream then Error MissingCloseDelim
     else
-      let tok = state.stream.(pos) in
+      let tok = List.nth state.stream pos in
       if tok = opener then aux (pos + 1) (depth + 1) (tok :: accum)
       else if tok = closer then
         if depth = 0 then Ok (List.rev accum)
@@ -62,62 +67,87 @@ let tokens_in_parens state = tokens_in TokParenL TokParenR state
 let tokens_in_brackets state = tokens_in TokBracketL TokBracketR state
 let tokens_in_braces state = tokens_in TokBraceL TokBraceR state
 
-(* Expression parser *)
-let rec parse_expr tokens =
-  if List.length tokens < 1 then Ok Unit (* Empty parens *)
-  else if List.length tokens = 1 then (* Single token expression *)
-    match List.hd tokens with
-    | TokIdent name -> Ok (Reference name)
-    | TokLitInt lit -> parse_int lit >>= fun n -> Ok (IntLiteral n)
-    | TokLitFloat lit -> parse_float lit >>= fun n -> Ok (FloatLiteral n)
-    | TokLitChar lit -> parse_char lit >>= fun c -> Ok (IntLiteral c)
-    | TokLitStr lit -> parse_str lit >>= fun s -> Ok (ListLiteral s)
-    | TokLitStrRaw lit -> parse_raw_str lit >>= fun s -> Ok (ListLiteral s)
-    | TokLitTrue -> Ok (BoolLiteral true)
-    | TokLitFalse -> Ok (BoolLiteral false)
-    | _ -> Error ExpectedLiteralOrIdentifier
-  else
-    parse_primary tokens >>= fun (pos, expr) ->
-    if pos + 1 = List.length tokens then (* Whole expression parsed *)
-      Ok expr
-    else (* Binary expression *)
+(* expression parser *)
+(* {{{ *)
+(*let parse_primary tokens =*)
+(*  if List.length tokens < 1 then Ok Unit (* Empty parens *)*)
+(*  else if List.length tokens = 1 then (* Single token expression *)*)
+(*    match List.hd tokens with*)
+(*    | TokIdent name -> Ok (1, Reference name)*)
+(*    | TokLitInt lit -> parse_int lit >>= fun n -> Ok (1, IntLiteral n)*)
+(*    | TokLitFloat lit -> parse_float lit >>= fun n -> Ok (1, FloatLiteral n)*)
+(*    | TokLitChar lit -> parse_char lit >>= fun c -> Ok (1, IntLiteral c)*)
+(*    | TokLitStr lit -> parse_str lit >>= fun s -> Ok (1, ListLiteral s)*)
+(*    | TokLitStrRaw lit -> parse_raw_str lit >>= fun s -> Ok (1, ListLiteral s)*)
+(*    | TokLitTrue -> Ok (1, BoolLiteral true)*)
+(*    | TokLitFalse -> Ok (1, BoolLiteral false)*)
+(*    | _ -> Error ExpectedLiteralOrIdentifier*)
+(*  else*)
+(* }}} *)
 
-and parse_primary tokens =
-  let pos = 0 in
-  let aux tokens pos =
-    match List.hd tokens with
-    | TokIdent name ->
-        match List.nth tokens 1 with
-        | TokParenL -> (* Function application *)
-    | TokParenL
-    | TokBraceL (* record literal *)
-    | TokWordMatch
-    | TokWordWhen
+let parse_ident state =
+  match peek state with
+  | TokIdent name -> Ok (name, next state)
+  | tok -> Error (ExpectedIdent tok)
+
+let parse_ident_list state delim =
+  let rec aux state accum =
+    match peek state with
+    | tok when tok = delim -> Ok (List.rev accum, next state)
+    | TokIdent item ->
+        let state = next state in
+        begin match peek state with
+        | TokComma -> aux (next state) (item :: accum)
+        | tok -> Error (Expected ([TokComma], tok))
+        end
+    | tok -> Error (ExpectedIdent tok)
+  in
+  aux state []
+
+let parse_alias_def state =
+  parse_ident state >>= fun (name, state) ->
+  match peek state with
+  | TokEquals ->
+      parse_expr (next state) TokSemicolon >>= fun (value, state) ->
+      Ok (AliasDef { name; params = []; value }, state)
+  | TokParenL ->
+      parse_ident_list (next state) TokParenR >>= fun (params, state) ->
+      begin match peek state with
+      | TokEquals ->
+          parse_expr (next state) TokSemicolon >>= fun (value, state) ->
+          Ok (AliasDef { name; params; value }, state)
+      | tok -> Error (Expected ([TokEquals], tok))
+      end
+  | tok -> Error (Expected ([TokEquals; TokParenL], tok))
+
+let parse_import state =
+  parse_ident state >>= fun (name, state) ->
+  begin match peek state with
+  | TokSemicolon -> Ok (Import (name, []), next state)
+  | TokModule ->
+      parse_ident_list (next state) TokSemicolon >>= fun (items, state) ->
+      Ok (Import (name, items), state)
+  | tok -> Error (Expected ([TokSemicolon; TokModule], tok))
+  end
 
 (* Top-level statement parser *)
 let parse_top_level state =
   match peek state with
   | TokWordImport -> parse_import (next state)
-  | TokWordLet -> parse_expr_def (next state)
-  | TokWordFn ->
-      parse_ident (next state) >>= fun (name, state) ->
-      parse_fn_params state >>= fun (params, state) ->
-      parse_type_sig state >>= fun (type_sig, state) ->
-      parse_fn_body state >>= fun (body, state) ->
-      Ok (FnDef { name; params; type_sig; body }, state)
-  | TokWordType ->
-      parse_ident (next state) >>= fun (name, state) ->
-      parse_type_params state >>= fun (type_params, state) ->
-      parse_typedef_expr state >>= fun (value, state) ->
-      Ok (TypeDef { name; type_params; value }, state)
-  | TokWordRecord ->
-      parse_ident (next state) >>= fun (name, state) ->
-      parse_type_params state >>= fun (type_params, state) ->
-      parse_record_body state >>= fun (body, state) ->
-      Ok (RecordDef { name; type_params; body }, state)
-  | TokWordUnion ->
-      parse_ident (next state) >>= fun (name, state) ->
-      parse_type_params state >>= fun (type_params, state) ->
-      parse_union_body state >>= fun (body, state) ->
-      Ok (UnionDef { name; type_params; body }, state)
-  | _ -> Error ExpectedTopLevel
+  | TokWordAlias -> parse_alias_def (next state)
+  | TokWordFn -> parse_fn_def (next state)
+  | TokWordType -> parse_type_def (next state)
+  | TokWordUnion -> parse_union_def (next state)
+  | TokWordRecord -> parse_record_def (next state)
+  | tok -> Error (ExpectedTopLevel tok)
+
+(* Main parser function *)
+let parse state =
+  let rec loop state accum =
+    match peek state with
+    | TokEof -> Ok (List.rev accum)
+    | _ ->
+        parse_top_level state >>= fun (def, state) ->
+        loop state (def :: accum)
+  in
+  loop state []

@@ -146,4 +146,4 @@ let convert_c_token c_token =
 
 let lex input =
   let c_tokens = c_lex input in
-  Array.map convert_c_token c_tokens
+  Array.to_list (Array.map convert_c_token c_tokens)

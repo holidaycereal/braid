@@ -94,4 +94,4 @@ let () =
         exit 1
   in
   let tokens = lex input in
-  Array.iter print_token tokens
+  List.iter print_token tokens
