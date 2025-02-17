@@ -25,11 +25,11 @@ record user {
 }
 
 -- record literal syntax
-alice : user = {
+let alice : user = {
 	id = 0x01,
 	name = "alice",
 	status = active { time_joined = os::now() },
 };
 
 -- tuple syntax
-bob : user = (0x02, "bob", inactive);
+let bob : user = (0x02, "bob", inactive);
