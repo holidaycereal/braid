@@ -75,8 +75,7 @@ vim:expandtab
   | <pattern> '|' <pattern>
 
 <type-expr> ::=
-    <inferred>
-  | <ident>
+    <ident>
   | <tuple-type>
   | <constructor-app>
 
@@ -95,7 +94,7 @@ vim:expandtab
   | <if-block>
   | <case-block>
 
-<declaration> ::= <ident> ':' <type-expr> ['=' <expr>] ';'
+<declaration> ::= <ident> ':' [<type-expr>] ['=' <expr>] ';'
 <assignment> ::= <ident> '=' <expr> ';'
 <fn-call> ::= <fn-app> ';'
 <return> ::= '=>' <expr> ';'
