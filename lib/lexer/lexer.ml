@@ -8,6 +8,7 @@ type token =
   | TokLitStrRaw of string
   | TokErr of string
   | TokEof
+  | TokWordLet
   | TokWordIf
   | TokWordThen
   | TokWordElse
@@ -28,7 +29,7 @@ type token =
   | TokWordRecord
   | TokWordUnion
   | TokWordFn
-  | TokWordLet
+  | TokWordAlias
   | TokWordImport
   | TokWordUse
   | TokWordAnd
@@ -81,64 +82,65 @@ let convert_c_token c_token =
   | (5, s) -> TokLitStrRaw s
   | (6, s) -> TokErr s
   | (7, _) -> TokEof
-  | (8, _) -> TokWordIf
-  | (9, _) -> TokWordThen
-  | (10, _) -> TokWordElse
-  | (11, _) -> TokWordElif
-  | (12, _) -> TokWordCase
-  | (13, _) -> TokWordOf
-  | (14, _) -> TokWordEnd
-  | (15, _) -> TokWordWhile
-  | (16, _) -> TokWordFor
-  | (17, _) -> TokWordIn
-  | (18, _) -> TokWordDo
-  | (19, _) -> TokWordDone
-  | (20, _) -> TokWordBreak
-  | (21, _) -> TokWordContinue
-  | (22, _) -> TokWordMatch
-  | (23, _) -> TokWordWhen
-  | (24, _) -> TokWordType
-  | (25, _) -> TokWordRecord
-  | (26, _) -> TokWordUnion
-  | (27, _) -> TokWordFn
-  | (28, _) -> TokWordLet
-  | (29, _) -> TokWordImport
-  | (30, _) -> TokWordUse
-  | (31, _) -> TokWordAnd
-  | (32, _) -> TokWordOr
-  | (33, _) -> TokWordXor
-  | (34, _) -> TokLitTrue
-  | (35, _) -> TokLitFalse
-  | (36, _) -> TokParenL
-  | (37, _) -> TokParenR
-  | (38, _) -> TokBracketL
-  | (39, _) -> TokBracketR
-  | (40, _) -> TokBraceL
-  | (41, _) -> TokBraceR
-  | (42, _) -> TokDot
-  | (43, _) -> TokComma
-  | (44, _) -> TokSemicolon
-  | (45, _) -> TokColon
-  | (46, _) -> TokEquals
-  | (47, _) -> TokVertLine
-  | (48, _) -> TokBang
-  | (49, _) -> TokMinus
-  | (50, _) -> TokPlus
-  | (51, _) -> TokStar
-  | (52, _) -> TokSlash
-  | (53, _) -> TokPercent
-  | (54, _) -> TokLess
-  | (55, _) -> TokGreater
-  | (56, _) -> TokCompEq
-  | (57, _) -> TokCompNe
-  | (58, _) -> TokCompLe
-  | (59, _) -> TokCompGe
-  | (60, _) -> TokArrow
-  | (61, _) -> TokReturnArrow
-  | (62, _) -> TokFwdCompose
-  | (63, _) -> TokRange
-  | (64, _) -> TokModule
-  | (65, _) -> TokConcat
+  | (8, _) -> TokWordLet
+  | (9, _) -> TokWordIf
+  | (10, _) -> TokWordThen
+  | (11, _) -> TokWordElse
+  | (12, _) -> TokWordElif
+  | (13, _) -> TokWordCase
+  | (14, _) -> TokWordOf
+  | (15, _) -> TokWordEnd
+  | (16, _) -> TokWordWhile
+  | (17, _) -> TokWordFor
+  | (18, _) -> TokWordIn
+  | (19, _) -> TokWordDo
+  | (20, _) -> TokWordDone
+  | (21, _) -> TokWordBreak
+  | (22, _) -> TokWordContinue
+  | (23, _) -> TokWordMatch
+  | (24, _) -> TokWordWhen
+  | (25, _) -> TokWordType
+  | (26, _) -> TokWordRecord
+  | (27, _) -> TokWordUnion
+  | (28, _) -> TokWordFn
+  | (29, _) -> TokWordAlias
+  | (30, _) -> TokWordImport
+  | (31, _) -> TokWordUse
+  | (32, _) -> TokWordAnd
+  | (33, _) -> TokWordOr
+  | (34, _) -> TokWordXor
+  | (35, _) -> TokLitTrue
+  | (36, _) -> TokLitFalse
+  | (37, _) -> TokParenL
+  | (38, _) -> TokParenR
+  | (39, _) -> TokBracketL
+  | (40, _) -> TokBracketR
+  | (41, _) -> TokBraceL
+  | (42, _) -> TokBraceR
+  | (43, _) -> TokDot
+  | (44, _) -> TokComma
+  | (45, _) -> TokSemicolon
+  | (46, _) -> TokColon
+  | (47, _) -> TokEquals
+  | (48, _) -> TokVertLine
+  | (49, _) -> TokBang
+  | (50, _) -> TokMinus
+  | (51, _) -> TokPlus
+  | (52, _) -> TokStar
+  | (53, _) -> TokSlash
+  | (54, _) -> TokPercent
+  | (55, _) -> TokLess
+  | (56, _) -> TokGreater
+  | (57, _) -> TokCompEq
+  | (58, _) -> TokCompNe
+  | (59, _) -> TokCompLe
+  | (60, _) -> TokCompGe
+  | (61, _) -> TokArrow
+  | (62, _) -> TokReturnArrow
+  | (63, _) -> TokFwdCompose
+  | (64, _) -> TokRange
+  | (65, _) -> TokModule
+  | (66, _) -> TokConcat
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr "Unreachable: C enum went out of its range"
 

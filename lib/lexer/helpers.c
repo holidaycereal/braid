@@ -3,6 +3,7 @@
 
 TokenType get_word_type(const char* word) {
 // GENERATE BEGIN WORD {{{
+	if (strcmp(word, "let") == 0) return TOK_WORD_LET;
 	if (strcmp(word, "if") == 0) return TOK_WORD_IF;
 	if (strcmp(word, "then") == 0) return TOK_WORD_THEN;
 	if (strcmp(word, "else") == 0) return TOK_WORD_ELSE;
@@ -23,7 +24,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "union") == 0) return TOK_WORD_UNION;
 	if (strcmp(word, "fn") == 0) return TOK_WORD_FN;
-	if (strcmp(word, "let") == 0) return TOK_WORD_LET;
+	if (strcmp(word, "alias") == 0) return TOK_WORD_ALIAS;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
 	if (strcmp(word, "use") == 0) return TOK_WORD_USE;
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;

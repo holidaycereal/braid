@@ -8,6 +8,7 @@ valued:
   - "err"
   
 words:
+  - "word_let"
   - "word_if"
   - "word_then"
   - "word_else"
@@ -28,7 +29,7 @@ words:
   - "word_record"
   - "word_union"
   - "word_fn"
-  - "word_let"
+  - "word_alias"
   - "word_import"
   - "word_use"
   - "word_and"

@@ -12,6 +12,7 @@ let print_token token =
   | TokLitStrRaw s -> "TokLitStrRaw " ^ s
   | TokErr s -> "TokErr " ^ s
   | TokEof -> "TokEof"
+  | TokWordLet -> "TokWordLet"
   | TokWordIf -> "TokWordIf"
   | TokWordThen -> "TokWordThen"
   | TokWordElse -> "TokWordElse"
@@ -32,7 +33,7 @@ let print_token token =
   | TokWordRecord -> "TokWordRecord"
   | TokWordUnion -> "TokWordUnion"
   | TokWordFn -> "TokWordFn"
-  | TokWordLet -> "TokWordLet"
+  | TokWordAlias -> "TokWordAlias"
   | TokWordImport -> "TokWordImport"
   | TokWordUse -> "TokWordUse"
   | TokWordAnd -> "TokWordAnd"
