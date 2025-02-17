@@ -104,6 +104,16 @@ let parse_ident_list state delim =
   in
   aux state []
 
+let parse_import state =
+  parse_ident state >>= fun (name, state) ->
+  begin match peek state with
+  | TokSemicolon -> Ok (Import (name, []), next state)
+  | TokModule ->
+      parse_ident_list (next state) TokSemicolon >>= fun (items, state) ->
+      Ok (Import (name, items), state)
+  | tok -> Error (Expected ([TokSemicolon; TokModule], tok))
+  end
+
 let parse_alias_def state =
   parse_ident state >>= fun (name, state) ->
   match peek state with
@@ -120,15 +130,30 @@ let parse_alias_def state =
       end
   | tok -> Error (Expected ([TokEquals; TokParenL], tok))
 
-let parse_import state =
+let parse_fn_def state =
   parse_ident state >>= fun (name, state) ->
-  begin match peek state with
-  | TokSemicolon -> Ok (Import (name, []), next state)
-  | TokModule ->
-      parse_ident_list (next state) TokSemicolon >>= fun (items, state) ->
-      Ok (Import (name, items), state)
-  | tok -> Error (Expected ([TokSemicolon; TokModule], tok))
-  end
+  parse_fn_params state >>= fun (params, state) ->
+  parse_fn_type state >>= fun (type_sig, state) ->
+  parse_fn_body state >>= fun (body, state) ->
+  Ok (FnDef { name; params; type_sig; body }, state)
+
+let parse_type_def state =
+  parse_ident state >>= fun (name, state) ->
+  parse_type_params state >>= fun (params, state) ->
+  parse_type_expr state >>= fun (value, state) ->
+  Ok (TypeDef { name; params; value }, state)
+
+let parse_union_def state =
+  parse_ident state >>= fun (name, state) ->
+  parse_type_params state >>= fun (params, state) ->
+  parse_union_body state >>= fun (body, state) ->
+  Ok (UnionDef { name; params; body }, state)
+
+let parse_record_def state =
+  parse_ident state >>= fun (name, state) ->
+  parse_type_params state >>= fun (params, state) ->
+  parse_record_body state >>= fun (body, state) ->
+  Ok (RecordDef { name; params; body }, state)
 
 (* Top-level statement parser *)
 let parse_top_level state =
