@@ -120,7 +120,7 @@ let parse_import state =
   | tok -> Error (Expected ([TokSemicolon; TokModule], tok))
   end
 
-let parse_alias_def state =
+let parse_const_def state =
   parse_ident state >>= fun (name, state) ->
   match peek state with
   | TokEquals ->
