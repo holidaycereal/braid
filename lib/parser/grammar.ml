@@ -4,16 +4,12 @@ open Lexer
 type node =
   (* Top-level *)
   | Import of string * string list
-  | AliasDef of
-      { name : string
-      ; params : string list
-      ; value : node
-      }
+  | ConstDef of string * node
   | FnDef of
       { name : string
       ; params : string list list
       ; type_sig : node (* FnType *)
-      ; body : node list
+      ; body : node list (* statements *)
       }
   (* Type alias *)
   | TypeDef of

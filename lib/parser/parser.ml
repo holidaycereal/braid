@@ -125,18 +125,9 @@ let parse_alias_def state =
   match peek state with
   | TokEquals ->
       tokens_til [TokSemicolon] (next state) >>= fun tokens ->
-      parse_expr tokens >>= fun value ->
-      Ok (AliasDef { name; params = []; value }, move state (List.length tokens))
-  | TokParenL ->
-      parse_ident_list (next state) TokParenR >>= fun (params, state) ->
-      begin match peek state with
-      | TokEquals ->
-          tokens_til [TokSemicolon] (next state) >>= fun tokens ->
-          parse_expr tokens >>= fun value ->
-          Ok (AliasDef { name; params; value }, move state (List.length tokens))
-      | tok -> Error (Expected ([TokEquals], tok))
-      end
-  | tok -> Error (Expected ([TokEquals; TokParenL], tok))
+      parse_expr tokens >>= fun expr ->
+      Ok (ConstDef (name, expr), move state (List.length tokens))
+  | tok -> Error (Expected ([TokEquals], tok))
 
 (* type expression parser *)
 (*let rec parse_type_expr tokens =*)
@@ -218,7 +209,7 @@ let parse_record_def state =
 let parse_top_level state =
   match peek state with
   | TokWordImport -> parse_import (next state)
-  | TokWordAlias -> parse_alias_def (next state)
+  | TokWordConst -> parse_const_def (next state)
   | TokWordFn -> parse_fn_def (next state)
   | TokWordType -> parse_type_def (next state)
   | TokWordUnion -> parse_union_def (next state)

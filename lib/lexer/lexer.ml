@@ -29,12 +29,13 @@ type token =
   | TokWordRecord
   | TokWordUnion
   | TokWordFn
-  | TokWordAlias
+  | TokWordConst
   | TokWordImport
   | TokWordUse
   | TokWordAnd
   | TokWordOr
   | TokWordXor
+  | TokWordNot
   | TokLitTrue
   | TokLitFalse
   | TokParenL
@@ -104,45 +105,46 @@ let convert_c_token c_token =
   | (26, _) -> TokWordRecord
   | (27, _) -> TokWordUnion
   | (28, _) -> TokWordFn
-  | (29, _) -> TokWordAlias
+  | (29, _) -> TokWordConst
   | (30, _) -> TokWordImport
   | (31, _) -> TokWordUse
   | (32, _) -> TokWordAnd
   | (33, _) -> TokWordOr
   | (34, _) -> TokWordXor
-  | (35, _) -> TokLitTrue
-  | (36, _) -> TokLitFalse
-  | (37, _) -> TokParenL
-  | (38, _) -> TokParenR
-  | (39, _) -> TokBracketL
-  | (40, _) -> TokBracketR
-  | (41, _) -> TokBraceL
-  | (42, _) -> TokBraceR
-  | (43, _) -> TokDot
-  | (44, _) -> TokComma
-  | (45, _) -> TokSemicolon
-  | (46, _) -> TokColon
-  | (47, _) -> TokEquals
-  | (48, _) -> TokVertLine
-  | (49, _) -> TokBang
-  | (50, _) -> TokMinus
-  | (51, _) -> TokPlus
-  | (52, _) -> TokStar
-  | (53, _) -> TokSlash
-  | (54, _) -> TokPercent
-  | (55, _) -> TokLess
-  | (56, _) -> TokGreater
-  | (57, _) -> TokCompEq
-  | (58, _) -> TokCompNe
-  | (59, _) -> TokCompLe
-  | (60, _) -> TokCompGe
-  | (61, _) -> TokArrow
-  | (62, _) -> TokReturnArrow
-  | (63, _) -> TokFwdCompose
-  | (64, _) -> TokRange
-  | (65, _) -> TokRangeIncl
-  | (66, _) -> TokModule
-  | (67, _) -> TokConcat
+  | (35, _) -> TokWordNot
+  | (36, _) -> TokLitTrue
+  | (37, _) -> TokLitFalse
+  | (38, _) -> TokParenL
+  | (39, _) -> TokParenR
+  | (40, _) -> TokBracketL
+  | (41, _) -> TokBracketR
+  | (42, _) -> TokBraceL
+  | (43, _) -> TokBraceR
+  | (44, _) -> TokDot
+  | (45, _) -> TokComma
+  | (46, _) -> TokSemicolon
+  | (47, _) -> TokColon
+  | (48, _) -> TokEquals
+  | (49, _) -> TokVertLine
+  | (50, _) -> TokBang
+  | (51, _) -> TokMinus
+  | (52, _) -> TokPlus
+  | (53, _) -> TokStar
+  | (54, _) -> TokSlash
+  | (55, _) -> TokPercent
+  | (56, _) -> TokLess
+  | (57, _) -> TokGreater
+  | (58, _) -> TokCompEq
+  | (59, _) -> TokCompNe
+  | (60, _) -> TokCompLe
+  | (61, _) -> TokCompGe
+  | (62, _) -> TokArrow
+  | (63, _) -> TokReturnArrow
+  | (64, _) -> TokFwdCompose
+  | (65, _) -> TokRange
+  | (66, _) -> TokRangeIncl
+  | (67, _) -> TokModule
+  | (68, _) -> TokConcat
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr "Unreachable: C enum went out of its range"
 

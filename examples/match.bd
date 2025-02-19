@@ -15,6 +15,12 @@ fn process(x) : int -> int {
 	end
 	=> match computation(x).value {
 		ok(v) -> v,
-		err(_) -> -2,
+		err(*) -> -2,
 	};
 }
+
+-- wildcard
+fn example(x) => match x {
+	pattern1 -> value1,
+	* -> value2,
+};

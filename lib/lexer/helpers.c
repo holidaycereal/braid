@@ -24,12 +24,13 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "union") == 0) return TOK_WORD_UNION;
 	if (strcmp(word, "fn") == 0) return TOK_WORD_FN;
-	if (strcmp(word, "alias") == 0) return TOK_WORD_ALIAS;
+	if (strcmp(word, "const") == 0) return TOK_WORD_CONST;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
 	if (strcmp(word, "use") == 0) return TOK_WORD_USE;
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;
 	if (strcmp(word, "or") == 0) return TOK_WORD_OR;
 	if (strcmp(word, "xor") == 0) return TOK_WORD_XOR;
+	if (strcmp(word, "not") == 0) return TOK_WORD_NOT;
 	if (strcmp(word, "true") == 0) return TOK_LIT_TRUE;
 	if (strcmp(word, "false") == 0) return TOK_LIT_FALSE;
 // GENERATE END WORD }}}
