@@ -4,7 +4,7 @@ open Lexer
 type node =
   (* Top-level *)
   | Import of string * string list
-  | ConstDef of string * node
+  | AliasDef of string * node
   | FnDef of
       { name : string
       ; params : string list list
