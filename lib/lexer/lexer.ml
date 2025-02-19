@@ -29,7 +29,7 @@ type token =
   | TokWordRecord
   | TokWordUnion
   | TokWordFn
-  | TokWordConst
+  | TokWordAlias
   | TokWordImport
   | TokWordUse
   | TokWordAnd
@@ -105,7 +105,7 @@ let convert_c_token c_token =
   | (26, _) -> TokWordRecord
   | (27, _) -> TokWordUnion
   | (28, _) -> TokWordFn
-  | (29, _) -> TokWordConst
+  | (29, _) -> TokWordAlias
   | (30, _) -> TokWordImport
   | (31, _) -> TokWordUse
   | (32, _) -> TokWordAnd

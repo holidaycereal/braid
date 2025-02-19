@@ -24,7 +24,7 @@ TokenType get_word_type(const char* word) {
 	if (strcmp(word, "record") == 0) return TOK_WORD_RECORD;
 	if (strcmp(word, "union") == 0) return TOK_WORD_UNION;
 	if (strcmp(word, "fn") == 0) return TOK_WORD_FN;
-	if (strcmp(word, "const") == 0) return TOK_WORD_CONST;
+	if (strcmp(word, "alias") == 0) return TOK_WORD_ALIAS;
 	if (strcmp(word, "import") == 0) return TOK_WORD_IMPORT;
 	if (strcmp(word, "use") == 0) return TOK_WORD_USE;
 	if (strcmp(word, "and") == 0) return TOK_WORD_AND;

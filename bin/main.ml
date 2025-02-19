@@ -33,7 +33,7 @@ let print_token token =
   | TokWordRecord -> "TokWordRecord"
   | TokWordUnion -> "TokWordUnion"
   | TokWordFn -> "TokWordFn"
-  | TokWordConst -> "TokWordConst"
+  | TokWordAlias -> "TokWordAlias"
   | TokWordImport -> "TokWordImport"
   | TokWordUse -> "TokWordUse"
   | TokWordAnd -> "TokWordAnd"
