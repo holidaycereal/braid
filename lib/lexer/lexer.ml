@@ -65,6 +65,7 @@ type token =
   | TokReturnArrow
   | TokFwdCompose
   | TokRange
+  | TokRangeIncl
   | TokModule
   | TokConcat
 (* GENERATE END TYPE }}} *)
@@ -139,8 +140,9 @@ let convert_c_token c_token =
   | (62, _) -> TokReturnArrow
   | (63, _) -> TokFwdCompose
   | (64, _) -> TokRange
-  | (65, _) -> TokModule
-  | (66, _) -> TokConcat
+  | (65, _) -> TokRangeIncl
+  | (66, _) -> TokModule
+  | (67, _) -> TokConcat
 (* GENERATE END CONVERT }}} *)
   | _ -> TokErr "Unreachable: C enum went out of its range"
 

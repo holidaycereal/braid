@@ -12,7 +12,7 @@ type node =
   | FnDef of
       { name : string
       ; params : string list list
-      ; type_sig : node list
+      ; type_sig : node (* FnType *)
       ; body : node list
       }
   (* Type alias *)
@@ -64,6 +64,7 @@ type node =
   | InferredType
   | TypeReference of string
   | TupleType of node list
+  | FnType of node list
   | ConstructorApp of string * node
 
   (* Statements *)

@@ -69,6 +69,7 @@ let print_token token =
   | TokReturnArrow -> "TokReturnArrow"
   | TokFwdCompose -> "TokFwdCompose"
   | TokRange -> "TokRange"
+  | TokRangeIncl -> "TokRangeIncl"
   | TokModule -> "TokModule"
   | TokConcat -> "TokConcat"
 (* GENERATE END PRINT }}} *)

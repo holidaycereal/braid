@@ -10,6 +10,7 @@ type state =
   }
 
 type parser_error =
+  | Unreachable
   (* Propagate lexer error *)
   | LexerError of string
   (* Unclosed statements or expressions *)
@@ -22,6 +23,8 @@ type parser_error =
   | ExpectedIdent of token
   | ExpectedLiteral of token
   | ExpectedTopLevel of token
+  (* Expected node vs actual node *)
+  | ExpectedFnType of node
 
 let peek state = List.nth state.stream state.pos
 let move state n = { state with pos = state.pos + n }
@@ -33,19 +36,22 @@ let op_prec = function
   | TokDot -> 9
   | TokStar | TokSlash | TokPercent -> 8
   | TokPlus | TokMinus -> 7
-  | TokConcat | TokRange -> 6
-  | TokLess | TokGreater | TokCompEq | TokCompNe | TokCompLe | TokCompGe -> 5
+  | TokConcat | TokRange | TokRangeIncl -> 6
+  | TokLess | TokGreater | TokCompLe | TokCompGe -> 5
+  | TokCompEq | TokCompNe -> 4
   | TokWordAnd -> 3
   | TokWordXor -> 2
   | TokWordOr -> 1
   | _ -> 0
 
 (* Helper to get tokens until the first instance of delim *)
-let tokens_til delim state =
+let tokens_til delims state =
   let rec aux pos accum =
     if pos >= List.length state.stream then Error MissingCloseDelim
-    else if List.nth state.stream pos = delim then Ok (List.rev accum)
-    else aux (pos + 1) (List.nth state.stream pos :: accum)
+    else if List.mem (List.nth state.stream pos) delims then
+      Ok (List.rev (TokEof :: accum))
+    else
+      aux (pos + 1) (List.nth state.stream pos :: accum)
   in
   aux state.pos []
 
@@ -57,7 +63,7 @@ let tokens_in opener closer state =
       let tok = List.nth state.stream pos in
       if tok = opener then aux (pos + 1) (depth + 1) (tok :: accum)
       else if tok = closer then
-        if depth = 0 then Ok (List.rev accum)
+        if depth = 0 then Ok (List.rev (TokEof :: accum))
         else aux (pos + 1) (depth - 1) (tok :: accum)
       else aux (pos + 1) depth (tok :: accum)
   in
@@ -118,30 +124,83 @@ let parse_alias_def state =
   parse_ident state >>= fun (name, state) ->
   match peek state with
   | TokEquals ->
-      parse_expr (next state) TokSemicolon >>= fun (value, state) ->
-      Ok (AliasDef { name; params = []; value }, state)
+      tokens_til [TokSemicolon] (next state) >>= fun tokens ->
+      parse_expr tokens >>= fun value ->
+      Ok (AliasDef { name; params = []; value }, move state (List.length tokens))
   | TokParenL ->
       parse_ident_list (next state) TokParenR >>= fun (params, state) ->
       begin match peek state with
       | TokEquals ->
-          parse_expr (next state) TokSemicolon >>= fun (value, state) ->
-          Ok (AliasDef { name; params; value }, state)
+          tokens_til [TokSemicolon] (next state) >>= fun tokens ->
+          parse_expr tokens >>= fun value ->
+          Ok (AliasDef { name; params; value }, move state (List.length tokens))
       | tok -> Error (Expected ([TokEquals], tok))
       end
   | tok -> Error (Expected ([TokEquals; TokParenL], tok))
 
-let parse_fn_def state =
+(* type expression parser *)
+(*let rec parse_type_expr tokens =*)
+(*  let rec aux state =*)
+(*    match peek state with*)
+(*    |*)
+(*  in*)
+(*  aux { stream = tokens; pos = 0 }*)
+
+let rec parse_fn_def state =
   parse_ident state >>= fun (name, state) ->
   parse_fn_params state >>= fun (params, state) ->
   parse_fn_type state >>= fun (type_sig, state) ->
   parse_fn_body state >>= fun (body, state) ->
   Ok (FnDef { name; params; type_sig; body }, state)
 
+and parse_fn_params state =
+  let rec aux state accum =
+    match peek state with
+    | TokColon | TokBraceL | TokArrow | TokReturnArrow ->
+        Ok (List.rev accum, state)
+    | TokParenL ->
+        parse_ident_list (next state) TokParenR >>= fun (names, state) ->
+        aux state (names :: accum)
+    | tok ->
+        Error (Expected ([
+          TokColon; TokBraceL; TokArrow; TokReturnArrow; TokParenL
+        ], tok))
+  in
+  aux state []
+
+and parse_fn_type state =
+  tokens_til [TokBraceL; TokReturnArrow] state >>= fun tokens ->
+  parse_type_expr tokens >>= fun expr ->
+  match expr with
+  | FnType _ -> Ok (expr, move state (List.length tokens))
+  | _ -> Error (ExpectedFnType expr)
+
+and parse_fn_body state =
+  match peek state with
+  | TokReturnArrow ->
+      tokens_til [TokSemicolon] (next state) >>= fun tokens ->
+      parse_expr tokens >>= fun expr ->
+      Ok ([ReturnStmt expr], move state (List.length tokens + 1))
+  | TokBraceL ->
+      tokens_in_braces (next state) >>= fun tokens ->
+      parse_stmt_list tokens >>= fun body ->
+      Ok (body, move state (List.length tokens + 2))
+  | _ ->
+      Error Unreachable
+
+let parse_type_params state =
+  match peek state with
+  | TokBracketL ->
+      parse_ident_list (next state) TokBracketR >>= fun (params, state) ->
+      Ok (params, state)
+  | tok -> Error (Expected ([TokBracketL], tok))
+
 let parse_type_def state =
   parse_ident state >>= fun (name, state) ->
   parse_type_params state >>= fun (params, state) ->
-  parse_type_expr state >>= fun (value, state) ->
-  Ok (TypeDef { name; params; value }, state)
+  tokens_til [TokSemicolon] state >>= fun tokens ->
+  parse_type_expr tokens >>= fun value ->
+  Ok (TypeDef { name; params; value }, (move state (List.length tokens)))
 
 let parse_union_def state =
   parse_ident state >>= fun (name, state) ->

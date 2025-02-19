@@ -48,6 +48,7 @@ TokenType get_symbol_type(char c1, char c2) {
 	case '.':
 		switch (c2) {
 		case '.': return TOK_RANGE;
+		case ':': return TOK_RANGE_INCL;
 		default: return TOK_DOT;
 		}
 	case ',': return TOK_COMMA;

@@ -72,5 +72,6 @@ longSymbols:
   - ["return_arrow", "=>"]
   - ["fwd_compose",  ">>"]
   - ["range",        ".."]
+  - ["range_incl",   ".:"]
   - ["module",       "::"]
   - ["concat",       "++"]
