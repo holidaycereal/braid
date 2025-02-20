@@ -26,7 +26,7 @@ type node =
   | PureVariant of string
   | ConstructorVariant of string * node
   | SelfConstructorVariant of string
-  | RecordVariant of node
+  | RecordVariant of string * node list
   (* Product type *)
   | RecordDef of
       { name : string
@@ -34,7 +34,7 @@ type node =
       ; body : node list
       }
   | DeclField of string * node
-  | UnionField of node
+  | UnionField of string * node list
 
   (* Expressions *)
   | Unit
