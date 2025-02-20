@@ -51,9 +51,11 @@ type node =
   | UnOp of token * node
   | FnApp of string * node list
   | Lambda of string list * node
+
   (* Patterns *)
-  | ConstExprPattern of node
-  | CapturePattern of string
+  | ConstExpr of node
+  | Capture of string
+  | CaptureList of string list
   | ConstructorPattern of string * node list
 
   (* Type expressions *)
@@ -75,7 +77,7 @@ type node =
       ; body : node list
       }
   | ForLoop of
-      { capture : string
+      { capture : node
       ; iterator : node
       ; body : node list
       }
