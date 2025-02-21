@@ -1,4 +1,4 @@
 (library
   (name parser)
   (libraries lexer stdint)
-  (modules grammar parser))
+  (modules types parser))

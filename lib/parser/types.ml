@@ -67,7 +67,7 @@ type node =
 
   (* Statements *)
   | Declaration of string * node * node
-  | Assignment of string * node
+  | Assignment of node * node
   | FnCall of node
   | ReturnStmt of node
   | Continue
@@ -96,3 +96,34 @@ type node =
       { cases : node list (* pattern list *)
       ; body : node list (* statement list *)
       }
+
+type state =
+  { stream : token list
+  ; pos : int
+  }
+
+type parser_error =
+  | Unreachable
+  (* Propagate lexer error *)
+  | LexerError of string
+  (* Unclosed statements or expressions *)
+  | MissingCloseDelim
+  | UnterminatedExpr
+  | UnterminatedStmt
+  | UnterminatedLiteral
+  (* Expected tokens vs actual token *)
+  | Expected of token list * token
+  | ExpectedIdent of token
+  | ExpectedLiteral of token
+  | ExpectedTopLevel of token
+  (* Expected node vs actual node *)
+  | ExpectedFnType of node
+  | ExpectedFnCall of node
+  (* Invalid constructs *)
+  | InvalidVariant
+  | InvalidUnionBody
+  | InvalidSelfConstructor
+  | InvalidField
+  | InvalidRecordBody
+  | InvalidCapture
+  | InvalidInfixFn

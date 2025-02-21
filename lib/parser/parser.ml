@@ -1,44 +1,15 @@
-open Grammar
-open Lexer
 open Stdint
+open List
+open Lexer
+open Types
 
 let (>>=) = Result.bind
-
-type state =
-  { stream : token list
-  ; pos : int
-  }
-
-type parser_error =
-  | Unreachable
-  (* Propagate lexer error *)
-  | LexerError of string
-  (* Unclosed statements or expressions *)
-  | MissingCloseDelim
-  | UnterminatedExpr
-  | UnterminatedStmt
-  | UnterminatedLiteral
-  (* Expected tokens vs actual token *)
-  | Expected of token list * token
-  | ExpectedIdent of token
-  | ExpectedLiteral of token
-  | ExpectedTopLevel of token
-  (* Expected node vs actual node *)
-  | ExpectedFnType of node
-  | ExpectedFnCall of node
-  (* Invalid constructs *)
-  | InvalidVariant
-  | InvalidUnionBody
-  | InvalidSelfConstructor
-  | InvalidField
-  | InvalidRecordBody
-  | InvalidCapture
 
 let can_compound_assign = function
   | TokMinus | TokPlus | TokStar | TokSlash | TokPercent | TokConcat -> true
   | _ -> false
 
-let peek state = List.nth state.stream state.pos
+let peek state = nth state.stream state.pos
 let move state n = { state with pos = state.pos + n }
 let look state n = peek (move state n)
 let next state = move state 1
@@ -48,7 +19,7 @@ let goto_next delims state =
   let rec aux state =
     let tok = peek state in
     if tok = TokEof then Error MissingCloseDelim
-    else if List.mem tok delims then Ok state 
+    else if mem tok delims then Ok state 
     else aux (next state)
   in
   aux state
@@ -56,7 +27,7 @@ let goto_next delims state =
 let goto_last delims state =
   let rec aux state =
     if state.pos = 0 then Error MissingCloseDelim
-    else if List.mem (peek state) delims then Ok state
+    else if mem (peek state) delims then Ok state
     else aux (prev state)
   in
   aux state
@@ -83,10 +54,18 @@ let tokens_til delims state =
   let rec aux state accum =
     let tok = peek state in
     if tok = TokEof then Error MissingCloseDelim
-    else if List.mem tok delims then Ok (List.rev (TokEof :: accum))
+    else if mem tok delims then Ok (rev (TokEof :: accum))
     else aux (next state) (tok :: accum)
   in
   aux state []
+
+(* Tokens between two states *)
+let tokens_between state1 state2 =
+  let rec aux state accum =
+    if state.pos = state2.pos then rev (TokEof :: accum)
+    else aux (next state) (peek state :: accum)
+  in
+  aux state1 []
 
 (* Helpers to get tokens in a pair of parens, brackets or braces *)
 let tokens_in opener closer state =
@@ -96,7 +75,7 @@ let tokens_in opener closer state =
       let tok = peek state in
       if tok = opener then aux (next state) (depth + 1) (tok :: accum)
       else if tok = closer then
-        if depth = 0 then Ok (List.rev (TokEof :: accum))
+        if depth = 0 then Ok (rev (TokEof :: accum))
         else aux (next state) (depth - 1) (tok :: accum)
       else aux (next state) depth (tok :: accum)
   in
@@ -113,15 +92,15 @@ let tokens_til_matching delims state =
     match peek state with
     | TokParenL ->
         tokens_in_parens (next state) >>= fun tokens ->
-        aux (move state (List.length tokens)) ((List.rev tokens) @ accum)
+        aux (move state (length tokens)) ((rev tokens) @ accum)
     | TokBracketL ->
         tokens_in_brackets (next state) >>= fun tokens ->
-        aux (move state (List.length tokens)) ((List.rev tokens) @ accum)
+        aux (move state (length tokens)) ((rev tokens) @ accum)
     | TokBraceL ->
         tokens_in_braces (next state) >>= fun tokens ->
-        aux (move state (List.length tokens)) ((List.rev tokens) @ accum)
+        aux (move state (length tokens)) ((rev tokens) @ accum)
     | tok ->
-        if List.mem tok delims then Ok (List.rev (TokEof :: accum))
+        if mem tok delims then Ok (rev (TokEof :: accum))
         else aux (next state) (tok :: accum)
   in
   aux state []
@@ -136,7 +115,7 @@ let parse_ident state =
 let parse_ident_list state delim =
   let rec aux state accum =
     match peek state with
-    | tok when tok = delim -> Ok (List.rev accum, next state)
+    | tok when tok = delim -> Ok (rev accum, next state)
     | TokIdent item ->
         let state = next state in
         begin match peek state with
@@ -151,64 +130,14 @@ let parse_ident_list state delim =
 let rec parse_stmt state =
   match peek state with
   (* Declaration *)
-  | TokWordLet ->
-      let expect_equals state =
-        match peek state with
-        | TokEquals ->
-            let state = next state in
-            tokens_til [TokSemicolon] state >>= fun tokens ->
-            parse_expr tokens >>= fun expr ->
-            Ok (expr, move state (List.length tokens))
-        | tok -> Error (Expected ([TokEquals], tok))
-      in
-      let state = next state in
-      parse_ident state >>= fun (name, state) ->
-      begin match peek state with
-      | TokColon ->
-          let state = next state in
-          tokens_til [TokEquals] state >>= fun tokens ->
-          parse_type_expr tokens >>= fun type_sig ->
-          expect_equals (move state (List.length tokens)) >>= fun (expr, state) ->
-          Ok (Declaration (name, type_sig, expr), state)
-      | _ -> expect_equals state
-      end
-
-  (* TODO: add support for tuple-destructuring assignments, like this:
-    (x, y) = make_point(0, 0); *)
-  | TokIdent name -> (* Assignment or function call *)
-      let state = next state in
-      begin match peek state with
-      (* Assignment *)
-      | TokEquals ->
-          let state = next state in
-          tokens_til [TokSemicolon] state >>= fun tokens ->
-          parse_expr tokens >>= fun expr ->
-          Ok (Assignment (name, expr), move state (List.length tokens))
-      (* Compound assignment *)
-      | tok when can_compound_assign tok && look state 1 = TokEquals ->
-          let state = move state 2 in
-          tokens_til [TokSemicolon] state >>= fun tokens ->
-          parse_expr tokens >>= fun expr ->
-          Ok (Assignment (name, BinOp (tok, Reference name, expr)),
-              move state (List.length tokens))
-      (* Function call *)
-      | _ ->
-          let state = prev state in
-          tokens_til [TokSemicolon] state >>= fun tokens ->
-          parse_expr tokens >>= fun expr ->
-          begin match expr with
-          | FnApp (name, args) ->
-              Ok (FnCall (FnApp (name, args)), move state (List.length tokens))
-          | expr -> Error (ExpectedFnCall expr)
-          end
-      end
+  | TokWordLet -> parse_declaration state
 
   (* Control flow *)
   | TokReturnArrow ->
       let state = next state in
       tokens_til [TokSemicolon] state >>= fun tokens ->
       parse_expr tokens >>= fun expr ->
-      Ok (ReturnStmt expr, move state (List.length tokens))
+      Ok (ReturnStmt expr, move state (length tokens))
   | TokWordContinue ->
       begin match look state 1 with
       | TokSemicolon -> Ok (Continue, move state 2)
@@ -221,61 +150,129 @@ let rec parse_stmt state =
       end
 
   (* Imperative blocks *)
-  | TokWordWhile ->
-      let state = next state in
-      tokens_til [TokWordDo] state >>= fun tokens ->
-      parse_expr tokens >>= fun cond ->
-      let state = move state (List.length tokens) in
-      tokens_in TokWordDo TokWordDone state >>= fun tokens ->
-      parse_stmt_list tokens >>= fun body ->
-      Ok (WhileLoop { cond; body }, move state (List.length tokens))
+  | TokWordIf -> parse_if_stmt (next state) []
+  | TokWordCase -> parse_case_stmt (next state)
+  | TokWordWhile -> parse_while_loop (next state)
+  | TokWordFor -> parse_for_loop (next state)
 
-  | TokWordFor ->
-      let state = next state in
-      tokens_til [TokWordIn] state >>= fun tokens ->
-      parse_pattern tokens >>= fun capture ->
-      let state = move state (List.length tokens) in
-      tokens_til [TokWordDo] state >>= fun tokens ->
-      parse_expr tokens >>= fun iterator ->
-      let state = move state (List.length tokens) in
-      tokens_in TokWordDo TokWordDone state >>= fun tokens ->
-      parse_stmt_list tokens >>= fun body ->
-      Ok (ForLoop { capture; iterator; body }, move state (List.length tokens))
-
-  | TokWordIf -> parse_if (next state) []
-
-  | TokWordCase -> parse_case (next state)
-
-  (* Default case: try to parse a function call *)
+  (* Default case: try to parse an assignment or function call *)
   | _ ->
       tokens_til [TokSemicolon] state >>= fun tokens ->
-      parse_expr tokens >>= fun expr ->
-      begin match expr with
-      | FnApp (name, args) ->
-          Ok (FnCall (FnApp (name, args)), move state (List.length tokens))
-      | _ -> Error (ExpectedFnCall expr)
-      end
+      if mem TokEquals tokens then (* Assignment *)
+        goto_next [TokEquals] state >>= fun equals_pos ->
+        let operator = look equals_pos (-1) in
+        begin match operator with
+        | TokMinus | TokPlus | TokStar | TokSlash | TokPercent | TokConcat ->
+            (* Compound assignment *)
+            tokens_til [TokEquals] state >>= fun tmp ->
+            let lhs_toks = (drop 1 tmp) @ [TokEof] in
+            tokens_til [TokSemicolon] (next equals_pos) >>= fun rhs_toks ->
+            parse_expr lhs_toks >>= fun lhs ->
+            parse_expr rhs_toks >>= fun rhs ->
+            goto_next [TokSemicolon] state >>= fun state ->
+            Ok (Assignment (lhs, BinOp (operator, lhs, rhs)), next state)
+        | TokVertLine ->
+            (* Compound infix function application assignment *)
+            goto_last [TokVertLine] equals_pos >>= fun tmp ->
+            let fn_app_start = next tmp in
+            tokens_til [TokVertLine] fn_app_start >>= fun app_toks ->
+            let tmp = tokens_between state equals_pos in
+            let lhs_toks = take (length tmp - (length app_toks + 1)) tmp in
+            tokens_til [TokSemicolon] (next equals_pos) >>= fun rhs_toks ->
+            parse_expr app_toks >>= fun app ->
+            parse_expr lhs_toks >>= fun lhs ->
+            parse_expr rhs_toks >>= fun rhs ->
+            goto_next [TokSemicolon] state >>= fun state ->
+            let state = next state in
+            begin match app with
+            | FnApp (name, args) ->
+                Ok (Assignment (lhs, FnApp (name, args @ lhs :: rhs)), state)
+            | Reference name ->
+                Ok (Assignment (lhs, FnApp (name, lhs :: rhs)), state)
+            | _ -> Error InvalidInfixFn
+            end
+        | _ ->
+            (* Normal assignment *)
+            let lhs_tokens = tokens_between state equals_pos in
+            tokens_til [TokSemicolon] (next equals_pos) >>= fun rhs_tokens ->
+            parse_expr lhs_tokens >>= fun lhs ->
+            parse_expr rhs_tokens >>= fun rhs ->
+            goto_next [TokSemicolon] state >>= fun state ->
+            let state = next state in
+            Ok (Assignment (lhs, rhs), state)
+        end
+      else
+        parse_expr tokens >>= fun expr ->
+        begin match expr with
+        | FnApp (name, args) ->
+            Ok (FnCall (FnApp (name, args)), move state (length tokens))
+        | _ -> Error (ExpectedFnCall expr)
+        end
 
-and parse_if state elifs =
+and parse_while_loop state =
+  tokens_til [TokWordDo] state >>= fun tokens ->
+  parse_expr tokens >>= fun cond ->
+  let state = move state (length tokens) in
+  tokens_in TokWordDo TokWordDone state >>= fun tokens ->
+  parse_stmt_list tokens >>= fun body ->
+  Ok (WhileLoop { cond; body }, move state (length tokens))
+
+and parse_for_loop state =
+  tokens_til [TokWordIn] state >>= fun tokens ->
+  parse_pattern tokens >>= fun capture ->
+  let state = move state (length tokens) in
+  tokens_til [TokWordDo] state >>= fun tokens ->
+  parse_expr tokens >>= fun iterator ->
+  let state = move state (length tokens) in
+  tokens_in TokWordDo TokWordDone state >>= fun tokens ->
+  parse_stmt_list tokens >>= fun body ->
+  Ok (ForLoop { capture; iterator; body }, move state (length tokens))
+
+and parse_declaration state =
+  let expect_equals state =
+    match peek state with
+    | TokEquals ->
+        let state = next state in
+        tokens_til [TokSemicolon] state >>= fun tokens ->
+        parse_expr tokens >>= fun expr ->
+        Ok (expr, move state (length tokens))
+    | tok -> Error (Expected ([TokEquals], tok))
+  in
+  let state = next state in
+  parse_ident state >>= fun (name, state) ->
+  begin match peek state with
+  | TokColon ->
+      let state = next state in
+      tokens_til [TokEquals] state >>= fun tokens ->
+      parse_type_expr tokens >>= fun type_sig ->
+      let state = move state (length tokens) in
+      expect_equals state >>= fun (expr, state) ->
+      Ok (Declaration (name, type_sig, expr), state)
+  | _ ->
+      expect_equals state >>= fun (expr, state) ->
+      Ok (Declaration (name, InferredType, expr), state)
+  end
+
+and parse_if_stmt state elifs =
   (* Condition *)
   tokens_til [TokWordThen] state >>= fun tokens ->
   parse_expr tokens >>= fun cond ->
-  let state = move state (List.length tokens) in
+  let state = move state (length tokens) in
   (* Consequence *)
   tokens_in_if_body state >>= fun tokens ->
   parse_stmt_list tokens >>= fun body ->
-  let state = move state (List.length tokens) in
+  let state = move state (length tokens) in
   match look state (-1) with
   | TokWordElif ->
-      parse_if state (IfStmt { cond; body; elifs = []; final = [] } :: elifs)
+      parse_if_stmt state (IfStmt { cond; body; elifs = []; final = [] } :: elifs)
   (* Parse final clause if it exists *)
   | TokWordElse ->
       tokens_til_end state >>= fun tokens ->
       parse_stmt_list tokens >>= fun final ->
-      Ok (IfStmt { cond; body; elifs = List.rev elifs; final },
-          move state (List.length tokens))
+      Ok (IfStmt { cond; body; elifs = rev elifs; final },
+          move state (length tokens))
   | TokWordEnd ->
-      Ok (IfStmt { cond; body; elifs = List.rev elifs; final = [] }, next state)
+      Ok (IfStmt { cond; body; elifs = rev elifs; final = [] }, next state)
   | _ -> Error Unreachable
 
 (* Get the tokens until the first matching elif, else, or end *)
@@ -286,7 +283,7 @@ and tokens_in_if_body state =
     | TokEof -> Error MissingCloseDelim
     | TokWordIf | TokWordCase -> aux (next state) (depth + 1) (tok :: accum)
     | TokWordEnd | TokWordElif | TokWordElse when depth = 0 ->
-        Ok (List.rev (TokEof :: accum))
+        Ok (rev (TokEof :: accum))
     | TokWordEnd -> aux (next state) (depth - 1) (tok :: accum)
     | _ -> aux (next state) depth (tok :: accum)
   in
@@ -300,17 +297,17 @@ and tokens_til_end state =
     | TokEof -> Error MissingCloseDelim
     | TokWordIf | TokWordCase -> aux (next state) (depth + 1) (tok :: accum)
     | TokWordEnd ->
-        if depth = 0 then Ok (List.rev (TokEof :: accum))
+        if depth = 0 then Ok (rev (TokEof :: accum))
         else aux (next state) (depth - 1) (tok :: accum)
     | _ -> aux (next state) depth (tok :: accum)
   in
   aux state 0 []
 
-and parse_case state =
+and parse_case_stmt state =
   (* Argument to match *)
   tokens_til [TokWordOf] state >>= fun tokens ->
   parse_expr tokens >>= fun argument ->
-  let state = move state (List.length tokens) in
+  let state = move state (length tokens) in
   (* Parse the labeled clauses *)
   parse_case_clauses state >>= fun (clauses, state) ->
   match peek state with
@@ -319,7 +316,7 @@ and parse_case state =
       let state = next state in
       tokens_til_end state >>= fun tokens ->
       parse_stmt_list tokens >>= fun final ->
-      let state = move state (List.length tokens) in
+      let state = move state (length tokens) in
       begin match look state (-1) with
       | TokWordEnd -> Ok (CaseStmt { argument; clauses; final }, state)
       | tok -> Error (Expected ([TokWordEnd], tok))
@@ -330,7 +327,7 @@ and parse_case state =
 and parse_case_clauses state =
   let rec aux state depth clauses =
     match peek state with
-    | TokWordElse | TokWordEnd when depth = 0 -> Ok (List.rev clauses, state)
+    | TokWordElse | TokWordEnd when depth = 0 -> Ok (rev clauses, state)
     | TokWordCase | TokWordIf -> aux (next state) (depth + 1) clauses
     | TokWordEnd -> aux (next state) (depth - 1) clauses
     | TokWordLet -> (* Necessary to handle colons in declarations *)
@@ -341,14 +338,14 @@ and parse_case_clauses state =
         goto_last [TokSemicolon; TokWordOf] state >>= fun state ->
         tokens_til [TokColon] state >>= fun tokens ->
         parse_pattern_list tokens >>= fun cases ->
-        let state = move state (List.length tokens) in
+        let state = move state (length tokens) in
         (* Collect tokens for clause body *)
         tokens_in TokWordLet TokColon state >>= fun tokens ->
         distance_last [TokSemicolon] state >>= fun dist ->
-        let tokens = List.take (List.length tokens - dist) tokens in
+        let tokens = take (length tokens - dist) tokens in
         parse_stmt_list tokens >>= fun body ->
         aux
-          (move state (List.length tokens))
+          (move state (length tokens))
           (depth)
           (CaseClause { cases; body } :: clauses)
     | _ -> aux (next state) depth clauses
@@ -358,7 +355,7 @@ and parse_case_clauses state =
 and parse_stmt_list tokens =
   let rec aux state accum =
     match peek state with
-    | TokEof -> Ok (List.rev accum) (* Finished *)
+    | TokEof -> Ok (rev accum) (* Finished *)
     | _ -> (* Parse next statement *)
         parse_stmt state >>= fun (stmt, state) ->
         aux state (stmt :: accum)
@@ -383,7 +380,7 @@ let parse_alias_def state =
   | TokEquals ->
       tokens_til [TokSemicolon] (next state) >>= fun tokens ->
       parse_expr tokens >>= fun expr ->
-      Ok (AliasDef (name, expr), move state (List.length tokens))
+      Ok (AliasDef (name, expr), move state (length tokens))
   | tok -> Error (Expected ([TokEquals], tok))
 
 (* Function definitions *)
@@ -398,7 +395,7 @@ and parse_fn_params state =
   let rec aux state accum =
     match peek state with
     | TokColon | TokBraceL | TokArrow | TokReturnArrow ->
-        Ok (List.rev accum, state)
+        Ok (rev accum, state)
     | TokParenL ->
         parse_ident_list (next state) TokParenR >>= fun (names, state) ->
         aux state (names :: accum)
@@ -413,7 +410,7 @@ and parse_fn_type state =
   tokens_til [TokBraceL; TokReturnArrow] state >>= fun tokens ->
   parse_type_expr tokens >>= fun expr ->
   match expr with
-  | FnType _ -> Ok (expr, move state (List.length tokens))
+  | FnType _ -> Ok (expr, move state (length tokens))
   | _ -> Error (ExpectedFnType expr)
 
 and parse_fn_body state =
@@ -421,11 +418,11 @@ and parse_fn_body state =
   | TokReturnArrow ->
       tokens_til [TokSemicolon] (next state) >>= fun tokens ->
       parse_expr tokens >>= fun expr ->
-      Ok ([ReturnStmt expr], move state (List.length tokens + 1))
+      Ok ([ReturnStmt expr], move state (length tokens + 1))
   | TokBraceL ->
       tokens_in_braces (next state) >>= fun tokens ->
       parse_stmt_list tokens >>= fun body ->
-      Ok (body, move state (List.length tokens + 2))
+      Ok (body, move state (length tokens + 2))
   | _ -> Error Unreachable
 
 (* Type definitions *)
@@ -443,7 +440,7 @@ let parse_type_def state =
   parse_type_params state >>= fun (params, state) ->
   tokens_til [TokSemicolon] state >>= fun tokens ->
   parse_type_expr tokens >>= fun value ->
-  Ok (TypeDef { name; params; value }, (move state (List.length tokens)))
+  Ok (TypeDef { name; params; value }, (move state (length tokens)))
 
 (* Union/sum type definitions *)
 let rec parse_union_def state =
@@ -457,13 +454,13 @@ and parse_union_body state =
   | TokBraceL ->
       tokens_in_braces (next state) >>= fun tokens ->
       parse_variant_list tokens >>= fun body ->
-      Ok (body, move state (List.length tokens))
+      Ok (body, move state (length tokens))
   | tok -> Error (Expected ([TokBraceL], tok))
 
 and parse_variant_list tokens =
   let rec aux state accum =
     match peek state with
-    | TokEof -> Ok (List.rev accum) (* Finished *)
+    | TokEof -> Ok (rev accum) (* Finished *)
     | TokComma -> aux (next state) accum (* Go to next variant *)
     | TokIdent name ->
         let state = next state in
@@ -474,13 +471,13 @@ and parse_variant_list tokens =
         | TokParenL ->
             tokens_in_parens (next state) >>= fun tokens ->
             parse_type_list tokens >>= fun types ->
-            aux (move state (List.length tokens))
+            aux (move state (length tokens))
                 (ConstructorVariant (name, TupleType types) :: accum)
         (* Record constructor *)
         | TokBraceL ->
             tokens_in_braces (next state) >>= fun tokens ->
             parse_field_list tokens >>= fun fields ->
-            aux (move state (List.length tokens))
+            aux (move state (length tokens))
                 (RecordVariant (name, fields) :: accum)
         | _ -> Error InvalidVariant
         end
@@ -508,13 +505,13 @@ and parse_record_body state =
   | TokBraceL ->
       tokens_in_braces (next state) >>= fun tokens ->
       parse_field_list tokens >>= fun body ->
-      Ok (body, move state (List.length tokens))
+      Ok (body, move state (length tokens))
   | tok -> Error (Expected ([TokBraceL], tok))
 
 and parse_field_list tokens =
   let rec aux state accum =
     match peek state with
-    | TokEof -> Ok (List.rev accum)
+    | TokEof -> Ok (rev accum)
     | TokComma -> aux (next state) accum
     | TokIdent name ->
         let state = next state in
@@ -523,13 +520,13 @@ and parse_field_list tokens =
         | TokColon ->
             tokens_til_matching [TokComma; TokEof] (next state) >>= fun tokens ->
             parse_type_expr tokens >>= fun expr ->
-            aux (move state (List.length tokens))
+            aux (move state (length tokens))
                 (DeclField (name, expr) :: accum)
         (* Union field *)
         | TokBraceL ->
             tokens_in_braces (next state) >>= fun tokens ->
             parse_variant_list tokens >>= fun variants ->
-            aux (move state (List.length tokens))
+            aux (move state (length tokens))
                 (UnionField (name, variants) :: accum)
         | _ -> Error InvalidField
         end
@@ -552,7 +549,7 @@ let parse_top_level state =
 let parse state =
   let rec loop state accum =
     match peek state with
-    | TokEof -> Ok (List.rev accum)
+    | TokEof -> Ok (rev accum)
     | _ ->
         parse_top_level state >>= fun (def, state) ->
         loop state (def :: accum)
