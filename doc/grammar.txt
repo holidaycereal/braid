@@ -10,23 +10,27 @@ vim:expandtab
 <main-fn> ::= 'fn' 'main' <fn-params> [<fn-type-sig>] '{' <statement>* '}'
 
 <top-level> ::=
-    <import>
-  | <expr-def>
+    <const-def>
+  | <fn-def>
   | <type-def>
   | <union-def>
   | <record-def>
-  | <fn-def>
+  | <trait-def>
+  | <impl-def>
 
-<import> ::= 'import' <module> ['::' <item-list>] ';'
-<expr-def> ::= 'alias' <ident> '=' <expr> ';'
+<const-def> ::= 'const' <ident> '=' <expr> ';'
 <fn-def> ::= 'fn' <ident> <fn-params> [<fn-type-sig>] <fn-body>
 <type-def> ::= 'type' <ident> [<type-params>] '=' <type-expr> ';'
 <union-def> ::= 'union' <ident> [<type-params>] '{' (<variant> ',')+ '}'
 <record-def> ::= 'record' <ident> [<type-params>] '{' (<field> ',')+ '}'
+<trait-def> ::=
+    'trait' <ident> [<type-params>] <ident> [<type-params>]
+    '{' (<ident> <fn-params> [<fn-type-sig>] ';')+ '}'
+<impl-def> ::= 'impl' <trait> <type-expr> '{' <fn-def>+ '}'
 
 <fn-params> ::= ('(' <ident-list> ')')+
 <fn-type-sig> ::= ':' <type-expr> '->' (<type-expr> | <fn-type-sig>)
-<fn-body> ::= '=>' <expr> ';' | '{' <statement>* '}'
+<fn-body> ::= '=' <expr> ';' | '{' <statement>* '}'
 <type-params> ::= '[' <ident-list> ']'
 <variant> ::= <ident> | <constructor> | <record-variant>
 <field> ::= <ident> ':' <type-expr> | <union-field>
@@ -50,20 +54,21 @@ vim:expandtab
 <tuple> ::= '(' (<expr> ',')* ')'
 <match> ::= 'match' <expr> '{' (<pattern> '->' <expr> ',')+
 <record> ::= [<ident>] '{' (<ident> '=' <expr> ',')+ '}'
-<ternary> ::= 'when' <condition> '->' <expr> '||' <expr>
+<ternary> ::= 'if' <condition> 'then' <expr> 'else' <expr>
 <bin-op-app> ::= <expr> <bin-op> <expr>
 <un-op-app> ::= <un-op> <expr>
 <fn-app> ::= <normal-fn-app> | <infix-fn-app> | <fwd-composed-fn-app>
-<lambda> ::= '(' <ident-list> ')' '->' <expr>
+<lambda> ::= 'fn' (<ident> | '(' <ident-list> ')') '->' <expr>
 
 <bin-op> ::=
     '::' | '.'
   | '*'  | '/' | '%'
   | '+'  | '-'
-  | '++' | '..'
+  | '++' | '..' | '.*'
   | '<'  | '>' | '<=' | '>=' | '==' | '!='
   | 'and' | 'xor' | 'or'
-<un-op> ::= '-' | 'not'
+<un-op> ::= '-' | 'not' | '&' | '#'
+
 <normal-fn-app> ::= <ident> <tuple>+
 <infix-fn-app> ::= <expr> '|' (<normal-fn-app> | <ident>) '|' <expr>
 <fwd-composed-fn-app> ::= <expr> '>>' <normal-fn-app>
@@ -87,8 +92,8 @@ vim:expandtab
   | <assignment>
   | <fn-call>
   | <return>
-  | 'continue'
-  | 'break'
+  | 'continue;'
+  | 'break;'
   | <while-loop>
   | <for-loop>
   | <if-block>
