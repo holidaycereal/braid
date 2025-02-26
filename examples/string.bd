@@ -13,5 +13,5 @@ fn main(argv) : vec[string] -> () {
 		just(n) -> fmt("hello %s, %d is my favourite number", [name, n]),
 	};
 
-	io::echo([greet1, greet2, greet3] >> join("\n"));
+	echo([greet1, greet2, greet3] >> join("\n"));
 }

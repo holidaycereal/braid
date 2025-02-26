@@ -1,26 +1,19 @@
 -* match expression *-
 
 -- immediate return
-fn factorial(x) : int -> int
-	=> match x {
-		0 -> 1,
-		n -> n * factorial(n - 1),
-	};
+fn factorial(x) : int -> int = match x {
+	0 -> 1,
+	n -> n * factorial(n - 1),
+};
 
 -- some imperative boilerplate, then return
 fn process(x) : int -> int {
 	if not valid(x) then
 		log_error();
-		=> -1;
+		return -1;
 	end
-	=> match computation(x).value {
+	return match computation(x).value {
 		ok(v) -> v,
 		err(*) -> -2,
 	};
 }
-
--- wildcard
-fn example(x) => match x {
-	pattern1 -> value1,
-	* -> value2,
-};
