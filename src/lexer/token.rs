@@ -1,6 +1,7 @@
+#[derive(Eq, PartialEq)]
 pub enum Token {
 	EofToken,
-	Unknown(u8),
+	Unknown(char),
 	Identifier(String),
 	// Literals
 	StringLiteral(String),
@@ -55,6 +56,7 @@ pub enum Token {
 	MulAssign,       // *=
 	DivAssign,       // /=
 	ModAssign,       // %=
+	InfixAssign,     // |=
 	// One-character symbols
 	ParenL,
 	ParenR,

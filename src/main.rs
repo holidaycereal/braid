@@ -4,6 +4,7 @@ use std::{ env, fs, path::Path, process };
 
 fn token_to_string(token: &Token) -> String {
 	match token {
+		// {{{
 		Token::EofToken => "EOF".to_string(),
 		Token::Unknown(c) => format!("Unknown {}", c).to_string(),
 		Token::Identifier(s) => format!("Identifier {}", s).to_string(),
@@ -57,6 +58,7 @@ fn token_to_string(token: &Token) -> String {
 		Token::MulAssign => "MulAssign".to_string(),
 		Token::DivAssign => "DivAssign".to_string(),
 		Token::ModAssign => "ModAssign".to_string(),
+		Token::InfixAssign => "InfixAssign".to_string(),
 		Token::ParenL => "ParenL".to_string(),
 		Token::ParenR => "ParenR".to_string(),
 		Token::BracketL => "BracketL".to_string(),
@@ -79,6 +81,7 @@ fn token_to_string(token: &Token) -> String {
 		Token::Percent => "Percent".to_string(),
 		Token::Less => "Less".to_string(),
 		Token::Greater => "Greater".to_string(),
+		// }}}
 	}
 }
 
@@ -86,10 +89,7 @@ fn print_tokens(source: &str) {
 	let mut lexer = lexer::lexer::Lexer::new(source);
 
 	let mut token = lexer.next_token();
-	while match token {
-		Token::EofToken => false,
-		_ => true,
-	} {
+	while token != Token::EofToken {
 		println!("{}", token_to_string(&token));
 		token = lexer.next_token();
 	}

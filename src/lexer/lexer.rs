@@ -1,29 +1,30 @@
 use crate::lexer::token::Token;
 
-pub struct Lexer<'a> {
-	input: &'a [u8],
+pub struct Lexer {
+	chars: Vec<char>,
 	pos: usize,
 }
 
-impl<'a> Lexer<'a> {
+impl<'a> Lexer {
 	pub fn new(input: &'a str) -> Self {
-		Lexer { input: input.as_bytes(), pos: 0 }
+		let chars: Vec<char> = input.chars().collect();
+		Lexer { chars, pos: 0 }
 	}
 
-	fn peek(&self, offset: usize) -> Option<u8> {
+	fn peek(&self, offset: usize) -> Option<char> {
 		let peek_pos = self.pos + offset;
-		if peek_pos < self.input.len() {
-			Some(self.input[peek_pos])
+		if peek_pos < self.chars.len() {
+			Some(self.chars[peek_pos])
 		} else {
 			None
 		}
 	}
 
-	fn current(&self) -> Option<u8> {
+	fn current(&self) -> Option<char> {
 		self.peek(0)
 	}
 
-	fn advance(&mut self) -> Option<u8> {
+	fn advance(&mut self) -> Option<char> {
 		let current = self.current()?;
 		self.pos += 1;
 		Some(current)
@@ -34,30 +35,29 @@ impl<'a> Lexer<'a> {
 		self.advance();
 
 		while let Some(c) = self.current() {
-			if c.is_ascii_alphanumeric() || c == b'_' {
+			if c.is_alphanumeric() || c == '_' {
 				self.advance();
 			} else {
 				break;
 			}
 		}
 
-		String::from_utf8_lossy(&self.input[start..self.pos]).to_string()
+		self.chars[start..self.pos].iter().collect()
 	}
 
 	fn read_number(&mut self) -> String {
 		let start = self.pos;
 
 		// Check for 0x, 0o, or 0b prefix
-		if let Some(b'0') = self.current() {
+		if let Some('0') = self.current() {
 			if let Some(next) = self.peek(1) {
 				match next {
-
 					// Hexadecimal
-					b'x' | b'X' => {
+					'x' | 'X' => {
 						self.advance();
 						self.advance();
 						while let Some(c) = self.current() {
-							if c.is_ascii_hexdigit() {
+							if c.is_digit(16) {
 								self.advance();
 							} else {
 								break;
@@ -66,11 +66,11 @@ impl<'a> Lexer<'a> {
 					},
 
 					// Octal
-					b'o' | b'O' => {
+					'o' | 'O' => {
 						self.advance();
 						self.advance();
 						while let Some(c) = self.current() {
-							if c.is_ascii_digit() && c < b'8' {
+							if c.is_digit(8) {
 								self.advance();
 							} else {
 								break;
@@ -79,11 +79,11 @@ impl<'a> Lexer<'a> {
 					},
 
 					// Binary
-					b'b' | b'B' => {
+					'b' | 'B' => {
 						self.advance();
 						self.advance();
 						while let Some(c) = self.current() {
-							if c == b'0' || c == b'1' {
+							if c == '0' || c == '1' {
 								self.advance();
 							} else {
 								break;
@@ -100,7 +100,7 @@ impl<'a> Lexer<'a> {
 		// Decimal
 		// Integral part
 		while let Some(c) = self.current() {
-			if c.is_ascii_digit() {
+			if c.is_digit(10) {
 				self.advance();
 			} else {
 				break;
@@ -108,10 +108,10 @@ impl<'a> Lexer<'a> {
 		}
 
 		// Fractional part
-		if let Some(b'.') = self.current() {
+		if let Some('.') = self.current() {
 			self.advance();
 			while let Some(c) = self.current() {
-				if c.is_ascii_digit() {
+				if c.is_digit(10) {
 					self.advance();
 				} else {
 					break;
@@ -120,13 +120,13 @@ impl<'a> Lexer<'a> {
 		}
 
 		// Scientific notation
-		if let Some(b'e') | Some(b'E') = self.current() {
+		if let Some('e') | Some('E') = self.current() {
 			self.advance();
-			if let Some(b'+' | b'-') = self.current() {
+			if let Some('+' | '-') = self.current() {
 				self.advance();
 			}
 			while let Some(c) = self.current() {
-				if c.is_ascii_digit() {
+				if c.is_digit(10) {
 					self.advance();
 				} else {
 					break;
@@ -134,28 +134,38 @@ impl<'a> Lexer<'a> {
 			}
 		}
 
-		String::from_utf8_lossy(&self.input[start..self.pos]).to_string()
+		self.chars[start..self.pos].iter().collect()
 	}
 
 	fn read_textual_literal(&mut self, is_string: bool) -> String {
 		let start = self.pos;
 
 		while let Some(c) = self.current() {
-			if c == b'\\' {
+			if c == '\\' {
 				self.advance();
-			} else if c == b'"' && is_string || c == b'\'' && !is_string {
+				if self.current().is_some() {
+					self.advance(); // Skip the escaped character
+				}
+			} else if (c == '"' && is_string) || (c == '\'' && !is_string) {
 				self.advance();
 				break;
+			} else {
+				self.advance();
 			}
-			self.advance();
 		}
 
-		String::from_utf8_lossy(&self.input[start..self.pos - 1]).to_string()
+		// Extract the string without the quotes
+		let end = self.pos - 1;
+		if start + 1 < end {
+			self.chars[start..end].iter().collect()
+		} else {
+			String::new()
+		}
 	}
 
 	fn skip_whitespace(&mut self) {
 		while let Some(c) = self.current() {
-			if c.is_ascii_whitespace() {
+			if c.is_whitespace() {
 				self.advance();
 			} else {
 				break;
@@ -172,7 +182,7 @@ impl<'a> Lexer<'a> {
 		};
 
 		// Identifiers and keywords
-		if current.is_ascii_alphabetic() || current == b'_' {
+		if current.is_alphabetic() || current == '_' {
 			let word = self.read_identifier();
 			match word.as_str() {
 				// Check for keyword {{{
@@ -213,7 +223,7 @@ impl<'a> Lexer<'a> {
 		}
 
 		// Numbers
-		else if current.is_ascii_digit() {
+		else if current.is_digit(10) {
 			let num_str = self.read_number();
 
 			// Determine the numeric base (16, 8, 2, or 10)
@@ -239,129 +249,123 @@ impl<'a> Lexer<'a> {
 		}
 
 		// String and character literals
-		else if current == b'"' {
+		else if current == '"' {
 			self.advance();
 			Token::StringLiteral(self.read_textual_literal(true))
-		} else if current == b'\'' {
+		} else if current == '\'' {
 			self.advance();
 			Token::CharLiteral(self.read_textual_literal(false))
 		}
 
 		// Symbols and comments
-		else if let Some(next) = self.peek(1) {
-			let symbol = match (current, next) {
+		else {
+			let next = self.peek(1);
 
+			match (current, next) {
 				// Skip line comments
-				(b'-', b'-') => {
-					self.advance();  // Skip first `-`
-					self.advance();  // Skip second `-`
+				('-', Some('-')) => {
+					self.advance();
+					self.advance();
 					while let Some(c) = self.current() {
-						if c == b'\n' {  // End of comment
+						if c == '\n' {
 							break;
 						}
-						self.advance();  // Next character
+						self.advance();
 					}
 					self.next_token()
 				},
 
 				// Skip block comments
-				(b'-', b'*') => {
-					self.advance();  // Skip `-`
-					self.advance();  // Skip `*`
-					let mut depth = 1;  // Handle nested block comments
-					while let Some(cur) = self.current() {
-						if let Some(next) = self.peek(1) {
+				('-', Some('*')) => {
+					self.advance();
+					self.advance();
+					let mut depth = 1;
+					while depth > 0 && self.current().is_some() {
+						if let (Some(cur), Some(next)) = (self.current(), self.peek(1)) {
 							match (cur, next) {
-								(b'-', b'*') => {
-									self.advance();  // Skip `-`
-									self.advance();  // Skip `*`
+								('-', '*') => {
+									self.advance();
+									self.advance();
 									depth += 1;
-									continue;
 								},
-								(b'*', b'-') => {
-									self.advance();  // Skip `*`
-									self.advance();  // Skip `-`
+								('*', '-') => {
+									self.advance();
+									self.advance();
 									depth -= 1;
-									if depth == 0 {  // End of comment
-										break;
-									}
-									continue;
 								},
 								_ => {
-									self.advance();  // Next character
+									self.advance();
 								},
 							}
+						} else {
+							self.advance();
 						}
 					}
 					self.next_token()
 				},
 
-				// Symbols {{{
-				(b'-', b'>') => Token::Arrow,
-				(b'=', b'=') => Token::TestEq,
-				(b'!', b'=') => Token::TestNe,
-				(b'<', b'=') => Token::CompLe,
-				(b'>', b'=') => Token::CompGe,
-				(b'>', b'>') => Token::FwdCompose,
-				(b'.', b'.') => Token::ExclusiveRange,
-				(b'.', b'*') => Token::InclusiveRange,
-				(b':', b':') => Token::ModuleAccess,
-				(b'+', b'+') => Token::Concat,
-				(b'+', b'=') => Token::AddAssign,
-				(b'-', b'=') => Token::SubAssign,
-				(b'*', b'=') => Token::MulAssign,
-				(b'/', b'=') => Token::DivAssign,
-				(b'%', b'=') => Token::ModAssign,
-				(b'(', _) => Token::ParenL,
-				(b')', _) => Token::ParenR,
-				(b'[', _) => Token::BracketL,
-				(b']', _) => Token::BracketR,
-				(b'{', _) => Token::BraceL,
-				(b'}', _) => Token::BraceR,
-				(b'.', _) => Token::Dot,
-				(b',', _) => Token::Comma,
-				(b';', _) => Token::Semicolon,
-				(b':', _) => Token::Colon,
-				(b'=', _) => Token::Equals,
-				(b'|', _) => Token::Pipe,
-				(b'!', _) => Token::Bang,
-				(b'&', _) => Token::Ampersand,
-				(b'#', _) => Token::Hash,
-				(b'-', _) => Token::Minus,
-				(b'+', _) => Token::Plus,
-				(b'*', _) => Token::Star,
-				(b'/', _) => Token::Slash,
-				(b'%', _) => Token::Percent,
-				(b'<', _) => Token::Less,
-				(b'>', _) => Token::Greater,
-				// }}}
-				_ => Token::Unknown(current),
-			};
-
-			match symbol {
-				Token::Unknown(c) => {
-					panic!("Unknown character: {}", c);
-				},
-				// Handle two-character symbols
-				Token::Arrow | Token::TestEq | Token::TestNe | Token::CompLe
-				| Token::CompGe | Token::FwdCompose | Token::ExclusiveRange
-				| Token::InclusiveRange | Token::ModuleAccess | Token::Concat
-				| Token::AddAssign | Token::SubAssign | Token::MulAssign
-				| Token::DivAssign | Token::ModAssign => {
-					self.advance();
-					self.advance();
-					symbol
-				},
-				// Handle one-character symbols
 				_ => {
-					self.advance();
-					symbol
+					// Handle two- and one-character symbols
+					let (symbol, is_long) = match (current, next) {
+						// {{{
+						('-', Some('>')) => (Some(Token::Arrow), true),
+						('=', Some('=')) => (Some(Token::TestEq), true),
+						('!', Some('=')) => (Some(Token::TestNe), true),
+						('<', Some('=')) => (Some(Token::CompLe), true),
+						('>', Some('=')) => (Some(Token::CompGe), true),
+						('>', Some('>')) => (Some(Token::FwdCompose), true),
+						('.', Some('.')) => (Some(Token::ExclusiveRange), true),
+						('.', Some('*')) => (Some(Token::InclusiveRange), true),
+						(':', Some(':')) => (Some(Token::ModuleAccess), true),
+						('+', Some('+')) => (Some(Token::Concat), true),
+						('+', Some('=')) => (Some(Token::AddAssign), true),
+						('-', Some('=')) => (Some(Token::SubAssign), true),
+						('*', Some('=')) => (Some(Token::MulAssign), true),
+						('/', Some('=')) => (Some(Token::DivAssign), true),
+						('%', Some('=')) => (Some(Token::ModAssign), true),
+						('|', Some('=')) => (Some(Token::InfixAssign), true),
+						('(', _) => (Some(Token::ParenL), false),
+						(')', _) => (Some(Token::ParenR), false),
+						('[', _) => (Some(Token::BracketL), false),
+						(']', _) => (Some(Token::BracketR), false),
+						('{', _) => (Some(Token::BraceL), false),
+						('}', _) => (Some(Token::BraceR), false),
+						('.', _) => (Some(Token::Dot), false),
+						(',', _) => (Some(Token::Comma), false),
+						(';', _) => (Some(Token::Semicolon), false),
+						(':', _) => (Some(Token::Colon), false),
+						('=', _) => (Some(Token::Equals), false),
+						('|', _) => (Some(Token::Pipe), false),
+						('!', _) => (Some(Token::Bang), false),
+						('&', _) => (Some(Token::Ampersand), false),
+						('#', _) => (Some(Token::Hash), false),
+						('-', _) => (Some(Token::Minus), false),
+						('+', _) => (Some(Token::Plus), false),
+						('*', _) => (Some(Token::Star), false),
+						('/', _) => (Some(Token::Slash), false),
+						('%', _) => (Some(Token::Percent), false),
+						('<', _) => (Some(Token::Less), false),
+						('>', _) => (Some(Token::Greater), false),
+						// }}}
+						_ => (None, false),
+					};
+					match (symbol, is_long) {
+						(Some(sym), true) => {
+							self.advance();
+							self.advance();
+							sym
+						},
+						(Some(sym), false) => {
+							self.advance();
+							sym
+						},
+						(None, _) => {
+							let c = self.advance().unwrap_or('\0');
+							Token::Unknown(c)
+						},
+					}
 				},
 			}
-		}
-
-		else {
-			Token::EofToken
 		}
 	}
 }
