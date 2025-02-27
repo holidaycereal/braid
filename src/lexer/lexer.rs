@@ -7,17 +7,13 @@ pub struct Lexer {
 
 impl<'a> Lexer {
 	pub fn new(input: &'a str) -> Self {
-		let chars: Vec<char> = input.chars().collect();
-		Lexer { chars, pos: 0 }
+		Lexer { chars: input.chars().collect(), pos: 0 }
 	}
 
 	fn peek(&self, offset: usize) -> Option<char> {
 		let peek_pos = self.pos + offset;
-		if peek_pos < self.chars.len() {
-			Some(self.chars[peek_pos])
-		} else {
-			None
-		}
+		if peek_pos < self.chars.len() { Some(self.chars[peek_pos]) }
+		else { None }
 	}
 
 	fn current(&self) -> Option<char> {
@@ -25,111 +21,53 @@ impl<'a> Lexer {
 	}
 
 	fn advance(&mut self) -> Option<char> {
-		let current = self.current()?;
 		self.pos += 1;
+		let current = self.current()?;
 		Some(current)
 	}
 
 	fn read_identifier(&mut self) -> String {
 		let start = self.pos;
-		self.advance();
-
-		while let Some(c) = self.current() {
-			if c.is_alphanumeric() || c == '_' {
-				self.advance();
-			} else {
+		while let Some(c) = self.advance() {
+			if !c.is_alphanumeric() && c != '_' {
 				break;
 			}
 		}
-
 		self.chars[start..self.pos].iter().collect()
 	}
 
 	fn read_number(&mut self) -> String {
 		let start = self.pos;
+		let cur = self.current().unwrap();
+		let next = self.peek(1);
 
 		// Check for 0x, 0o, or 0b prefix
-		if let Some('0') = self.current() {
-			if let Some(next) = self.peek(1) {
-				match next {
-					// Hexadecimal
-					'x' | 'X' => {
-						self.advance();
-						self.advance();
-						while let Some(c) = self.current() {
-							if c.is_digit(16) {
-								self.advance();
-							} else {
-								break;
-							}
-						}
-					},
+		let base = match (cur, next) {
+			('0', Some('x')) | ('0', Some('X')) => { self.advance(); 16 },
+			('0', Some('o')) | ('0', Some('O')) => { self.advance(); 8 },
+			('0', Some('b')) | ('0', Some('B')) => { self.advance(); 2 },
+			_ => 10,
+		};
+		// Read integral part
+		while let Some(c) = self.advance() {
+			if !c.is_digit(base) { break; }
+		}
 
-					// Octal
-					'o' | 'O' => {
-						self.advance();
-						self.advance();
-						while let Some(c) = self.current() {
-							if c.is_digit(8) {
-								self.advance();
-							} else {
-								break;
-							}
-						}
-					},
-
-					// Binary
-					'b' | 'B' => {
-						self.advance();
-						self.advance();
-						while let Some(c) = self.current() {
-							if c == '0' || c == '1' {
-								self.advance();
-							} else {
-								break;
-							}
-						}
-					},
-
-					// Decimal - fall through
-					_ => {},
+		if base == 10 {
+			// Fractional part
+			if let Some('.') = self.current() {
+				while let Some(c) = self.advance() {
+					if !c.is_digit(10) { break; }
 				}
 			}
-		}
-
-		// Decimal
-		// Integral part
-		while let Some(c) = self.current() {
-			if c.is_digit(10) {
-				self.advance();
-			} else {
-				break;
-			}
-		}
-
-		// Fractional part
-		if let Some('.') = self.current() {
-			self.advance();
-			while let Some(c) = self.current() {
-				if c.is_digit(10) {
+			// Scientific notation
+			if let Some('e') | Some('E') = self.current() {
+				if let Some('+' | '-') = self.advance() {
 					self.advance();
-				} else {
-					break;
 				}
-			}
-		}
-
-		// Scientific notation
-		if let Some('e') | Some('E') = self.current() {
-			self.advance();
-			if let Some('+' | '-') = self.current() {
-				self.advance();
-			}
-			while let Some(c) = self.current() {
-				if c.is_digit(10) {
+				while let Some(c) = self.current() {
+					if !c.is_digit(10) { break; }
 					self.advance();
-				} else {
-					break;
 				}
 			}
 		}
@@ -137,39 +75,28 @@ impl<'a> Lexer {
 		self.chars[start..self.pos].iter().collect()
 	}
 
-	fn read_textual_literal(&mut self, is_string: bool) -> String {
-		let start = self.pos;
+	fn read_textual_literal(&mut self) -> String {
+		let start = self.pos + 1;  // Skip opening quote
+		let is_string = self.current().unwrap() == '"';
 
-		while let Some(c) = self.current() {
+		while let Some(c) = self.advance() {
 			if c == '\\' {
-				self.advance();
-				if self.current().is_some() {
-					self.advance(); // Skip the escaped character
-				}
+				self.advance();  // Skip escaped character
 			} else if (c == '"' && is_string) || (c == '\'' && !is_string) {
 				self.advance();
 				break;
-			} else {
-				self.advance();
 			}
 		}
 
-		// Extract the string without the quotes
-		let end = self.pos - 1;
-		if start + 1 < end {
-			self.chars[start..end].iter().collect()
-		} else {
-			String::new()
-		}
+		let end = self.pos - 1;  // Skip closing quote
+		if start + 1 < end { self.chars[start..end].iter().collect() }
+		else { String::new() }
 	}
 
 	fn skip_whitespace(&mut self) {
 		while let Some(c) = self.current() {
-			if c.is_whitespace() {
-				self.advance();
-			} else {
-				break;
-			}
+			if !c.is_whitespace() { break; }
+			self.advance();
 		}
 	}
 
@@ -177,7 +104,7 @@ impl<'a> Lexer {
 		self.skip_whitespace();
 
 		let current = match self.current() {
-			None => return Token::EofToken,
+			None => { return Token::EofToken; },
 			Some(c) => c,
 		};
 
@@ -227,16 +154,16 @@ impl<'a> Lexer {
 			let num_str = self.read_number();
 
 			// Determine the numeric base (16, 8, 2, or 10)
-			let (base, num_body) =
-				if num_str.starts_with("0x") || num_str.starts_with("0X") {
-					(16, &num_str[2..])
-				} else if num_str.starts_with("0o") || num_str.starts_with("0O") {
-					(8, &num_str[2..])
-				} else if num_str.starts_with("0b") || num_str.starts_with("0B") {
-					(2, &num_str[2..])
-				} else {
-					(10, &num_str[..])
-				};
+			let (base, num_body) = if num_str.len() > 1 {
+				match &num_str[..2] {
+					"0x" | "0X" => (16, &num_str[2..]),
+					"0o" | "0O" => (8, &num_str[2..]),
+					"0b" | "0B" => (2, &num_str[2..]),
+					_ => (10, &num_str[..]),
+				}
+			} else {
+				(10, &num_str[..])
+			};
 
 			// Make float or int literal token
 			if num_str.contains('.') || num_str.contains('e') || num_str.contains('E') {
@@ -250,11 +177,9 @@ impl<'a> Lexer {
 
 		// String and character literals
 		else if current == '"' {
-			self.advance();
-			Token::StringLiteral(self.read_textual_literal(true))
+			Token::StringLiteral(self.read_textual_literal())
 		} else if current == '\'' {
-			self.advance();
-			Token::CharLiteral(self.read_textual_literal(false))
+			Token::CharLiteral(self.read_textual_literal())
 		}
 
 		// Symbols and comments
@@ -265,12 +190,8 @@ impl<'a> Lexer {
 				// Skip line comments
 				('-', Some('-')) => {
 					self.advance();
-					self.advance();
-					while let Some(c) = self.current() {
-						if c == '\n' {
-							break;
-						}
-						self.advance();
+					while let Some(c) = self.advance() {
+						if c == '\n' { break; }
 					}
 					self.next_token()
 				},
@@ -280,25 +201,19 @@ impl<'a> Lexer {
 					self.advance();
 					self.advance();
 					let mut depth = 1;
-					while depth > 0 && self.current().is_some() {
-						if let (Some(cur), Some(next)) = (self.current(), self.peek(1)) {
-							match (cur, next) {
-								('-', '*') => {
-									self.advance();
-									self.advance();
-									depth += 1;
-								},
-								('*', '-') => {
-									self.advance();
-									self.advance();
-									depth -= 1;
-								},
-								_ => {
-									self.advance();
-								},
-							}
-						} else {
-							self.advance();
+					while let (Some(cur), Some(next)) = (self.current(), self.peek(1)) {
+						self.advance();
+						match (cur, next) {
+							('-', '*') => {
+								self.advance();
+								depth += 1;
+							},
+							('*', '-') => {
+								self.advance();
+								depth -= 1;
+								if depth == 0 { break; }
+							},
+							_ => {},
 						}
 					}
 					self.next_token()
@@ -359,8 +274,9 @@ impl<'a> Lexer {
 							self.advance();
 							sym
 						},
-						(None, _) => {
-							let c = self.advance().unwrap_or('\0');
+						_ => {
+							let c = self.current().unwrap_or('\0');
+							self.advance();
 							Token::Unknown(c)
 						},
 					}
