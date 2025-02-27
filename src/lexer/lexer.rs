@@ -176,8 +176,8 @@ impl<'a> Lexer<'a> {
 			let word = self.read_identifier();
 			match word.as_str() {
 				// Check for keyword {{{
-				"true" => Token::TrueLiteral,
-				"false" => Token::FalseLiteral,
+				"true" => Token::WordTrue,
+				"false" => Token::WordFalse,
 				"let" => Token::WordLet,
 				"return" => Token::WordReturn,
 				"if" => Token::WordIf,
