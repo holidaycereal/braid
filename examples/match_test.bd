@@ -1,0 +1,6 @@
+-* match expression *-
+
+fn factorial(x) : int -> int = match x {
+   0 -> 1,
+   n -> n * factorial(n - 1),
+};

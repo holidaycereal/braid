@@ -253,39 +253,45 @@ impl<'a> Lexer<'a> {
 
 				// Skip line comments
 				(b'-', b'-') => {
-					self.advance();
-					self.advance();
+					self.advance();  // Skip first `-`
+					self.advance();  // Skip second `-`
 					while let Some(c) = self.current() {
-						if c == b'\n' {
+						if c == b'\n' {  // End of comment
 							break;
 						}
-						self.advance();
+						self.advance();  // Next character
 					}
 					self.next_token()
 				},
 
 				// Skip block comments
 				(b'-', b'*') => {
-					self.advance();
-					self.advance();
-					let mut depth = 1;
-					while let Some(c) = self.current() {
-						if c == b'-' {
-							self.advance();
-							if let Some(b'*') = self.current() {
-								depth += 1;
-							}
-						} else if c == b'*' {
-							self.advance();
-							if let Some(b'-') = self.current() {
-								depth -= 1;
-								if depth == 0 {
-									self.advance();
-									break;
-								}
+					self.advance();  // Skip `-`
+					self.advance();  // Skip `*`
+					let mut depth = 1;  // Handle nested block comments
+					while let Some(cur) = self.current() {
+						if let Some(next) = self.peek(1) {
+							match (cur, next) {
+								(b'-', b'*') => {
+									self.advance();  // Skip `-`
+									self.advance();  // Skip `*`
+									depth += 1;
+									continue;
+								},
+								(b'*', b'-') => {
+									self.advance();  // Skip `*`
+									self.advance();  // Skip `-`
+									depth -= 1;
+									if depth == 0 {  // End of comment
+										break;
+									}
+									continue;
+								},
+								_ => {
+									self.advance();  // Next character
+								},
 							}
 						}
-						self.advance();
 					}
 					self.next_token()
 				},
@@ -336,7 +342,7 @@ impl<'a> Lexer<'a> {
 				Token::Unknown(c) => {
 					panic!("Unknown character: {}", c);
 				},
-				// Handle two- and one-character symbols
+				// Handle two-character symbols
 				Token::Arrow | Token::TestEq | Token::TestNe | Token::CompLe
 				| Token::CompGe | Token::FwdCompose | Token::ExclusiveRange
 				| Token::InclusiveRange | Token::ModuleAccess | Token::Concat
@@ -346,6 +352,7 @@ impl<'a> Lexer<'a> {
 					self.advance();
 					symbol
 				},
+				// Handle one-character symbols
 				_ => {
 					self.advance();
 					symbol
