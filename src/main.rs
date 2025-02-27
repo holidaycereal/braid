@@ -1,4 +1,5 @@
 mod lexer;
+mod parser;
 use crate::lexer::token::Token;
 use std::{ env, fs, path::Path, process };
 
