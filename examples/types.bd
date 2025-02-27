@@ -24,12 +24,15 @@ record user {
 	},
 }
 
--- record literal syntax
-let alice : user = {
-	id = 0x01,
-	name = "alice",
-	status = active { time_joined = os::now() },
-};
+-- usage:
+fn main() -> () {
+	-- record literal syntax
+	let alice : user = {
+		id = 0x01,
+		name = "alice",
+		status = active { time_joined = now() },
+	};
 
--- tuple syntax
-let bob : user = (0x02, "bob", inactive);
+	-- tuple syntax
+	let bob : user = (0x02, "bob", active(now()));
+}

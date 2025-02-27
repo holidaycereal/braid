@@ -14,6 +14,6 @@ fn process(x) : int -> int {
 	end
 	return match computation(x).value {
 		ok(v) -> v,
-		err(*) -> -2,
+		error(_) -> -2,
 	};
 }
