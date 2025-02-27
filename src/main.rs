@@ -88,15 +88,8 @@ fn token_to_string(token: &Token) -> String {
 fn print_tokens(source: &str) {
 	let mut lexer = lexer::lexer::Lexer::new(source);
 	let mut token = lexer.next_token();
-	let col_max = termsize::get().unwrap().cols as usize;
-	let mut col = 0;
 	while token != Token::EofToken {
 		let tok_str = token_to_string(&token);
-		col += 1 + tok_str.len();
-		if col >= col_max - 5 { // some padding
-			println!("");
-			col = 0;
-		}
 		print!("{} ", tok_str);
 		token = lexer.next_token();
 	}
