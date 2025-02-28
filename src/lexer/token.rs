@@ -46,6 +46,8 @@ pub enum Token {
 	TestEq,          // ==
 	TestNe,          // !=
 	Arrow,           // ->
+	FatArrow,        // =>
+	DoublePipe,      // ||
 	FwdCompose,      // >>
 	ExclusiveRange,  // ..
 	InclusiveRange,  // .*

@@ -49,6 +49,8 @@ fn token_to_string(token: &Token) -> String {
 		Token::TestEq => "==".to_string(),
 		Token::TestNe => "!=".to_string(),
 		Token::Arrow => "->".to_string(),
+		Token::FatArrow => "=>".to_string(),
+		Token::DoublePipe => "||".to_string(),
 		Token::FwdCompose => ">>".to_string(),
 		Token::ExclusiveRange => "..".to_string(),
 		Token::InclusiveRange => ".*".to_string(),

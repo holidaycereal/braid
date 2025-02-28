@@ -29,9 +29,7 @@ impl<'a> Lexer {
 	fn read_identifier(&mut self) -> String {
 		let start = self.pos;
 		while let Some(c) = self.advance() {
-			if !c.is_alphanumeric() && c != '_' {
-				break;
-			}
+			if !c.is_alphanumeric() && c != '_' { break; }
 		}
 		self.chars[start..self.pos].iter().collect()
 	}
@@ -224,6 +222,8 @@ impl<'a> Lexer {
 					let (symbol, is_long) = match (current, next) {
 						// {{{
 						('-', Some('>')) => (Some(Token::Arrow), true),
+						('=', Some('>')) => (Some(Token::FatArrow), true),
+						('|', Some('|')) => (Some(Token::DoublePipe), true),
 						('=', Some('=')) => (Some(Token::TestEq), true),
 						('!', Some('=')) => (Some(Token::TestNe), true),
 						('<', Some('=')) => (Some(Token::CompLe), true),
