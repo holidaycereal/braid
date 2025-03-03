@@ -97,7 +97,7 @@ impl Lexer {
 			self.advance();
 		}
 	}
-	
+
 	pub fn next_token(&mut self) -> Option<Token> {
 		self.skip_whitespace();
 		let current = self.current()?;
