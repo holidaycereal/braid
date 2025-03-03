@@ -4,6 +4,7 @@ use crate::parser::astnode::Node;
 pub enum ParserError {
 	UnknownCharacter(char),
 	Expected(Vec<Token>, Token),
+	ExpectedIdentifier(Token),
 	UnexpectedEof,
 }
 
@@ -23,6 +24,24 @@ fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, Parser
 		Some(token) => Err(ParserError::Expected(expected, token)),
 		None => Err(ParserError::UnexpectedEof),
 	}
+}
+
+fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
+	match lexer.next_token() {
+		Some(Token::Identifier(name)) => Ok(name),
+		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
+		Some(token) => Err(ParserError::ExpectedIdentifier(token)),
+		None => Err(ParserError::UnexpectedEof),
+	}
+}
+
+fn tokens_until_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+	let mut tokens: Vec<Token> = Vec::new();
+	while let Some(token) = lexer.next_token() {
+		if token == Token::Semicolon { return Ok(tokens); }
+		tokens.push(token);
+	}
+	Err(ParserError::UnexpectedEof)
 }
 
 pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
