@@ -38,7 +38,9 @@ fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 fn tokens_until_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.next_token() {
-		if token == Token::Semicolon { return Ok(tokens); }
+		if token == Token::Semicolon {
+			return Ok(tokens);
+		}
 		tokens.push(token);
 	}
 	Err(ParserError::UnexpectedEof)
