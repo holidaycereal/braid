@@ -10,7 +10,7 @@ pub enum Node {
 		name: String,
 		params: Vec<Vec<String>>,
 		type_sig: Box<Node>,
-		statements: Vec<Node>,
+		body: Vec<Node>,
 	},
 	TypeDef {
 		name: String,

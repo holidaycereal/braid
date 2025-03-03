@@ -1,6 +1,5 @@
 #[derive(Eq, PartialEq)]
 pub enum Token {
-	EofToken,
 	Unknown(char),
 	Identifier(String),
 	// Literals

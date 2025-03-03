@@ -5,8 +5,8 @@ pub struct Lexer {
 	pos: usize,
 }
 
-impl<'a> Lexer {
-	pub fn new(input: &'a str) -> Self {
+impl Lexer {
+	pub fn new(input: &str) -> Self {
 		Lexer { chars: input.chars().collect(), pos: 0 }
 	}
 
@@ -97,53 +97,49 @@ impl<'a> Lexer {
 			self.advance();
 		}
 	}
-
-	pub fn next_token(&mut self) -> Token {
+	
+	pub fn next_token(&mut self) -> Option<Token> {
 		self.skip_whitespace();
-
-		let current = match self.current() {
-			None => { return Token::EofToken; },
-			Some(c) => c,
-		};
+		let current = self.current()?;
 
 		// Identifiers and keywords
 		if current.is_alphabetic() || current == '_' {
 			let word = self.read_identifier();
 			match word.as_str() {
 				// Check for keyword {{{
-				"true" => Token::WordTrue,
-				"false" => Token::WordFalse,
-				"let" => Token::WordLet,
-				"return" => Token::WordReturn,
-				"if" => Token::WordIf,
-				"then" => Token::WordThen,
-				"else" => Token::WordElse,
-				"elif" => Token::WordElif,
-				"case" => Token::WordCase,
-				"of" => Token::WordOf,
-				"end" => Token::WordEnd,
-				"while" => Token::WordWhile,
-				"for" => Token::WordFor,
-				"in" => Token::WordIn,
-				"do" => Token::WordDo,
-				"done" => Token::WordDone,
-				"break" => Token::WordBreak,
-				"continue" => Token::WordContinue,
-				"match" => Token::WordMatch,
-				"when" => Token::WordWhen,
-				"const" => Token::WordConst,
-				"type" => Token::WordType,
-				"fn" => Token::WordFn,
-				"record" => Token::WordRecord,
-				"union" => Token::WordUnion,
-				"trait" => Token::WordTrait,
-				"impl" => Token::WordImpl,
-				"and" => Token::WordAnd,
-				"or" => Token::WordOr,
-				"xor" => Token::WordXor,
-				"not" => Token::WordNot,
+				"true" => Some(Token::WordTrue),
+				"false" => Some(Token::WordFalse),
+				"let" => Some(Token::WordLet),
+				"return" => Some(Token::WordReturn),
+				"if" => Some(Token::WordIf),
+				"then" => Some(Token::WordThen),
+				"else" => Some(Token::WordElse),
+				"elif" => Some(Token::WordElif),
+				"case" => Some(Token::WordCase),
+				"of" => Some(Token::WordOf),
+				"end" => Some(Token::WordEnd),
+				"while" => Some(Token::WordWhile),
+				"for" => Some(Token::WordFor),
+				"in" => Some(Token::WordIn),
+				"do" => Some(Token::WordDo),
+				"done" => Some(Token::WordDone),
+				"break" => Some(Token::WordBreak),
+				"continue" => Some(Token::WordContinue),
+				"match" => Some(Token::WordMatch),
+				"when" => Some(Token::WordWhen),
+				"const" => Some(Token::WordConst),
+				"type" => Some(Token::WordType),
+				"fn" => Some(Token::WordFn),
+				"record" => Some(Token::WordRecord),
+				"union" => Some(Token::WordUnion),
+				"trait" => Some(Token::WordTrait),
+				"impl" => Some(Token::WordImpl),
+				"and" => Some(Token::WordAnd),
+				"or" => Some(Token::WordOr),
+				"xor" => Some(Token::WordXor),
+				"not" => Some(Token::WordNot),
 				// }}}
-				_ => Token::Identifier(word),
+				_ => Some(Token::Identifier(word)),
 			}
 		}
 
@@ -165,9 +161,9 @@ impl<'a> Lexer {
 
 			// Make float or int literal token
 			if num_str.contains('.') || num_str.contains('e') || num_str.contains('E') {
-				Token::FloatLiteral(num_str)
+				Some(Token::FloatLiteral(num_str))
 			} else if let Ok(int_value) = u64::from_str_radix(num_body, base) {
-				Token::IntLiteral(int_value)
+				Some(Token::IntLiteral(int_value))
 			} else {
 				panic!("Integer literal badly formatted or out of range: {}", num_str);
 			}
@@ -175,9 +171,9 @@ impl<'a> Lexer {
 
 		// String and character literals
 		else if current == '"' {
-			Token::StringLiteral(self.read_textual_literal())
+			Some(Token::StringLiteral(self.read_textual_literal()))
 		} else if current == '\'' {
-			Token::CharLiteral(self.read_textual_literal())
+			Some(Token::CharLiteral(self.read_textual_literal()))
 		}
 
 		// Symbols and comments
@@ -268,16 +264,16 @@ impl<'a> Lexer {
 						(Some(sym), true) => {
 							self.advance();
 							self.advance();
-							sym
+							Some(sym)
 						},
 						(Some(sym), false) => {
 							self.advance();
-							sym
+							Some(sym)
 						},
 						_ => {
 							let c = self.current().unwrap_or('\0');
 							self.advance();
-							Token::Unknown(c)
+							Some(Token::Unknown(c))
 						},
 					}
 				},

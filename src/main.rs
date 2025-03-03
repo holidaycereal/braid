@@ -6,7 +6,6 @@ use std::{ env, fs, path::Path, process };
 fn token_to_string(token: &Token) -> String {
 	match token {
 		// {{{
-		Token::EofToken => "EOF".to_string(),
 		Token::Unknown(c) => format!("(Unknown {})", c).to_string(),
 		Token::Identifier(s) => format!("{}", s).to_string(),
 		Token::StringLiteral(s) => format!("\"{}\"", s).to_string(),
@@ -90,11 +89,9 @@ fn token_to_string(token: &Token) -> String {
 
 fn print_tokens(source: &str) {
 	let mut lexer = lexer::lexer::Lexer::new(source);
-	let mut token = lexer.next_token();
-	while token != Token::EofToken {
+	while let Some(token) = lexer.next_token() {
 		let tok_str = token_to_string(&token);
 		print!("{} ", tok_str);
-		token = lexer.next_token();
 	}
 	println!("");
 }
