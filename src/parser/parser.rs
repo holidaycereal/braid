@@ -2,13 +2,15 @@ use crate::lexer::{ lexer::Lexer, token::Token };
 use crate::parser::astnode::Node;
 
 pub enum ParserError {
-	UnknownCharacter(char),
-	Expected(Vec<Token>, Token),
+	UnknownCharacter(char), // Propagate lexer error
+	Expected(Vec<Token>, Token), // Expected vs actual
 	ExpectedIdentifier(Token),
 	ExpectedIdentifierOr(Vec<Token>, Token),
+	ExpectedTopLevel(Token),
 	UnexpectedEof,
 }
 
+// Given an invalid token, produce an appropriate error
 fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>)
 	-> Result<T, ParserError>
 {
@@ -29,6 +31,7 @@ fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>)
 	}
 }
 
+// Consume a token and fail if it's not the expected token
 fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
 	match lexer.consume() {
 		Some(token) if token == expected => Ok(()),
@@ -36,15 +39,14 @@ fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
 	}
 }
 
-fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer)
-	-> Result<Token, ParserError>
-{
+fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, ParserError> {
 	match lexer.consume() {
 		Some(token) if expected.contains(&token) => Ok(token),
 		token => handle_bad_token(token, expected),
 	}
 }
 
+// Expect an identifier and return its name or fail
 fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 	match lexer.consume() {
 		Some(Token::Identifier(name)) => Ok(name),
@@ -55,7 +57,7 @@ fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 }
 
 // Parse a list of comma-separated identifiers in parens or brackets
-fn parse_idents_until(delim: Token, lexer: &mut Lexer)
+fn parse_idents_til(delim: Token, lexer: &mut Lexer)
 	-> Result<Vec<String>, ParserError>
 {
 	let mut names: Vec<String> = Vec::new();
@@ -69,40 +71,44 @@ fn parse_idents_until(delim: Token, lexer: &mut Lexer)
 	}
 }
 
-fn tokens_until_semicolon(lexer: &mut Lexer)
-	-> Result<Vec<Token>, ParserError>
-{
+// Consume all the tokens until a delimiter and construct a vector from them
+fn tokens_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.consume() {
-		if token == Token::Semicolon { return Ok(tokens); }
+		if token == delim { return Ok(tokens); }
 		tokens.push(token);
 	}
 	Err(ParserError::UnexpectedEof)
 }
 
+fn tokens_til_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+	tokens_til(Token::Semicolon, lexer)
+}
+
+// Top-level parsing function
 pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 	let mut lexer = Lexer::new(input);
 	let mut nodes: Vec<Node> = Vec::new();
 
 	while let Some(token) = lexer.consume() {
 		match token {
+			// Constant expression definition
 			Token::WordConst => {
 				let name = parse_identifier(&mut lexer)?;
 				expect_token(Token::Equals, &mut lexer)?;
-				let tokens = tokens_until_semicolon(&mut lexer)?;
+				let tokens = tokens_til_semicolon(&mut lexer)?;
 				let value = parse_expr(&tokens)?;
 				nodes.push(Node::ConstDef { name, value });
 			},
 
+			// Function definition
 			Token::WordFn => {
 				let name = parse_identifier(&mut lexer)?;
 
 				// Parse parameters
 				let mut params: Vec<Vec<String>> = Vec::new();
 				while let Some(Token::ParenL) = lexer.consume() {
-					let inner_params = parse_idents_until(
-						Token::ParenR, &mut lexer
-					)?;
+					let inner_params = parse_idents_til(Token::ParenR, &mut lexer)?;
 					params.push(inner_params);
 				}
 
@@ -118,13 +124,11 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				// Function body
 				let body = match lexer.cur {
 					Some(Token::Equals) => {
-						let tokens = tokens_until_semicolon(&mut lexer)?;
+						let tokens = tokens_til_semicolon(&mut lexer)?;
 						let expr = parse_expr(&tokens)?;
 						vec![Node::Return(expr)]
 					},
-					Some(Token::BraceL) => {
-						parse_fn_body(&mut lexer)?
-					},
+					Some(Token::BraceL) => parse_fn_body(&mut lexer)?,
 					tok => return handle_bad_token(tok, vec![
 						Token::Equals, Token::BraceL
 					]),
@@ -133,15 +137,17 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				nodes.push(Node::FnDef { name, params, type_sig, body });
 			},
 
+			// Type alias definition
 			Token::WordType => {
 				let name = parse_identifier(&mut lexer)?;
 				let params = parse_type_params(&mut lexer)?;
 				expect_token(Token::Equals, &mut lexer)?;
-				let tokens = tokens_until_semicolon(&mut lexer)?;
+				let tokens = tokens_til_semicolon(&mut lexer)?;
 				let value = parse_type_expr(&tokens)?;
 				nodes.push(Node::TypeDef { name, params, value });
 			},
 
+			// Union type definition
 			Token::WordUnion => {
 				let name = parse_identifier(&mut lexer)?;
 				let params = parse_type_params(&mut lexer)?;
@@ -150,6 +156,7 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				nodes.push(Node::UnionDef { name, params, variants });
 			},
 
+			// Record type definition
 			Token::WordRecord => {
 				let name = parse_identifier(&mut lexer)?;
 				let params = parse_type_params(&mut lexer)?;
@@ -158,12 +165,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				nodes.push(Node::RecordDef { name, params, fields });
 			},
 
+			// Fail
 			Token::Unknown(c) => return Err(ParserError::UnknownCharacter(c)),
-
-			tok => return Err(ParserError::Expected(vec![
-				Token::WordConst, Token::WordFn, Token::WordType,
-				Token::WordUnion, Token::WordRecord
-			], tok)),
+			tok => return Err(ParserError::ExpectedTopLevel(tok)),
 		}
 	}
 
