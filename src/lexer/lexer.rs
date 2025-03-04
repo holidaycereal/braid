@@ -167,12 +167,17 @@ impl Lexer {
 			};
 
 			// Make float or int literal token
-			if num_str.contains('.') || num_str.contains('e') || num_str.contains('E') {
+			if num_str.contains('.') || num_str.contains('e') ||
+				num_str.contains('E')
+			{
 				Some(Token::FloatLiteral(num_str))
 			} else if let Ok(int_value) = u64::from_str_radix(num_body, base) {
 				Some(Token::IntLiteral(int_value))
 			} else {
-				panic!("Integer literal badly formatted or out of range: {}", num_str);
+				panic!(
+					"Integer literal badly formatted or out of range: {}",
+					num_str
+				);
 			}
 		}
 
@@ -202,7 +207,9 @@ impl Lexer {
 					self.advance();
 					self.advance();
 					let mut depth = 1;
-					while let (Some(cur), Some(next)) = (self.current(), self.peek(1)) {
+					while let (Some(cur), Some(next)) =
+						(self.current(), self.peek(1))
+					{
 						self.advance();
 						match (cur, next) {
 							('-', '*') => {

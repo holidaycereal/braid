@@ -9,7 +9,9 @@ pub enum ParserError {
 	UnexpectedEof,
 }
 
-fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
+fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>)
+	-> Result<T, ParserError>
+{
 	match token {
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::Expected(expected, token)),
@@ -17,7 +19,9 @@ fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, 
 	}
 }
 
-fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
+fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>)
+	-> Result<T, ParserError>
+{
 	match token {
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::ExpectedIdentifierOr(expected, token)),
@@ -32,7 +36,9 @@ fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
 	}
 }
 
-fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, ParserError> {
+fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer)
+	-> Result<Token, ParserError>
+{
 	match lexer.consume() {
 		Some(token) if expected.contains(&token) => Ok(token),
 		token => handle_bad_token(token, expected),
@@ -49,7 +55,9 @@ fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 }
 
 // Parse a list of comma-separated identifiers in parens or brackets
-fn parse_idents_until(delim: Token, lexer: &mut Lexer) -> Result<Vec<String>, ParserError> {
+fn parse_idents_until(delim: Token, lexer: &mut Lexer)
+	-> Result<Vec<String>, ParserError>
+{
 	let mut names: Vec<String> = Vec::new();
 	loop {
 		match lexer.consume() {
@@ -61,7 +69,9 @@ fn parse_idents_until(delim: Token, lexer: &mut Lexer) -> Result<Vec<String>, Pa
 	}
 }
 
-fn tokens_until_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+fn tokens_until_semicolon(lexer: &mut Lexer)
+	-> Result<Vec<Token>, ParserError>
+{
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.consume() {
 		if token == Token::Semicolon { return Ok(tokens); }
@@ -90,7 +100,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				// Parse parameters
 				let mut params: Vec<Vec<String>> = Vec::new();
 				while let Some(Token::ParenL) = lexer.consume() {
-					let inner_params = parse_idents_until(Token::ParenR, &mut lexer)?;
+					let inner_params = parse_idents_until(
+						Token::ParenR, &mut lexer
+					)?;
 					params.push(inner_params);
 				}
 
@@ -113,7 +125,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 					Some(Token::BraceL) => {
 						parse_fn_body(&mut lexer)?
 					},
-					tok => return handle_bad_token(tok, vec![Token::Equals, Token::BraceL]),
+					tok => return handle_bad_token(tok, vec![
+						Token::Equals, Token::BraceL
+					]),
 				};
 
 				nodes.push(Node::FnDef { name, params, type_sig, body });
