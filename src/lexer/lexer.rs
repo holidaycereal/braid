@@ -167,9 +167,9 @@ impl Lexer {
 			};
 
 			// Make float or int literal token
-			if num_str.contains('.') || num_str.contains('e') ||
-				num_str.contains('E')
-			{
+			if num_str.contains('.')
+			|| num_str.contains('e')
+			|| num_str.contains('E') {
 				Some(Token::FloatLiteral(num_str))
 			} else if let Ok(int_value) = u64::from_str_radix(num_body, base) {
 				Some(Token::IntLiteral(int_value))
