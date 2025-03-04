@@ -115,9 +115,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				// Type signature
 				let type_sig = match lexer.cur {
 					Some(Token::Colon) => parse_fn_type(&mut lexer)?,
-					Some(Token::Equals | Token::BraceL) => Node::Inferred,
+					Some(Token::Equals | Token::WordIs) => Node::Inferred,
 					tok => return handle_bad_token(tok, vec![
-						Token::Colon, Token::Equals, Token::BraceL
+						Token::Colon, Token::Equals, Token::WordIs
 					]),
 				};
 
@@ -128,9 +128,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 						let expr = parse_expr(&tokens)?;
 						vec![Node::Return(expr)]
 					},
-					Some(Token::BraceL) => parse_fn_body(&mut lexer)?,
+					Some(Token::WordIs) => parse_fn_body(&mut lexer)?,
 					tok => return handle_bad_token(tok, vec![
-						Token::Equals, Token::BraceL
+						Token::Equals, Token::WordIs
 					]),
 				};
 

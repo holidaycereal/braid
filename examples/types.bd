@@ -25,7 +25,7 @@ record user {
 }
 
 -- usage:
-fn main() -> () {
+fn main() -> () is
 	-- record literal syntax
 	let alice : user = {
 		id = 0x01,
@@ -35,4 +35,4 @@ fn main() -> () {
 
 	-- tuple syntax
 	let bob : user = (0x02, "bob", active(now()));
-}
+end

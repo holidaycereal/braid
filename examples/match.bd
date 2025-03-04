@@ -7,7 +7,7 @@ fn factorial(x) : int -> int = match x {
 };
 
 -- some imperative boilerplate, then return
-fn process(x) : int -> int {
+fn process(x) : int -> int is
 	if not valid(x) then
 		log_error();
 		return -1;
@@ -16,4 +16,4 @@ fn process(x) : int -> int {
 		ok(v) -> v,
 		error(_) -> -2,
 	};
-}
+end
