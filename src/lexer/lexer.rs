@@ -3,11 +3,18 @@ use crate::lexer::token::Token;
 pub struct Lexer {
 	chars: Vec<char>,
 	pos: usize,
+	pub prev: Option<Token>,
+	pub cur: Option<Token>,
 }
 
 impl Lexer {
 	pub fn new(input: &str) -> Self {
-		Lexer { chars: input.chars().collect(), pos: 0 }
+		Lexer {
+			chars: input.chars().collect(),
+			pos: 0,
+			prev: None,
+			cur: None,
+		}
 	}
 
 	fn peek(&self, offset: usize) -> Option<char> {
@@ -98,7 +105,7 @@ impl Lexer {
 		}
 	}
 
-	pub fn next_token(&mut self) -> Option<Token> {
+	fn lex_token(&mut self) -> Option<Token> {
 		self.skip_whitespace();
 		let current = self.current()?;
 
@@ -187,7 +194,7 @@ impl Lexer {
 					while let Some(c) = self.advance() {
 						if c == '\n' { break; }
 					}
-					self.next_token()
+					self.lex_token()
 				},
 
 				// Skip block comments
@@ -210,7 +217,7 @@ impl Lexer {
 							_ => {},
 						}
 					}
-					self.next_token()
+					self.lex_token()
 				},
 
 				_ => {
@@ -279,5 +286,11 @@ impl Lexer {
 				},
 			}
 		}
+	}
+
+	pub fn consume(&mut self) -> Option<Token> {
+		self.prev = self.cur.clone();
+		self.cur = self.lex_token();
+		self.cur.clone()
 	}
 }

@@ -5,29 +5,42 @@ pub enum ParserError {
 	UnknownCharacter(char),
 	Expected(Vec<Token>, Token),
 	ExpectedIdentifier(Token),
+	ExpectedIdentifierOr(Vec<Token>, Token),
 	UnexpectedEof,
 }
 
-fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
-	match lexer.next_token() {
-		Some(token) if token == expected => Ok(()),
-		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
-		Some(token) => Err(ParserError::Expected(vec![expected], token)),
-		None => Err(ParserError::UnexpectedEof),
-	}
-}
-
-fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, ParserError> {
-	match lexer.next_token() {
-		Some(token) if expected.contains(&token) => Ok(token),
+fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
+	match token {
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::Expected(expected, token)),
 		None => Err(ParserError::UnexpectedEof),
 	}
 }
 
+fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
+	match token {
+		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
+		Some(token) => Err(ParserError::ExpectedIdentifierOr(expected, token)),
+		None => Err(ParserError::UnexpectedEof),
+	}
+}
+
+fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
+	match lexer.consume() {
+		Some(token) if token == expected => Ok(()),
+		token => handle_bad_token(token, vec![expected]),
+	}
+}
+
+fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, ParserError> {
+	match lexer.consume() {
+		Some(token) if expected.contains(&token) => Ok(token),
+		token => handle_bad_token(token, expected),
+	}
+}
+
 fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
-	match lexer.next_token() {
+	match lexer.consume() {
 		Some(Token::Identifier(name)) => Ok(name),
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::ExpectedIdentifier(token)),
@@ -35,12 +48,23 @@ fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 	}
 }
 
+// Parse a list of comma-separated identifiers in parens or brackets
+fn parse_idents_until(delim: Token, lexer: &mut Lexer) -> Result<Vec<String>, ParserError> {
+	let mut names: Vec<String> = Vec::new();
+	loop {
+		match lexer.consume() {
+			Some(tok) if tok == delim => return Ok(names),
+			Some(Token::Identifier(name)) => { names.push(name); },
+			Some(Token::Comma) => {},
+			tok => return handle_bad_token_or_ident(tok, vec![Token::Comma]),
+		}
+	}
+}
+
 fn tokens_until_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
-	while let Some(token) = lexer.next_token() {
-		if token == Token::Semicolon {
-			return Ok(tokens);
-		}
+	while let Some(token) = lexer.consume() {
+		if token == Token::Semicolon { return Ok(tokens); }
 		tokens.push(token);
 	}
 	Err(ParserError::UnexpectedEof)
@@ -50,7 +74,7 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 	let mut lexer = Lexer::new(input);
 	let mut nodes: Vec<Node> = Vec::new();
 
-	while let Some(token) = lexer.next_token() {
+	while let Some(token) = lexer.consume() {
 		match token {
 			Token::WordConst => {
 				let name = parse_identifier(&mut lexer)?;
@@ -62,24 +86,34 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 
 			Token::WordFn => {
 				let name = parse_identifier(&mut lexer)?;
-				let params = parse_fn_params(&mut lexer)?;
 
-				let tok = expect_oneof(vec![
-					Token::Equals, Token::BraceL, Token::Colon
-				], &mut lexer)?;
+				// Parse parameters
+				let mut params: Vec<Vec<String>> = Vec::new();
+				while let Some(Token::ParenL) = lexer.consume() {
+					let inner_params = parse_idents_until(Token::ParenR, &mut lexer)?;
+					params.push(inner_params);
+				}
 
-				let type_sig = if tok == Token::Colon {
-					parse_fn_type(&mut lexer)?
-				} else {
-					Node::Inferred
+				// Type signature
+				let type_sig = match lexer.cur {
+					Some(Token::Colon) => parse_fn_type(&mut lexer)?,
+					Some(Token::Equals | Token::BraceL) => Node::Inferred,
+					tok => return handle_bad_token(tok, vec![
+						Token::Colon, Token::Equals, Token::BraceL
+					]),
 				};
 
-				let body = if tok == Token::Equals {
-					let tokens = tokens_until_semicolon(&mut lexer)?;
-					let expr = parse_expr(&tokens)?;
-					vec![Node::Return(expr)]
-				} else {
-					parse_fn_body(&mut lexer)?
+				// Function body
+				let body = match lexer.cur {
+					Some(Token::Equals) => {
+						let tokens = tokens_until_semicolon(&mut lexer)?;
+						let expr = parse_expr(&tokens)?;
+						vec![Node::Return(expr)]
+					},
+					Some(Token::BraceL) => {
+						parse_fn_body(&mut lexer)?
+					},
+					tok => return handle_bad_token(tok, vec![Token::Equals, Token::BraceL]),
 				};
 
 				nodes.push(Node::FnDef { name, params, type_sig, body });

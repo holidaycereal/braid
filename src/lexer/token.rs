@@ -1,4 +1,4 @@
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Token {
 	Unknown(char),
 	Identifier(String),
