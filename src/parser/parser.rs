@@ -72,17 +72,39 @@ fn parse_idents_til(delim: Token, lexer: &mut Lexer)
 }
 
 // Consume all the tokens until a delimiter and construct a vector from them
-fn tokens_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+fn tokens_til(delims: Vec<Token>, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.consume() {
-		if token == delim { return Ok(tokens); }
+		if delims.contains(&token) { return Ok(tokens); }
 		tokens.push(token);
 	}
 	Err(ParserError::UnexpectedEof)
 }
 
 fn tokens_til_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
-	tokens_til(Token::Semicolon, lexer)
+	tokens_til(vec![Token::Semicolon], lexer)
+}
+
+// Parse an imperative block terminated by a delimiter
+fn parse_block(lexer: &mut Lexer, delim: &Token) -> Result<Vec<Node>, ParserError> {
+	let mut statements: Vec<Node> = Vec::new();
+	while lexer.cur != Some(delim.clone()) {
+		let statement = parse_statement(lexer)?;
+		statements.push(statement);
+	}
+	Ok(statements)
+}
+
+fn parse_end_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
+	parse_block(lexer, &Token::WordEnd)
+}
+
+fn parse_done_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
+	parse_block(lexer, &Token::WordDone)
+}
+
+fn parse_stop_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
+	parse_block(lexer, &Token::WordStop)
 }
 
 // Top-level parsing function
@@ -102,7 +124,7 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 			},
 
 			// Function definition
-			Token::WordFn => {
+			Token::WordDef => {
 				let name = parse_identifier(&mut lexer)?;
 
 				// Parse parameters
@@ -114,10 +136,10 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 
 				// Type signature
 				let type_sig = match lexer.cur {
-					Some(Token::Colon) => parse_fn_type(&mut lexer)?,
-					Some(Token::Equals | Token::WordIs) => Node::Inferred,
+					Some(Token::Colon) => parse_type_expr(&mut lexer)?,
+					Some(Token::Equals | Token::WordProc) => Node::Inferred,
 					tok => return handle_bad_token(tok, vec![
-						Token::Colon, Token::Equals, Token::WordIs
+						Token::Colon, Token::Equals, Token::WordProc
 					]),
 				};
 
@@ -128,9 +150,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 						let expr = parse_expr(&tokens)?;
 						vec![Node::Return(expr)]
 					},
-					Some(Token::WordIs) => parse_fn_body(&mut lexer)?,
+					Some(Token::WordProc) => parse_stop_block(&mut lexer)?,
 					tok => return handle_bad_token(tok, vec![
-						Token::Equals, Token::WordIs
+						Token::Equals, Token::WordProc
 					]),
 				};
 

@@ -1,6 +1,6 @@
 -* common string operations *-
 
-fn main(argv) : vec[string] -> () is
+def main(argv) : vec[string] -> () proc
 	let name : string = argv[1];
 
 	let greet1 : string = "hello " ++ name; -- using sequence concatenation
@@ -14,4 +14,4 @@ fn main(argv) : vec[string] -> () is
 	};
 
 	echo([greet1, greet2, greet3] >> join("\n"));
-end
+stop
