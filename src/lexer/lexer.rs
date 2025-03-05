@@ -3,7 +3,6 @@ use crate::lexer::token::Token;
 pub struct Lexer {
 	chars: Vec<char>,
 	pos: usize,
-	pub prev: Option<Token>,
 	pub cur: Option<Token>,
 }
 
@@ -12,7 +11,6 @@ impl Lexer {
 		Lexer {
 			chars: input.chars().collect(),
 			pos: 0,
-			prev: None,
 			cur: None,
 		}
 	}
@@ -298,7 +296,6 @@ impl Lexer {
 	}
 
 	pub fn consume(&mut self) -> Option<Token> {
-		self.prev = self.cur.clone();
 		self.cur = self.lex_token();
 		self.cur.clone()
 	}

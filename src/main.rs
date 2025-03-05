@@ -92,9 +92,7 @@ fn token_to_string(token: &Token) -> String {
 fn print_tokens(source: &str) {
 	let mut lexer = lexer::lexer::Lexer::new(source);
 	while let Some(token) = lexer.consume() {
-		lexer.consume();
-		let tok_str = token_to_string(&token);
-		print!("{} ", tok_str);
+		print!("{} ", token_to_string(&token));
 	}
 	println!("");
 }
