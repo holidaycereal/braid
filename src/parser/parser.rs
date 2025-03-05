@@ -37,8 +37,7 @@ fn expect_token(expected: Token, lexer: &mut Lexer) -> Result<(), ParserError> {
 	}
 }
 
-fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) ->
-Result<Token, ParserError> {
+fn expect_oneof(expected: Vec<Token>, lexer: &mut Lexer) -> Result<Token, ParserError> {
 	match lexer.consume() {
 		Some(token) if expected.contains(&token) => Ok(token),
 		token => handle_bad_token(token, expected),
@@ -56,8 +55,7 @@ fn parse_identifier(lexer: &mut Lexer) -> Result<String, ParserError> {
 }
 
 // Parse a list of comma-separated identifiers in parens or brackets
-fn parse_idents_til(delim: Token, lexer: &mut Lexer) ->
-Result<Vec<String>, ParserError> {
+fn parse_idents_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<String>, ParserError> {
 	let mut names: Vec<String> = Vec::new();
 	loop {
 		match lexer.consume() {
@@ -70,8 +68,7 @@ Result<Vec<String>, ParserError> {
 }
 
 // Consume all the tokens until a delimiter and construct a vector from them
-fn tokens_til(delims: Vec<Token>, lexer: &mut Lexer) ->
-Result<Vec<Token>, ParserError> {
+fn tokens_til(delims: Vec<Token>, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.consume() {
 		if delims.contains(&token) { return Ok(tokens); }
@@ -85,8 +82,7 @@ fn tokens_til_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 }
 
 // Parse an imperative block terminated by a delimiter
-fn parse_block(lexer: &mut Lexer, delim: &Token) ->
-Result<Vec<Node>, ParserError> {
+fn parse_block(lexer: &mut Lexer, delim: &Token) -> Result<Vec<Node>, ParserError> {
 	let mut statements: Vec<Node> = Vec::new();
 	while lexer.cur != Some(delim.clone()) {
 		let statement = parse_statement(lexer)?;
