@@ -7,6 +7,7 @@ pub enum ParserError {
 	ExpectedIdentifier(Token),
 	ExpectedIdentifierOr(Vec<Token>, Token),
 	ExpectedTopLevel(Token),
+	ExpectedStatement(Token),
 	UnexpectedEof,
 }
 
@@ -68,39 +69,177 @@ fn parse_idents_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<String>, Pars
 }
 
 // Consume all the tokens until a delimiter and construct a vector from them
-fn tokens_til(delims: Vec<Token>, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+fn tokens_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
 	let mut tokens: Vec<Token> = Vec::new();
 	while let Some(token) = lexer.consume() {
-		if delims.contains(&token) { return Ok(tokens); }
+		if token == delim { return Ok(tokens); }
 		tokens.push(token);
 	}
 	Err(ParserError::UnexpectedEof)
 }
 
 fn tokens_til_semicolon(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
-	tokens_til(vec![Token::Semicolon], lexer)
+	tokens_til(Token::Semicolon, lexer)
+}
+
+fn tokens_til_equals(lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+	tokens_til(Token::Equals, lexer)
+}
+
+// Parse a statement
+fn parse_statement(lexer: &mut Lexer) -> Result<Node, ParserError> {
+	match lexer.consume() {
+		// Declaration
+		Some(Token::WordLet) => {
+			let names = match lexer.consume() {
+				Some(Token::Identifier(name)) => vec![name],
+				Some(Token::ParenL) => parse_idents_til(Token::ParenR, lexer)?,
+				tok => return handle_bad_token_or_ident(tok, vec![Token::ParenL]),
+			};
+			let type_sig = match lexer.consume() {
+				Some(Token::Equals) => Node::Inferred,
+				Some(Token::Colon) => {
+					let tokens = tokens_til_equals(lexer)?;
+					parse_type_expr(tokens)?
+				},
+				tok => return handle_bad_token(tok, vec![Token::Equals, Token::Colon]),
+			};
+			let tokens = tokens_til_semicolon(lexer)?;
+			let value = parse_expr(tokens)?;
+			Ok(Node::Declaration { names, type_sig, value })
+		},
+
+		// Assignment, function call TODO
+
+		// Return statement
+		Some(Token::WordReturn) => {
+			let tokens = tokens_til_semicolon(lexer)?;
+			let value = parse_expr(tokens)?;
+			Ok(Node::Return(value))
+		},
+
+		// Break and continue
+		Some(Token::WordBreak | Token::WordContinue) => {
+			let token = lexer.cur.unwrap();
+			expect_token(Token::Semicolon, lexer)?;
+			Ok(if token == Token::WordBreak { Node::Break } else { Node::Continue })
+		},
+
+		// While loop
+		Some(Token::WordWhile) => {
+			let tokens = tokens_til(Token::WordDo, lexer)?;
+			let condition = parse_expr(tokens)?;
+			let body = parse_done_block(lexer)?;
+			Ok(Node::WhileLoop { condition, body })
+		},
+
+		// For loop
+		Some(Token::WordFor) => {
+			let captures = match lexer.consume() {
+				Some(Token::Identifier(name)) => vec![name],
+				Some(Token::ParenL) => parse_idents_til(Token::ParenR, lexer)?,
+				tok => return handle_bad_token_or_ident(tok, vec![Token::ParenL]),
+			};
+			let tokens = tokens_til(Token::WordDo, lexer)?;
+			let iterator = parse_expr(tokens)?;
+			let body = parse_done_block(lexer)?;
+			Ok(Node::ForLoop { captures, iterator, body })
+		},
+
+		// If statement
+		Some(Token::WordIf) => {
+			let tokens = tokens_til(Token::WordThen, lexer)?;
+			let condition = parse_expr(tokens)?;
+			let consequence = parse_if_block(lexer)?;
+
+			// Elif clauses
+			let mut elifs: Vec<Node> = Vec::new();
+			loop {
+				match lexer.cur {
+					Some(Token::WordElif) => {
+						let tokens = tokens_til(Token::WordThen, lexer)?;
+						let condition = parse_expr(tokens)?;
+						let consequence = parse_if_block(lexer)?;
+						elifs.push(Node::ElifClause { condition, consequence });
+					},
+					Some(Token::WordElse | Token::WordEnd) => { break; },
+					tok => return handle_bad_token(tok, vec![
+						Token::WordElif, Token::WordElse, Token::WordEnd
+					]),
+				}
+			}
+
+			// Else clause
+			let fallback = if lexer.cur.unwrap() == Token::WordElse {
+				parse_block(lexer, vec![Token::WordEnd])?
+			} else {
+				Vec::new()
+			};
+
+			Ok(Node::IfStatement { condition, consequence, elifs, fallback })
+		},
+
+		// Case statement
+		Some(Token::WordCase) => {
+			let tokens = tokens_til(Token::WordOf, lexer)?;
+			let argument = parse_expr(tokens)?;
+
+			// Clauses
+			let mut clauses: Vec<Node> = Vec::new();
+			while match lexer.cur {
+				Some(Token::WordElse | Token::WordEnd) => false,
+				_ => true,
+			} {
+				let tokens = tokens_til(Token::Colon, lexer)?;
+				let cases = parse_pattern(tokens)?;
+
+				let mut body: Vec<Node> = Vec::new();
+				while let Ok(stmt) = parse_statement(lexer) {
+					body.push(stmt);
+				}
+				clauses.push(Node::CaseClause { cases, body });
+				lexer.goto_last_terminator();
+			}
+
+			// Else clause
+			let fallback = if lexer.cur.unwrap() == Token::WordElse {
+				parse_block(lexer, vec![Token::WordEnd])?
+			} else {
+				Vec::new()
+			};
+
+			Ok(Node::CaseStatement { argument, clauses, fallback })
+		},
+
+		// Fail
+		Some(tok) => Err(ParserError::ExpectedStatement(tok)),
+		None => Err(ParserError::UnexpectedEof),
+	}
 }
 
 // Parse an imperative block terminated by a delimiter
-fn parse_block(lexer: &mut Lexer, delim: &Token) -> Result<Vec<Node>, ParserError> {
+fn parse_block(lexer: &mut Lexer, delims: Vec<Token>) -> Result<Vec<Node>, ParserError> {
 	let mut statements: Vec<Node> = Vec::new();
-	while lexer.cur != Some(delim.clone()) {
+	while let Some(token) = &lexer.cur {
+		if delims.contains(token) { return Ok(statements); }
 		let statement = parse_statement(lexer)?;
 		statements.push(statement);
 	}
-	Ok(statements)
-}
-
-fn parse_end_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
-	parse_block(lexer, &Token::WordEnd)
+	Err(ParserError::UnexpectedEof)
 }
 
 fn parse_done_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
-	parse_block(lexer, &Token::WordDone)
+	parse_block(lexer, vec![Token::WordDone])
 }
 
 fn parse_stop_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
-	parse_block(lexer, &Token::WordStop)
+	parse_block(lexer, vec![Token::WordStop])
+}
+
+fn parse_if_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
+	parse_block(lexer, vec![
+		Token::WordElse, Token::WordElif, Token::WordEnd
+	])
 }
 
 // Top-level parsing function

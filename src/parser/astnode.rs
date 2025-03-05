@@ -131,6 +131,10 @@ pub enum Node {
 		elifs: Vec<Node>,
 		fallback: Vec<Node>,
 	},
+	ElifClause {
+		condition: Box<Node>,
+		consequence: Vec<Node>,
+	},
 	CaseStatement {
 		argument: Box<Node>,
 		clauses: Vec<Node>,
