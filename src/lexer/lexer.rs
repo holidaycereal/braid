@@ -130,7 +130,6 @@ impl Lexer {
 				"const" => Some(Token::WordConst),
 				"type" => Some(Token::WordType),
 				"def" => Some(Token::WordDef),
-				"proc" => Some(Token::WordProc),
 				"fn" => Some(Token::WordFn),
 				"record" => Some(Token::WordRecord),
 				"union" => Some(Token::WordUnion),

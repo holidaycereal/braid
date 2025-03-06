@@ -31,7 +31,6 @@ pub enum Token {
 	WordConst,
 	WordType,
 	WordDef,
-	WordProc,
 	WordFn,
 	WordRecord,
 	WordUnion,

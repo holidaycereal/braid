@@ -230,10 +230,6 @@ fn parse_done_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
 	parse_block(lexer, vec![Token::WordDone])
 }
 
-fn parse_end_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
-	parse_block(lexer, vec![Token::WordEnd])
-}
-
 fn parse_if_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
 	parse_block(lexer, vec![
 		Token::WordElse, Token::WordElif, Token::WordEnd
@@ -270,9 +266,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 				// Type signature
 				let type_sig = match lexer.current {
 					Some(Token::Colon) => parse_type_expr(&mut lexer)?,
-					Some(Token::Equals | Token::WordProc) => Node::Inferred,
+					Some(Token::Equals | Token::BraceL) => Node::Inferred,
 					tok => return handle_bad_token(tok, vec![
-						Token::Colon, Token::Equals, Token::WordProc
+						Token::Colon, Token::Equals, Token::BraceL
 					]),
 				};
 
@@ -283,9 +279,9 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 						let expr = parse_expr(&tokens)?;
 						vec![Node::Return(expr)]
 					},
-					Some(Token::WordProc) => parse_end_block(&mut lexer)?,
+					Some(Token::BraceL) => parse_fn_body(&mut lexer)?,
 					tok => return handle_bad_token(tok, vec![
-						Token::Equals, Token::WordProc
+						Token::Equals, Token::BraceL
 					]),
 				};
 
