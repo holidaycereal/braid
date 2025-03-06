@@ -202,9 +202,7 @@ impl Lexer {
 					self.advance();
 					self.advance();
 					let mut depth = 1;
-					while let (Some(cur), Some(next)) =
-						(self.peek(0), self.peek(1))
-					{
+					while let (Some(cur), Some(next)) = (self.peek(0), self.peek(1)) {
 						self.advance();
 						match (cur, next) {
 							('-', '*') => {
