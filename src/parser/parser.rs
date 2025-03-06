@@ -12,8 +12,7 @@ pub enum ParserError {
 }
 
 // Given an invalid token, produce an appropriate error
-fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>) ->
-Result<T, ParserError> {
+fn handle_bad_token<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
 	match token {
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::Expected(expected, token)),
@@ -21,8 +20,7 @@ Result<T, ParserError> {
 	}
 }
 
-fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>) ->
-Result<T, ParserError> {
+fn handle_bad_token_or_ident<T>(token: Option<Token>, expected: Vec<Token>) -> Result<T, ParserError> {
 	match token {
 		Some(Token::Unknown(c)) => Err(ParserError::UnknownCharacter(c)),
 		Some(token) => Err(ParserError::ExpectedIdentifierOr(expected, token)),
