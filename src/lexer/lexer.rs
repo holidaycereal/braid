@@ -21,14 +21,9 @@ impl Lexer {
 		else { None }
 	}
 
-	fn current(&self) -> Option<char> {
-		self.peek(0)
-	}
-
 	fn advance(&mut self) -> Option<char> {
 		self.pos += 1;
-		let current = self.current()?;
-		Some(current)
+		self.peek(0)
 	}
 
 	fn read_identifier(&mut self) -> String {
@@ -41,7 +36,7 @@ impl Lexer {
 
 	fn read_number(&mut self) -> String {
 		let start = self.pos;
-		let cur = self.current().unwrap();
+		let cur = self.peek(0).unwrap();
 		let next = self.peek(1);
 
 		// Check for 0x, 0o, or 0b prefix
@@ -58,17 +53,17 @@ impl Lexer {
 
 		if base == 10 {
 			// Fractional part
-			if let Some('.') = self.current() {
+			if let Some('.') = self.peek(0) {
 				while let Some(c) = self.advance() {
 					if !c.is_digit(10) { break; }
 				}
 			}
 			// Scientific notation
-			if let Some('e') | Some('E') = self.current() {
+			if let Some('e') | Some('E') = self.peek(0) {
 				if let Some('+' | '-') = self.advance() {
 					self.advance();
 				}
-				while let Some(c) = self.current() {
+				while let Some(c) = self.peek(0) {
 					if !c.is_digit(10) { break; }
 					self.advance();
 				}
@@ -80,7 +75,7 @@ impl Lexer {
 
 	fn read_textual_literal(&mut self) -> String {
 		let start = self.pos + 1;  // Skip opening quote
-		let is_string = self.current().unwrap() == '"';
+		let is_string = self.peek(0).unwrap() == '"';
 
 		while let Some(c) = self.advance() {
 			if c == '\\' {
@@ -97,7 +92,7 @@ impl Lexer {
 	}
 
 	fn skip_whitespace(&mut self) {
-		while let Some(c) = self.current() {
+		while let Some(c) = self.peek(0) {
 			if !c.is_whitespace() { break; }
 			self.advance();
 		}
@@ -105,7 +100,7 @@ impl Lexer {
 
 	fn lex_token(&mut self) -> Option<Token> {
 		self.skip_whitespace();
-		let current = self.current()?;
+		let current = self.peek(0)?;
 
 		// Identifiers and keywords
 		if current.is_alphabetic() || current == '_' {
@@ -208,7 +203,7 @@ impl Lexer {
 					self.advance();
 					let mut depth = 1;
 					while let (Some(cur), Some(next)) =
-						(self.current(), self.peek(1))
+						(self.peek(0), self.peek(1))
 					{
 						self.advance();
 						match (cur, next) {
@@ -285,7 +280,7 @@ impl Lexer {
 							Some(sym)
 						},
 						_ => {
-							let c = self.current().unwrap_or('\0');
+							let c = self.peek(0).unwrap_or('\0');
 							self.advance();
 							Some(Token::Unknown(c))
 						},
