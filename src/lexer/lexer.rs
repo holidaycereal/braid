@@ -59,7 +59,7 @@ impl Lexer {
 				}
 			}
 			// Scientific notation
-			if let Some('e') | Some('E') = self.peek(0) {
+			if let Some('e' | 'E') = self.peek(0) {
 				if let Some('+' | '-') = self.advance() {
 					self.advance();
 				}
