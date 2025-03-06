@@ -14,4 +14,4 @@ def main(argv) : vec[string] -> () proc
 	};
 
 	echo([greet1, greet2, greet3] >> join("\n"));
-stop
+end

@@ -32,7 +32,7 @@ pub enum Token {
 	WordType,
 	WordDef,
 	WordProc,
-	WordStop,
+	WordFn,
 	WordRecord,
 	WordUnion,
 	WordTrait,

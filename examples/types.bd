@@ -35,4 +35,4 @@ def main() -> () proc
 
 	-- tuple syntax
 	let bob : user = (0x02, "bob", active(now()));
-stop
+end

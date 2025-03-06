@@ -16,4 +16,4 @@ def process(x) : int -> int proc
 		ok(v) -> v,
 		error(_) -> -2,
 	};
-stop
+end

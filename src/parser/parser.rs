@@ -230,8 +230,8 @@ fn parse_done_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
 	parse_block(lexer, vec![Token::WordDone])
 }
 
-fn parse_stop_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
-	parse_block(lexer, vec![Token::WordStop])
+fn parse_end_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
+	parse_block(lexer, vec![Token::WordEnd])
 }
 
 fn parse_if_block(lexer: &mut Lexer) -> Result<Vec<Node>, ParserError> {
@@ -283,7 +283,7 @@ pub fn parse(input: &str) -> Result<Vec<Node>, ParserError> {
 						let expr = parse_expr(&tokens)?;
 						vec![Node::Return(expr)]
 					},
-					Some(Token::WordProc) => parse_stop_block(&mut lexer)?,
+					Some(Token::WordProc) => parse_end_block(&mut lexer)?,
 					tok => return handle_bad_token(tok, vec![
 						Token::Equals, Token::WordProc
 					]),

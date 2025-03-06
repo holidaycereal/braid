@@ -37,7 +37,7 @@ fn token_to_string(token: &Token) -> String {
 		Token::WordType => "type".blue().to_string(),
 		Token::WordDef => "def".blue().to_string(),
 		Token::WordProc => "proc".blue().to_string(),
-		Token::WordStop => "stop".blue().to_string(),
+		Token::WordFn => "Fn".blue().to_string(),
 		Token::WordRecord => "record".blue().to_string(),
 		Token::WordUnion => "union".blue().to_string(),
 		Token::WordTrait => "trait".blue().to_string(),

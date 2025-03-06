@@ -136,7 +136,7 @@ impl Lexer {
 				"type" => Some(Token::WordType),
 				"def" => Some(Token::WordDef),
 				"proc" => Some(Token::WordProc),
-				"stop" => Some(Token::WordStop),
+				"fn" => Some(Token::WordFn),
 				"record" => Some(Token::WordRecord),
 				"union" => Some(Token::WordUnion),
 				"trait" => Some(Token::WordTrait),
