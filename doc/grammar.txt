@@ -7,7 +7,7 @@ vim:expandtab
 
 <program> ::= <top-level>* <main-fn>
 
-<main-fn> ::= 'fn' 'main' <fn-params> [<fn-type-sig>] '{' <statement>* '}'
+<main-fn> ::= <fn-def>
 
 <top-level> ::=
     <const-def>
