@@ -15,6 +15,11 @@ impl Lexer {
 		}
 	}
 
+	pub fn consume(&mut self) -> Option<Token> {
+		self.current = self.lex_token();
+		self.current.clone()
+	}
+
 	fn peek(&self, offset: usize) -> Option<char> {
 		let peek_pos = self.pos + offset;
 		if peek_pos < self.chars.len() { Some(self.chars[peek_pos]) }
@@ -285,10 +290,5 @@ impl Lexer {
 				},
 			}
 		}
-	}
-
-	pub fn consume(&mut self) -> Option<Token> {
-		self.current = self.lex_token();
-		self.current.clone()
 	}
 }
