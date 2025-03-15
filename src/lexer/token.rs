@@ -8,8 +8,6 @@ pub enum Token {
 	IntLiteral(u64),
 	FloatLiteral(String),
 	// Keywords
-	WordTrue,
-	WordFalse,
 	WordLet,
 	WordReturn,
 	WordIf,

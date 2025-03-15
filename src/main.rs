@@ -13,8 +13,6 @@ fn token_to_string(token: &Token) -> String {
 		Token::CharLiteral(s) => format!("'{}'", s).green().to_string(),
 		Token::IntLiteral(n) => format!("{}", n).yellow().to_string(),
 		Token::FloatLiteral(s) => format!("{}", s).yellow().to_string(),
-		Token::WordTrue => "true".yellow().to_string(),
-		Token::WordFalse => "false".yellow().to_string(),
 		Token::WordLet => "let".blue().to_string(),
 		Token::WordReturn => "return".blue().to_string(),
 		Token::WordIf => "if".blue().to_string(),

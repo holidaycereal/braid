@@ -55,7 +55,6 @@ pub enum Node {
 	Identifier(String),
 	IntLiteral(u64),
 	FloatLiteral(String),
-	BoolLiteral(bool),
 	ListLiteral(Vec<Node>),
 	TupleExpr(Vec<Node>),
 	MatchExpr {
