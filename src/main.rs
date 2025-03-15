@@ -25,6 +25,7 @@ fn token_to_string(token: &Token) -> String {
 		Token::WordWhile => "while".blue().to_string(),
 		Token::WordFor => "for".blue().to_string(),
 		Token::WordIn => "in".blue().to_string(),
+		Token::WordWhere => "where".blue().to_string(),
 		Token::WordDo => "do".blue().to_string(),
 		Token::WordDone => "done".blue().to_string(),
 		Token::WordBreak => "break".blue().to_string(),

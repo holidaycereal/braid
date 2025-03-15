@@ -7,7 +7,7 @@ pub enum TopLevelDef {
 	},
 	FnDef {
 		name: String,
-		params: Vec<Param>,
+		params: Vec<LValue>,
 		type_params: Vec<String>,
 		type_sig: TypeExpr,
 		body: Vec<Stmt>,
@@ -29,11 +29,6 @@ pub enum TopLevelDef {
 	},
 }
 
-pub enum Param {
-	NameList(Vec<String>),
-	Nested(Vec<Param>),
-}
-
 pub enum Variant {
 	PureVariant(String),
 	SelfConstructor(String),
@@ -47,15 +42,9 @@ pub enum Variant {
 	},
 }
 
-pub enum Field {
-	DeclField {
-		name: String,
-		type_sig: Box<Node>,
-	},
-	UnionField {
-		name: String,
-		variants: Vec<Node>,
-	},
+pub struct Field {
+	name: String,
+	type_sig: TypeExpr,
 }
 
 pub enum Expr {
@@ -63,95 +52,106 @@ pub enum Expr {
 	Identifier(String),
 	IntLiteral(u64),
 	FloatLiteral(String),
-	ListLiteral(Vec<Node>),
-	TupleExpr(Vec<Node>),
+	ListLiteral(Vec<Expr>),
+	TupleExpr(Vec<Expr>),
 	MatchExpr {
-		argument: Box<Node>,
-		cases: Vec<(Node, Node)>,
+		argument: Box<Expr>,
+		cases: Vec<(Vec<Pattern>, Expr)>,
 	},
-	RecordLiteral(Vec<(String, Node)>),
+	RecordLiteral(Vec<(String, Expr)>),
 	Ternary {
-		condition: Box<Node>,
-		consequence: Box<Node>,
-		alternative: Box<Node>,
+		condition: Box<Expr>,
+		consequence: Box<Expr>,
+		alternative: Box<Expr>,
 	},
 	BinOp {
 		kind: Token,
-		lhs: Box<Node>,
-		rhs: Box<Node>,
+		lhs: Box<Expr>,
+		rhs: Box<Expr>,
 	},
 	UnOp {
 		kind: Token,
-		operand: Box<Node>,
+		operand: Box<Expr>,
 	},
 	FnApp {
 		name: String,
-		args: Vec<Node>,
+		args: Vec<Expr>,
 	},
 	Lambda {
-		params: Vec<String>,
-		value: Box<Node>,
-	},
-}
-
-pub enum Pattern {
-	ConstExprPattern(Box<Node>),
-	ConstructorPattern {
-		name: String,
-		args: Vec<Node>,
+		param: LValue,
+		value: Box<Expr>,
 	},
 }
 
 pub enum TypeExpr {
 	Inferred,
-	TupleType(Vec<Node>),
-	FnType(Vec<Node>),
+	TupleType(Vec<TypeExpr>),
+	FnType(Vec<TypeExpr>),
 	ConstructorApp {
 		name: String,
-		args: Vec<Node>,
+		args: Vec<TypeExpr>,
 	},
+}
+
+pub enum Pattern {
+	Wildcard,
+	Capture(String),
+	ConstExprPattern(Expr),
+	TuplePattern(Vec<Pattern>),
+	ConstructorPattern {
+		name: String,
+		args: Vec<Pattern>,
+	},
+}
+
+pub enum LValue {
+	Identifier(String),
+	Nested(Vec<LValue>),
 }
 
 pub enum Stmt {
 	Declaration {
-		names: Vec<String>,
-		type_sig: Box<Node>,
-		value: Option<Box<Node>>,
+		lvalue: LValue,
+		type_sig: TypeExpr,
+		rvalue: Option<Expr>,
 	},
 	Assignment {
-		lvalue: Box<Node>,
-		rvalue: Box<Node>,
+		lvalue: LValue,
+		rvalue: Expr,
 	},
-	FnCall(Box<Node>),
-	Return(Box<Node>),
+	FnCall(Expr),
+	Return(Expr),
 	Continue,
 	Break,
 	WhileLoop {
-		condition: Box<Node>,
-		body: Vec<Node>,
+		condition: Expr,
+		body: Vec<Stmt>,
 	},
 	ForLoop {
-		captures: Vec<String>,
-		iterator: Box<Node>,
-		body: Vec<Node>,
+		capture: Pattern,
+		iterator: Expr,
+		guard: Option<Expr>,
+		body: Vec<Stmt>,
 	},
 	IfStatement {
-		condition: Box<Node>,
-		consequence: Vec<Node>,
-		elifs: Vec<Node>,
-		fallback: Vec<Node>,
-	},
-	ElifClause {
-		condition: Box<Node>,
-		consequence: Vec<Node>,
+		condition: Expr,
+		consequence: Vec<Stmt>,
+		elifs: Vec<ElifClause>,
+		fallback: Vec<Stmt>,
 	},
 	CaseStatement {
-		argument: Box<Node>,
-		clauses: Vec<Node>,
-		fallback: Vec<Node>,
+		argument: Expr,
+		clauses: Vec<CaseClause>,
+		fallback: Vec<Stmt>,
 	},
-	CaseClause {
-		pattern: Vec<Node>,
-		body: Vec<Node>,
-	},
+}
+
+pub struct ElifClause {
+	pub condition: Expr,
+	pub consequence: Vec<Stmt>,
+}
+
+pub struct CaseClause {
+	pub patterns: Vec<Pattern>,
+	pub body: Vec<Stmt>,
 }

@@ -20,6 +20,7 @@ pub enum Token {
 	WordWhile,
 	WordFor,
 	WordIn,
+	WordWhere,
 	WordDo,
 	WordDone,
 	WordBreak,

@@ -77,6 +77,15 @@ fn tokens_til(delim: Token, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError
 	Err(ParserError::UnexpectedEof)
 }
 
+fn tokens_til_oneof(delims: Vec<Token>, lexer: &mut Lexer) -> Result<Vec<Token>, ParserError> {
+	let mut tokens: Vec<Token> = Vec::new();
+	while let Some(token) = &lexer.consume() {
+		if delims.contains(token) { return Ok(tokens); }
+		tokens.push(token.clone());
+	}
+	Err(ParserError::UnexpectedEof)
+}
+
 // Parse an imperative block terminated by a delimiter
 fn parse_block(lexer: &mut Lexer, delims: Vec<Token>) -> Result<Vec<Stmt>, ParserError> {
 	let mut statements: Vec<Stmt> = Vec::new();
@@ -88,11 +97,11 @@ fn parse_block(lexer: &mut Lexer, delims: Vec<Token>) -> Result<Vec<Stmt>, Parse
 	Err(ParserError::UnexpectedEof)
 }
 
-fn parse_done_block(lexer: &mut Lexer) -> Result<Vec<Stmt>, ParserError> {
+fn parse_loop_body(lexer: &mut Lexer) -> Result<Vec<Stmt>, ParserError> {
 	parse_block(lexer, vec![Token::WordDone])
 }
 
-fn parse_if_block(lexer: &mut Lexer) -> Result<Vec<Stmt>, ParserError> {
+fn parse_if_body(lexer: &mut Lexer) -> Result<Vec<Stmt>, ParserError> {
 	parse_block(lexer, vec![Token::WordElse, Token::WordElif, Token::WordEnd])
 }
 
@@ -139,38 +148,51 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 		Some(Token::WordWhile) => {
 			let tokens = tokens_til(Token::WordDo, lexer)?;
 			let condition = parse_expr(tokens)?;
-			let body = parse_done_block(lexer)?;
+
+			let body = parse_loop_body(lexer)?;
 			Ok(Stmt::WhileLoop { condition, body })
 		},
 
 		// For loop
 		Some(Token::WordFor) => {
-			let captures = match lexer.consume() {
-				Some(Token::Identifier(name)) => vec![name],
-				Some(Token::ParenL) => parse_idents_til(Token::ParenR, lexer)?,
-				tok => return handle_bad_token_or_ident(tok, vec![Token::ParenL]),
+			let pattern_tokens = tokens_til(Token::WordIn, lexer)?;
+			let capture = parse_pattern(pattern_tokens)?;
+
+			let iterator_tokens = tokens_til_oneof(vec![
+				Token::WordDo, Token::WordWhere
+			], lexer)?;
+			let iterator = parse_expr(iterator_tokens)?;
+
+			let guard: Option<Expr> = match lexer.current {
+				Some(Token::WordWhere) => {
+					let guard_tokens = tokens_til(Token::WordDo, lexer)?;
+					Some(parse_expr(guard_tokens))?
+				},
+				_ => None,
 			};
-			let tokens = tokens_til(Token::WordDo, lexer)?;
-			let iterator = parse_expr(tokens)?;
-			let body = parse_done_block(lexer)?;
-			Ok(Stmt::ForLoop { captures, iterator, body })
+
+			let body = parse_loop_body(lexer)?;
+
+			Ok(Stmt::ForLoop { capture, iterator, guard, body })
 		},
 
 		// If statement
 		Some(Token::WordIf) => {
 			let tokens = tokens_til(Token::WordThen, lexer)?;
 			let condition = parse_expr(tokens)?;
-			let consequence = parse_if_block(lexer)?;
+
+			let consequence = parse_if_body(lexer)?;
 
 			// Elif clauses
-			let mut elifs: Vec<Stmt> = Vec::new();
+			let mut elifs: Vec<ElifClause> = Vec::new();
 			loop {
 				match lexer.current {
 					Some(Token::WordElif) => {
 						let tokens = tokens_til(Token::WordThen, lexer)?;
 						let condition = parse_expr(tokens)?;
-						let consequence = parse_if_block(lexer)?;
-						elifs.push(Stmt::ElifClause { condition, consequence });
+
+						let consequence = parse_if_body(lexer)?;
+						elifs.push(ElifClause { condition, consequence });
 					},
 					Some(Token::WordElse | Token::WordEnd) => { break; },
 					tok => return handle_bad_token(tok, vec![
@@ -180,10 +202,9 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 			}
 
 			// Else clause
-			let fallback = if lexer.current.unwrap() == Token::WordElse {
-				parse_block(lexer, vec![Token::WordEnd])?
-			} else {
-				Vec::new()
+			let fallback = match lexer.current {
+				Some(Token::WordElse) => parse_block(lexer, vec![Token::WordEnd])?,
+				_ => Vec::new(),
 			};
 
 			Ok(Stmt::IfStatement { condition, consequence, elifs, fallback })
@@ -195,32 +216,31 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 			let argument = parse_expr(arg_tokens)?;
 
 			// Clauses
-			let mut clauses: Vec<Stmt> = Vec::new();
+			let mut clauses: Vec<CaseClause> = Vec::new();
 			while match lexer.current { // While we are still parsing cases...
 				Some(Token::WordElse | Token::WordEnd) => false,
 				_ => true, // Can only be a semicolon after the first iteration
 			} {
-				// Parse the pattern to match against
-				let pattern_tokens = tokens_til(Token::Colon, lexer)?;
-				let pattern = parse_pattern(pattern_tokens)?;
+				// Parse the patterns to match against
+				let pattern_list_tokens = tokens_til(Token::Colon, lexer)?;
+				let patterns = parse_pattern_list(pattern_list_tokens)?;
 
-				// Parse the statements into an inner accumulator...
+				// Parse the statements into an inner accumulator, stopping
+				// once it doesn't look like a statement
 				let mut body: Vec<Stmt> = Vec::new();
-				// ...stopping once it doesn't look like a statement
 				while let Ok(stmt) = parse_statement(lexer) { body.push(stmt); }
 
 				// Append it all to the outer accumulator and move the cursor
-				// back to the end of the last statement, so we can either parse
-				// the next clause or finish the case statement
-				clauses.push(Stmt::CaseClause { pattern, body });
+				// back to the end of the last statement, so we can either
+				// continue parsing clauses, or finish the case statement
+				clauses.push(CaseClause { patterns, body });
 				lexer.goto_last_terminator()?;
 			}
 
 			// Else clause
-			let fallback = if lexer.current.unwrap() == Token::WordElse {
-				parse_block(lexer, vec![Token::WordEnd])?
-			} else {
-				Vec::new()
+			let fallback = match lexer.current {
+				Some(Token::WordElse) => parse_block(lexer, vec![Token::WordEnd])?,
+				_ => Vec::new(),
 			};
 
 			Ok(Stmt::CaseStatement { argument, clauses, fallback })
@@ -253,9 +273,9 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 				let name = parse_identifier(&mut lexer)?;
 
 				// Parameters
-				let mut params: Vec<Param> = Vec::new();
+				let mut params: Vec<LValue> = Vec::new();
 				while let Some(Token::ParenL) = lexer.consume() {
-					let inner_params = parse_param(&mut lexer)?;
+					let inner_params = parse_lvalue(&mut lexer)?;
 					params.push(inner_params);
 				}
 
@@ -264,7 +284,12 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 
 				// Type signature
 				let type_sig = match lexer.current {
-					Some(Token::Colon) => parse_type_expr(&mut lexer)?,
+					Some(Token::Colon) => {
+						let tokens = tokens_til_oneof(vec![
+							Token::Equals, Token::BraceL
+						], &mut lexer)?;
+						parse_type_expr(tokens)?
+					},
 					Some(Token::Equals | Token::BraceL) => TypeExpr::Inferred,
 					tok => return handle_bad_token(tok, vec![
 						Token::Colon, Token::Equals, Token::BraceL
@@ -276,11 +301,12 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 					// Single expression
 					Some(Token::Equals) => {
 						let tokens = tokens_til(Token::Semicolon, &mut lexer)?;
-						let expr = parse_expr(&tokens)?;
+						let expr = parse_expr(tokens)?;
 						vec![Stmt::Return(expr)]
 					},
 					// Multiple statements
-					Some(Token::BraceL) => parse_fn_body(&mut lexer)?,
+					Some(Token::BraceL) =>
+						parse_block(&mut lexer, vec![Token::BraceR])?,
 					tok => return handle_bad_token(tok, vec![
 						Token::Equals, Token::BraceL
 					]),
@@ -297,7 +323,7 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 				let params = parse_type_params(&mut lexer)?;
 				expect_token(Token::Equals, &mut lexer)?;
 				let tokens = tokens_til(Token::Semicolon, &mut lexer)?;
-				let value = parse_type_expr(&tokens)?;
+				let value = parse_type_expr(tokens)?;
 				defs.push(TopLevelDef::TypeDef { name, params, value });
 			},
 

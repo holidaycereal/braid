@@ -154,6 +154,7 @@ impl Lexer {
 				"while" => Some(Token::WordWhile),
 				"for" => Some(Token::WordFor),
 				"in" => Some(Token::WordIn),
+				"where" => Some(Token::WordWhere),
 				"do" => Some(Token::WordDo),
 				"done" => Some(Token::WordDone),
 				"break" => Some(Token::WordBreak),
