@@ -39,7 +39,11 @@ pub enum Token {
 	WordOr,
 	WordXor,
 	WordNot,
-	// Two-character symbols
+	// Multi-character symbols
+	InclusiveRange,  // ..=
+	ConcatAssign,    // ++=
+	ExclusiveRange,  // ..
+	Concat,          // ++
 	CompLe,          // <=
 	CompGe,          // >=
 	TestEq,          // ==
@@ -48,10 +52,7 @@ pub enum Token {
 	FatArrow,        // =>
 	DoublePipe,      // ||
 	FwdCompose,      // >>
-	ExclusiveRange,  // ..
-	InclusiveRange,  // .*
 	ModuleAccess,    // ::
-	Concat,          // ++
 	AddAssign,       // +=
 	SubAssign,       // -=
 	MulAssign,       // *=
@@ -74,6 +75,8 @@ pub enum Token {
 	Bang,
 	Ampersand,
 	Hash,
+	Caret,
+	Tilde,
 	Minus,
 	Plus,
 	Star,

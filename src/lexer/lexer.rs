@@ -235,9 +235,9 @@ impl Lexer {
 					self.advance();
 					self.advance();
 					let mut depth = 1;
-					while let (Some(cur), Some(next)) = (self.peek(0), self.peek(1)) {
+					while let (Some(cur), Some(nxt)) = (self.peek(0), self.peek(1)) {
 						self.advance();
-						match (cur, next) {
+						match (cur, nxt) {
 							('-', '*') => {
 								self.advance();
 								depth += 1;
@@ -255,61 +255,59 @@ impl Lexer {
 
 				_ => {
 					// Handle two- and one-character symbols
-					let (symbol, is_long) = match (current, next) {
+					let (symbol, length) = match (current, next, self.peek(2)) {
 						// {{{
-						('-', Some('>')) => (Some(Token::Arrow), true),
-						('=', Some('>')) => (Some(Token::FatArrow), true),
-						('|', Some('|')) => (Some(Token::DoublePipe), true),
-						('=', Some('=')) => (Some(Token::TestEq), true),
-						('!', Some('=')) => (Some(Token::TestNe), true),
-						('<', Some('=')) => (Some(Token::CompLe), true),
-						('>', Some('=')) => (Some(Token::CompGe), true),
-						('>', Some('>')) => (Some(Token::FwdCompose), true),
-						('.', Some('.')) => (Some(Token::ExclusiveRange), true),
-						('.', Some('*')) => (Some(Token::InclusiveRange), true),
-						(':', Some(':')) => (Some(Token::ModuleAccess), true),
-						('+', Some('+')) => (Some(Token::Concat), true),
-						('+', Some('=')) => (Some(Token::AddAssign), true),
-						('-', Some('=')) => (Some(Token::SubAssign), true),
-						('*', Some('=')) => (Some(Token::MulAssign), true),
-						('/', Some('=')) => (Some(Token::DivAssign), true),
-						('%', Some('=')) => (Some(Token::ModAssign), true),
-						('|', Some('=')) => (Some(Token::InfixAssign), true),
-						('(', _) => (Some(Token::ParenL), false),
-						(')', _) => (Some(Token::ParenR), false),
-						('[', _) => (Some(Token::BracketL), false),
-						(']', _) => (Some(Token::BracketR), false),
-						('{', _) => (Some(Token::BraceL), false),
-						('}', _) => (Some(Token::BraceR), false),
-						('.', _) => (Some(Token::Dot), false),
-						(',', _) => (Some(Token::Comma), false),
-						(';', _) => (Some(Token::Semicolon), false),
-						(':', _) => (Some(Token::Colon), false),
-						('=', _) => (Some(Token::Equals), false),
-						('|', _) => (Some(Token::Pipe), false),
-						('!', _) => (Some(Token::Bang), false),
-						('&', _) => (Some(Token::Ampersand), false),
-						('#', _) => (Some(Token::Hash), false),
-						('-', _) => (Some(Token::Minus), false),
-						('+', _) => (Some(Token::Plus), false),
-						('*', _) => (Some(Token::Star), false),
-						('/', _) => (Some(Token::Slash), false),
-						('%', _) => (Some(Token::Percent), false),
-						('<', _) => (Some(Token::Less), false),
-						('>', _) => (Some(Token::Greater), false),
+						('.', Some('.'), Some('=')) => (Some(Token::InclusiveRange), 3),
+						('+', Some('+'), Some('=')) => (Some(Token::ConcatAssign), 3),
+						('.', Some('.'), _) => (Some(Token::ExclusiveRange), 2),
+						('+', Some('+'), _) => (Some(Token::Concat), 2),
+						('-', Some('>'), _) => (Some(Token::Arrow), 2),
+						('=', Some('>'), _) => (Some(Token::FatArrow), 2),
+						('|', Some('|'), _) => (Some(Token::DoublePipe), 2),
+						('=', Some('='), _) => (Some(Token::TestEq), 2),
+						('!', Some('='), _) => (Some(Token::TestNe), 2),
+						('<', Some('='), _) => (Some(Token::CompLe), 2),
+						('>', Some('='), _) => (Some(Token::CompGe), 2),
+						('>', Some('>'), _) => (Some(Token::FwdCompose), 2),
+						(':', Some(':'), _) => (Some(Token::ModuleAccess), 2),
+						('+', Some('='), _) => (Some(Token::AddAssign), 2),
+						('-', Some('='), _) => (Some(Token::SubAssign), 2),
+						('*', Some('='), _) => (Some(Token::MulAssign), 2),
+						('/', Some('='), _) => (Some(Token::DivAssign), 2),
+						('%', Some('='), _) => (Some(Token::ModAssign), 2),
+						('|', Some('='), _) => (Some(Token::InfixAssign), 2),
+						('(', _, _) => (Some(Token::ParenL), 1),
+						(')', _, _) => (Some(Token::ParenR), 1),
+						('[', _, _) => (Some(Token::BracketL), 1),
+						(']', _, _) => (Some(Token::BracketR), 1),
+						('{', _, _) => (Some(Token::BraceL), 1),
+						('}', _, _) => (Some(Token::BraceR), 1),
+						('.', _, _) => (Some(Token::Dot), 1),
+						(',', _, _) => (Some(Token::Comma), 1),
+						(';', _, _) => (Some(Token::Semicolon), 1),
+						(':', _, _) => (Some(Token::Colon), 1),
+						('=', _, _) => (Some(Token::Equals), 1),
+						('|', _, _) => (Some(Token::Pipe), 1),
+						('!', _, _) => (Some(Token::Bang), 1),
+						('&', _, _) => (Some(Token::Ampersand), 1),
+						('#', _, _) => (Some(Token::Hash), 1),
+						('^', _, _) => (Some(Token::Caret), 1),
+						('~', _, _) => (Some(Token::Tilde), 1),
+						('-', _, _) => (Some(Token::Minus), 1),
+						('+', _, _) => (Some(Token::Plus), 1),
+						('*', _, _) => (Some(Token::Star), 1),
+						('/', _, _) => (Some(Token::Slash), 1),
+						('%', _, _) => (Some(Token::Percent), 1),
+						('<', _, _) => (Some(Token::Less), 1),
+						('>', _, _) => (Some(Token::Greater), 1),
 						// }}}
-						_ => (None, false),
+						_ => (None, 0),
 					};
-					match (symbol, is_long) {
-						(Some(sym), true) => {
-							self.advance();
-							self.advance();
-							Some(sym)
-						},
-						(Some(sym), false) => {
-							self.advance();
-							Some(sym)
-						},
+
+					for _ in 0..length { self.advance(); }
+
+					match symbol {
+						Some(sym) => Some(sym),
 						_ => {
 							let c = self.peek(0).unwrap_or('\0');
 							self.advance();

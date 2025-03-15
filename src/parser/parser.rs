@@ -110,22 +110,23 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 	match lexer.consume() {
 		// Declaration
 		Some(Token::WordLet) => {
-			let names = match lexer.consume() {
-				Some(Token::Identifier(name)) => vec![name],
-				Some(Token::ParenL) => parse_idents_til(Token::ParenR, lexer)?,
-				tok => return handle_bad_token_or_ident(tok, vec![Token::ParenL]),
-			};
+			let lvalue_tokens = tokens_til_oneof(vec![
+				Token::Equals, Token::Colon
+			], lexer)?;
+			let lvalue = parse_lvalue(lvalue_tokens)?;
+
 			let type_sig = match lexer.consume() {
 				Some(Token::Equals) => TypeExpr::Inferred,
-				Some(Token::Colon) => {
+				_ => { // Can only be colon
 					let tokens = tokens_til(Token::Equals, lexer)?;
 					parse_type_expr(tokens)?
 				},
-				tok => return handle_bad_token(tok, vec![Token::Equals, Token::Colon]),
 			};
-			let tokens = tokens_til(Token::Semicolon, lexer)?;
-			let value = parse_expr(tokens)?;
-			Ok(Stmt::Declaration { names, type_sig, value })
+
+			let rvalue_tokens = tokens_til(Token::Semicolon, lexer)?;
+			let rvalue = parse_expr(rvalue_tokens)?;
+
+			Ok(Stmt::Declaration { lvalue, type_sig, rvalue })
 		},
 
 		// Assignment, function call TODO
