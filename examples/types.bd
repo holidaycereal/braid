@@ -7,10 +7,12 @@ type point = (int, int);
 -- sum type (union)
 union level { off, low, high }
 
-union maybe[a] {
-	nothing,
-	just(a),
+union status {
+	inactive,
+	active { time_joined : time },
 }
+
+union option[a] { none, some a }
 
 -- product type (record)
 record point3 { x : int, y : int, z : int }
@@ -18,10 +20,7 @@ record point3 { x : int, y : int, z : int }
 record user {
 	id : u8,
 	name : string,
-	status { -- nested union
-		inactive,
-		active { time_joined : time }, -- nested record WITHIN the nested union
-	},
+	status : status,
 }
 
 -- usage:
