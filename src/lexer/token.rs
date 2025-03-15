@@ -27,7 +27,7 @@ pub enum Token {
 	WordBreak,
 	WordContinue,
 	WordMatch,
-	WordWhen,
+	WordTest,
 	WordConst,
 	WordType,
 	WordDef,

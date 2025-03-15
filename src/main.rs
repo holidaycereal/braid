@@ -32,7 +32,7 @@ fn token_to_string(token: &Token) -> String {
 		Token::WordBreak => "break".blue().to_string(),
 		Token::WordContinue => "continue".blue().to_string(),
 		Token::WordMatch => "match".blue().to_string(),
-		Token::WordWhen => "when".blue().to_string(),
+		Token::WordTest => "test".blue().to_string(),
 		Token::WordConst => "const".blue().to_string(),
 		Token::WordType => "type".blue().to_string(),
 		Token::WordDef => "def".blue().to_string(),

@@ -1,4 +1,5 @@
 use crate::lexer::token::Token;
+use crate::parser::parser::ParserError;
 
 pub struct Lexer {
 	chars: Vec<char>,
@@ -20,8 +21,37 @@ impl Lexer {
 		self.current.clone()
 	}
 
-	fn peek(&self, offset: usize) -> Option<char> {
-		let peek_pos = self.pos + offset;
+	// Step backwards until we find a semicolon, `end` or `else`
+	pub fn goto_last_terminator(&mut self) -> Result<(), ParserError> {
+		while self.pos > 0 {
+			match self.peek(0).unwrap() {
+				// Found semicolon terminator
+				';' => return Ok(()),
+
+				// Check if this is an `end` or `else`
+				'e' => {
+					let prev = self.peek(-1).unwrap();
+					// Continue if the e is in the middle of the word
+					if prev.is_alphanumeric() || prev == '_' { continue; }
+					// Record start position so we can go back to it
+					let start = self.pos;
+					match self.read_identifier().as_str() {
+						"end" | "else" => return Ok(()),
+						_ => { self.pos = start; },
+					}
+				},
+
+				_ => {},
+			}
+			// Unconditionally step backwards
+			self.pos -= 1;
+		}
+		Err(ParserError::LastTerminatorNotFound)
+		// I think this error is unreachable... I think
+	}
+
+	fn peek(&self, offset: isize) -> Option<char> {
+		let peek_pos = (self.pos as isize + offset) as usize;
 		if peek_pos < self.chars.len() { Some(self.chars[peek_pos]) }
 		else { None }
 	}
@@ -131,7 +161,7 @@ impl Lexer {
 				"break" => Some(Token::WordBreak),
 				"continue" => Some(Token::WordContinue),
 				"match" => Some(Token::WordMatch),
-				"when" => Some(Token::WordWhen),
+				"test" => Some(Token::WordTest),
 				"const" => Some(Token::WordConst),
 				"type" => Some(Token::WordType),
 				"def" => Some(Token::WordDef),

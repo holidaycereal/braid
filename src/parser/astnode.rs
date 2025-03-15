@@ -106,7 +106,7 @@ pub enum Node {
 	Declaration {
 		names: Vec<String>,
 		type_sig: Box<Node>,
-		value: Box<Node>,
+		value: Option<Box<Node>>,
 	},
 	Assignment {
 		lvalue: Box<Node>,
@@ -141,7 +141,7 @@ pub enum Node {
 		fallback: Vec<Node>,
 	},
 	CaseClause {
-		cases: Vec<Node>,
+		pattern: Vec<Node>,
 		body: Vec<Node>,
 	},
 }
