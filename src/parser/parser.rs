@@ -115,7 +115,7 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 			], lexer)?;
 			let lvalue = parse_lvalue(lvalue_tokens)?;
 
-			let type_sig = match lexer.consume() {
+			let type_sig = match lexer.current {
 				Some(Token::Equals) => TypeExpr::Inferred,
 				_ => { // Can only be colon
 					let tokens = tokens_til(Token::Equals, lexer)?;
