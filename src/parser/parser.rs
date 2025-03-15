@@ -124,7 +124,7 @@ fn parse_statement(lexer: &mut Lexer) -> Result<Stmt, ParserError> {
 			};
 
 			let rvalue_tokens = tokens_til(Token::Semicolon, lexer)?;
-			let rvalue = parse_expr(rvalue_tokens)?;
+			let rvalue = parse_expr(rvalue_tokens)?.unwrap_or(None);
 
 			Ok(Stmt::Declaration { lvalue, type_sig, rvalue })
 		},
