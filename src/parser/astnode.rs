@@ -1,46 +1,53 @@
 use crate::lexer::token::Token;
 
-pub enum Node {
-	// Top-level definitions
+pub enum TopLevelDef {
 	ConstDef {
 		name: String,
-		value: Box<Node>,
+		value: Expr,
 	},
 	FnDef {
 		name: String,
-		params: Vec<Vec<String>>,
-		type_sig: Box<Node>,
-		body: Vec<Node>,
+		params: Vec<Param>,
+		type_params: Vec<String>,
+		type_sig: TypeExpr,
+		body: Vec<Stmt>,
 	},
 	TypeDef {
 		name: String,
 		params: Vec<String>,
-		value: Box<Node>,
+		value: TypeExpr,
 	},
 	UnionDef {
 		name: String,
 		params: Vec<String>,
-		variants: Vec<Node>,
+		variants: Vec<Variant>,
 	},
 	RecordDef {
 		name: String,
 		params: Vec<String>,
-		fields: Vec<Node>,
+		fields: Vec<Field>,
 	},
+}
 
-	// Variants
+pub enum Param {
+	NameList(Vec<String>),
+	Nested(Vec<Param>),
+}
+
+pub enum Variant {
 	PureVariant(String),
 	SelfConstructor(String),
 	Constructor {
 		name: String,
-		types: Vec<Node>,
+		types: Vec<TypeExpr>,
 	},
 	RecordVariant {
 		name: String,
-		fields: Vec<Node>,
+		fields: Vec<Field>,
 	},
+}
 
-	// Fields
+pub enum Field {
 	DeclField {
 		name: String,
 		type_sig: Box<Node>,
@@ -49,8 +56,9 @@ pub enum Node {
 		name: String,
 		variants: Vec<Node>,
 	},
+}
 
-	// Expressions
+pub enum Expr {
 	Unit,
 	Identifier(String),
 	IntLiteral(u64),
@@ -84,15 +92,17 @@ pub enum Node {
 		params: Vec<String>,
 		value: Box<Node>,
 	},
+}
 
-	// Patterns
+pub enum Pattern {
 	ConstExprPattern(Box<Node>),
 	ConstructorPattern {
 		name: String,
 		args: Vec<Node>,
 	},
+}
 
-	// Type expressions
+pub enum TypeExpr {
 	Inferred,
 	TupleType(Vec<Node>),
 	FnType(Vec<Node>),
@@ -100,8 +110,9 @@ pub enum Node {
 		name: String,
 		args: Vec<Node>,
 	},
+}
 
-	// Statements
+pub enum Stmt {
 	Declaration {
 		names: Vec<String>,
 		type_sig: Box<Node>,
