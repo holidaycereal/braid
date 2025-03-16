@@ -30,7 +30,7 @@ vim:expandtab
 
 <fn-params> ::= ('(' <ident-list> ')')+
 <fn-type-sig> ::= ':' <type-expr> '->' (<type-expr> | <fn-type-sig>)
-<fn-body> ::= '=' <expr> ';' | '{' <statement>* '}'
+<fn-body> ::= '=' <expr> ';' | 'proc' <statement>* 'end'
 <type-params> ::= '[' <ident-list> ']'
 <variant> ::= <ident> | <constructor> | <record-variant>
 <field> ::= <ident> ':' <type-expr> | <union-field>

@@ -24,7 +24,7 @@ record user {
 }
 
 -- usage:
-def main() -> () {
+def main() -> () proc
 	-- record literal syntax
 	let alice : user = {
 		id = 0x01,
@@ -34,4 +34,4 @@ def main() -> () {
 
 	-- tuple syntax
 	let bob : user = (0x02, "bob", active(now()));
-}
+end

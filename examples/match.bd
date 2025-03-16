@@ -8,7 +8,7 @@ def factorial(x) : int -> int =
 	};
 
 -- some imperative boilerplate, then return
-def process(x) : int -> int {
+def process(x) : int -> int proc
 	if not valid(x) then
 		log_error();
 		return -1;
@@ -17,4 +17,4 @@ def process(x) : int -> int {
 		ok ~v -> v,
 		error * -> -2,
 	};
-}
+end

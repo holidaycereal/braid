@@ -287,13 +287,13 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 				let type_sig = match lexer.current {
 					Some(Token::Colon) => {
 						let tokens = tokens_til_oneof(vec![
-							Token::Equals, Token::BraceL
+							Token::Equals, Token::WordProc
 						], &mut lexer)?;
 						parse_type_expr(tokens)?
 					},
-					Some(Token::Equals | Token::BraceL) => TypeExpr::Inferred,
+					Some(Token::Equals | Token::WordProc) => TypeExpr::Inferred,
 					tok => return handle_bad_token(tok, vec![
-						Token::Colon, Token::Equals, Token::BraceL
+						Token::Colon, Token::Equals, Token::WordProc
 					]),
 				};
 
@@ -306,10 +306,10 @@ pub fn parse(input: &str) -> Result<Vec<TopLevelDef>, ParserError> {
 						vec![Stmt::Return(expr)]
 					},
 					// Multiple statements
-					Some(Token::BraceL) =>
-						parse_block(&mut lexer, vec![Token::BraceR])?,
+					Some(Token::WordProc) =>
+						parse_block(&mut lexer, vec![Token::WordEnd])?,
 					tok => return handle_bad_token(tok, vec![
-						Token::Equals, Token::BraceL
+						Token::Equals, Token::WordProc
 					]),
 				};
 
