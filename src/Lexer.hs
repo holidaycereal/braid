@@ -16,26 +16,26 @@ data LexError =
 
 tokenise :: Lexer -> Either LexError [Token]
 tokenise (acc, []) = Right (reverse acc)
-tokenise (acc, c:rest)
+tokenise (acc, c : rest)
   | isSpace c = tokenise (acc, rest)
-  | isAlpha c || c == '_' = tokenise $ readWord (acc, c:rest)
-  | isDigit c = tokenise $ readNumber (acc, c:rest)
+  | isAlpha c || c == '_' = tokenise $ readWord (acc, c : rest)
+  | isDigit c = tokenise $ readNumber (acc, c : rest)
   | c == '"' = readStringLiteral (acc, rest) >>= tokenise
   | c == '\'' = readCharLiteral (acc, rest) >>= tokenise
-  | otherwise = readSymbol (acc, c:rest) >>= \(etc, chars) ->
+  | otherwise = readSymbol (acc, c : rest) >>= \(etc, chars) ->
       case etc of
-        LineComment:tail -> tokenise (tail, dropWhile (/= '\n') chars)
-        BlockComment:tail -> skipBlockComment chars >>= \s -> tokenise (tail, s)
+        LineComment : tail -> tokenise (tail, dropWhile (/= '\n') chars)
+        BlockComment : tail -> skipBlockComment chars >>= \s -> tokenise (tail, s)
         _ -> tokenise (etc, chars)
 
 skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 1
   where
     aux [] _ = Left UnexpectedEOF
-    aux (_:rest) 0 = Right rest
-    aux ('*':'-':rest) depth = aux rest (depth - 1)
-    aux ('-':'*':rest) depth = aux rest (depth + 1)
-    aux (_:rest) depth = aux rest depth
+    aux (_ : rest) 0 = Right rest
+    aux ('*' : '-' : rest) depth = aux rest (depth - 1)
+    aux ('-' : '*' : rest) depth = aux rest (depth + 1)
+    aux (_ : rest) depth = aux rest depth
 
 readWord :: Lexer -> Lexer
 readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
@@ -43,18 +43,18 @@ readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
     findKeywordToken [] chars =
       let ident = takeWord chars in
       (Identifier ident : acc, drop (length ident) chars)
-    findKeywordToken ((word, tok):tail) chars
-      | takeWord chars == word = (tok:acc, drop (length word) chars)
+    findKeywordToken ((word, tok) : tail) chars
+      | takeWord chars == word = (tok : acc, drop (length word) chars)
       | otherwise = findKeywordToken tail chars
     takeWord = takeWhile (\c -> isAlphaNum c || c == '_')
 
 readSymbol :: Lexer -> Either LexError Lexer
 readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
   where
-    findSymbolToken [] (head:_) = Left (InvalidToken head)
+    findSymbolToken [] (head : _) = Left (InvalidToken head)
     findSymbolToken [] [] = Left UnexpectedEOF
-    findSymbolToken ((sym, tok):tail) chars
-      | sym `isPrefixOf` chars = Right (tok:acc, drop (length sym) chars)
+    findSymbolToken ((sym, tok) : tail) chars
+      | sym `isPrefixOf` chars = Right (tok : acc, drop (length sym) chars)
       | otherwise = findSymbolToken tail chars
 
 -- TODO: fix
@@ -70,17 +70,17 @@ readStringLiteral :: Lexer -> Either LexError Lexer
 readStringLiteral (acc, chars) = aux acc "" chars
   where
     aux _ _ [] = Left UnterminatedStringLiteral
-    aux acc etc ('"':rest) = Right (StringLiteral (reverse etc) : acc, rest)
-    aux acc etc ('\\':c:rest) = aux acc (escChar c : etc) rest
-    aux acc etc (c:rest) = aux acc (c : etc) rest
+    aux acc etc ('"' : rest) = Right (StringLiteral (reverse etc) : acc, rest)
+    aux acc etc ('\\' : c : rest) = aux acc (escChar c : etc) rest
+    aux acc etc (c : rest) = aux acc (c : etc) rest
 
 readCharLiteral :: Lexer -> Either LexError Lexer
 readCharLiteral (_, []) = Left UnterminatedCharLiteral
-readCharLiteral (_, '\'':_) = Left EmptyCharLiteral
-readCharLiteral (acc, '\\':c:rest) = case rest of
-  '\'':tail -> Right (CharLiteral ['\\', c] : acc, tail)
+readCharLiteral (_, '\'' : _) = Left EmptyCharLiteral
+readCharLiteral (acc, '\\' : c : rest) = case rest of
+  '\'' : tail -> Right (CharLiteral ['\\', c] : acc, tail)
   _ -> Left UnterminatedCharLiteral
-readCharLiteral (acc, c:'\'':rest) = Right (CharLiteral [c] : acc, rest)
+readCharLiteral (acc, c : '\'' : rest) = Right (CharLiteral [c] : acc, rest)
 readCharLiteral (acc, _) = Left UnterminatedCharLiteral
 
 -- TODO: make this comprehensive
