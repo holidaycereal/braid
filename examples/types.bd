@@ -15,7 +15,7 @@ union status {
 union option[a] { none, some a }
 
 -- product type (record)
-record point3 { x : int, y : int, z : int }
+record point3 { x: int, y: int, z: int }
 
 record user {
 	id : u8,
@@ -24,7 +24,8 @@ record user {
 }
 
 -- usage:
-def main() -> () proc
+def main() -> ()
+begin
 	-- record literal syntax
 	let alice : user = {
 		id = 0x01,

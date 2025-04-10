@@ -1,16 +1,17 @@
 -* common string operations *-
 
-def main(argv) : vec[string] -> () proc
-	let name : string = argv[1];
+def main(argv: vec[string]) -> ()
+begin
+	let name = argv[1];
 
-	let greet1 : string = "hello " ++ name; -- using sequence concatenation
-	let greet2 : string = fmt("hello %s", [name]); -- equivalent to `greet1`
+	let greet1 = "hello " ++ name; -- using sequence concatenation
+	let greet2 = format("hello {}", name); -- equivalent to `greet1`
 
 	let user_input : maybe[int] = argv[2] >> parse_int;
 
-	let greet3 : string = match user_input {
+	let greet3 = match user_input {
 		none -> "not a valid numeric value",
-		some ~n -> fmt("hello %s, %d is my favourite number", [name, n]),
+		some ~n -> format("hello %s, %d is my favourite number", [name, n]),
 	};
 
 	echo([greet1, greet2, greet3] >> join("\n"));

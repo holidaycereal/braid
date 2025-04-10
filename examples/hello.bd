@@ -1,3 +1,4 @@
-def main() -> () proc
+def main() -> ()
+begin
 	echo("hello, world");
 end
