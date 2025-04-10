@@ -37,6 +37,7 @@ skipBlockComment s = aux s 1
     aux ('-':'*':rest) depth = aux rest (depth + 1)
     aux (_:rest) depth = aux rest depth
 
+readWord :: Lexer -> Lexer
 readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
   where
     findKeywordToken [] chars =
