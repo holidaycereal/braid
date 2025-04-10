@@ -22,11 +22,11 @@ tokenise (acc, c:rest)
   | isDigit c = tokenise $ readNumber (acc, c:rest)
   | c == '"' = readStringLiteral (acc, rest) >>= tokenise
   | c == '\'' = readCharLiteral (acc, rest) >>= tokenise
-  | otherwise = readSymbol (acc, c:rest) >>= \(newAcc, chars) ->
-      case newAcc of
+  | otherwise = readSymbol (acc, c:rest) >>= \(etc, chars) ->
+      case etc of
         LineComment:tail -> tokenise (tail, dropWhile (/= '\n') chars)
         BlockComment:tail -> skipBlockComment chars >>= \s -> tokenise (tail, s)
-        _ -> tokenise (newAcc, chars)
+        _ -> tokenise (etc, chars)
 
 skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 1
