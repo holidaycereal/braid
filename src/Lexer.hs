@@ -1,7 +1,7 @@
 module Lexer where
 
 import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
-import Data.Char (isAlpha, isDigit, isAlphaNum, isSpace)
+import Data.Char (isAlpha, isDigit, isAlphaNum, isSpace, toLower)
 import Data.List (isPrefixOf)
 import Control.Monad (join)
 
@@ -45,10 +45,43 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
 -- TODO: fix
 -- prevent multiple decimal points
 -- add support for 0b 0x 0o prefixes and scientific notation
+data NumBase = Bin | Oct | Hex | Dec
+  deriving (Eq)
+
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
-  let numStr = takeWhile (\c -> isDigit c || c == '.') chars in
-  (NumLiteral numStr : acc, drop (length numStr) chars)
+  let
+    -- check for prefix, define validator function accordingly
+    (prefix, rest, isValidDigit) = case chars of
+      '0' : c : tl | toLower c == 'b' -> (['0', c], tl, flip elem ['0', '1'])
+      '0' : c : tl | toLower c == 'o' -> (['0', c], tl, flip elem ['0'..'7'])
+      '0' : c : tl | toLower c == 'x' ->
+        (['0', c], tl, \c -> isDigit c || elem (toLower c) ['a'..'f'])
+      _ -> ("", chars, isDigit)
+
+    -- read integral part
+    (intPart, afterIntPart) = span isValidDigit rest
+
+    -- read fractional part for decimal numbers
+    (fracPart, afterFracPart) = if prefix == ""
+      then case afterIntPart of
+        '.' : c : tl | isDigit c ->
+          ('.' : c : takeWhile isDigit tl, dropWhile isDigit tl)
+        _ -> ("", afterIntPart)
+      else ("", afterIntPart)
+
+    -- read exponent part for decimal numbers
+    (expPart, afterNumPart) = if prefix == ""
+      then case afterFracPart of
+        e : c : tl | toLower e == 'e' && (isDigit c || elem c ['-', '+']) ->
+          (e : c : takeWhile isDigit tl, dropWhile isDigit tl)
+        _ -> ("", afterFracPart)
+      else ("", afterFracPart)
+
+    -- combine everything
+    numStr = prefix ++ intPart ++ fracPart ++ expPart
+  in
+  (NumLiteral numStr : acc, afterNumPart)
 
 readTextLiteral :: (Char, String -> Token) -> Lexer -> Either LexError Lexer
 readTextLiteral (delim, kind) lexer =
