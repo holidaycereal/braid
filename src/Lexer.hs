@@ -42,12 +42,6 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
       | sym `isPrefixOf` chars = Right (tok : acc, drop (length sym) chars)
       | otherwise = findSymbolToken tail chars
 
--- TODO: fix
--- prevent multiple decimal points
--- add support for 0b 0x 0o prefixes and scientific notation
-data NumBase = Bin | Oct | Hex | Dec
-  deriving (Eq)
-
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
