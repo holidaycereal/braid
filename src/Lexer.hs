@@ -7,12 +7,7 @@ import Control.Monad (join)
 
 type Lexer = ([Token], String)
 
-data LexError =
-    InvalidToken Char
-  | UnterminatedStringLiteral
-  | UnterminatedCharLiteral
-  | EmptyCharLiteral
-  | UnexpectedEOF
+data LexError = InvalidToken Char | UnexpectedEOF
 
 tokenise :: Lexer -> Either LexError [Token]
 tokenise (acc, []) = Right (reverse acc)
@@ -20,21 +15,12 @@ tokenise (acc, c : rest)
   | isSpace c = tokenise (acc, rest)
   | isAlpha c || c == '_' = tokenise $ readWord (acc, c : rest)
   | isDigit c = tokenise $ readNumber (acc, c : rest)
-  | c == '"' = readStringLiteral (acc, rest) >>= tokenise
-  | c == '\'' = readCharLiteral (acc, rest) >>= tokenise
-  | otherwise = readSymbol (acc, c : rest) >>= \(etc, chars) -> case etc of
+  | c == '"' = readTextLiteral (c, StringLiteral) (acc, rest) >>= tokenise
+  | c == '\'' = readTextLiteral (c, CharLiteral) (acc, rest) >>= tokenise
+  | otherwise = readSymbol (acc, c : rest) >>= \(acc, chars) -> case acc of
       LineComment : tail -> tokenise (tail, dropWhile (/= '\n') chars)
       BlockComment : tail -> skipBlockComment chars >>= \s -> tokenise (tail, s)
-      _ -> tokenise (etc, chars)
-
-skipBlockComment :: String -> Either LexError String
-skipBlockComment s = aux s 1
-  where
-    aux [] _ = Left UnexpectedEOF
-    aux (_ : rest) 0 = Right rest
-    aux ('*' : '-' : rest) depth = aux rest (depth - 1)
-    aux ('-' : '*' : rest) depth = aux rest (depth + 1)
-    aux (_ : rest) depth = aux rest depth
+      _ -> tokenise (acc, chars)
 
 readWord :: Lexer -> Lexer
 readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
@@ -43,7 +29,7 @@ readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
       let ident = takeWord chars in
       (Identifier ident : acc, drop (length ident) chars)
     findKeywordToken ((word, tok) : tail) chars
-      | takeWord chars == word = (tok : acc, drop (length word) chars)
+      | word == takeWord chars = (tok : acc, drop (length word) chars)
       | otherwise = findKeywordToken tail chars
     takeWord = takeWhile (\c -> isAlphaNum c || c == '_')
 
@@ -61,33 +47,24 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
 -- add support for 0b 0x 0o prefixes and scientific notation
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
-  let numStr = takeWhile (\c -> isDigit c || c == '.') chars
-      rest = drop (length numStr) chars
-  in (NumLiteral numStr : acc, rest)
+  let numStr = takeWhile (\c -> isDigit c || c == '.') chars in
+  (NumLiteral numStr : acc, drop (length numStr) chars)
 
-readStringLiteral :: Lexer -> Either LexError Lexer
-readStringLiteral (acc, chars) = aux acc "" chars
+readTextLiteral :: (Char, String -> Token) -> Lexer -> Either LexError Lexer
+readTextLiteral (delim, kind) lexer =
+  readUntil delim lexer >>= \(s, (acc, rest)) -> Right (kind s : acc, rest)
   where
-    aux _ _ [] = Left UnterminatedStringLiteral
-    aux acc etc ('"' : rest) = Right (StringLiteral (reverse etc) : acc, rest)
-    aux acc etc ('\\' : c : rest) = aux acc (escChar c : etc) rest
-    aux acc etc (c : rest) = aux acc (c : etc) rest
+    readUntil delim (toks, chars) = aux toks "" chars
+    aux _ _ [] = Left UnexpectedEOF
+    aux toks acc ('\\' : c : rest) = aux toks (c : '\\' : acc) rest
+    aux toks acc (c : rest) | c == delim = Right (reverse acc, (toks, acc))
+    aux toks acc (c : rest) = aux toks (c : acc) rest
 
-readCharLiteral :: Lexer -> Either LexError Lexer
-readCharLiteral (_, []) = Left UnterminatedCharLiteral
-readCharLiteral (_, '\'' : _) = Left EmptyCharLiteral
-readCharLiteral (acc, '\\' : c : rest) = case rest of
-  '\'' : tail -> Right (CharLiteral ['\\', c] : acc, tail)
-  _ -> Left UnterminatedCharLiteral
-readCharLiteral (acc, c : '\'' : rest) = Right (CharLiteral [c] : acc, rest)
-readCharLiteral (acc, _) = Left UnterminatedCharLiteral
-
--- TODO: make this comprehensive
-escChar :: Char -> Char
-escChar 'n' = '\n'
-escChar 't' = '\t'
-escChar 'r' = '\r'
-escChar '"' = '"'
-escChar '\'' = '\''
-escChar '\\' = '\\'
-escChar c = c
+skipBlockComment :: String -> Either LexError String
+skipBlockComment s = aux s 1
+  where
+    aux [] _ = Left UnexpectedEOF
+    aux (_ : rest) 0 = Right rest
+    aux ('*' : '-' : rest) depth = aux rest (depth - 1)
+    aux ('-' : '*' : rest) depth = aux rest (depth + 1)
+    aux (_ : rest) depth = aux rest depth
