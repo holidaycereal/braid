@@ -45,13 +45,17 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
-    -- check for prefix, define validator function accordingly
-    (prefix, rest, isValidDigit) = case chars of
-      '0' : c : tl | toLower c == 'b' -> (['0', c], tl, flip elem ['0', '1'])
-      '0' : c : tl | toLower c == 'o' -> (['0', c], tl, flip elem ['0'..'7'])
-      '0' : c : tl | toLower c == 'x' ->
-        (['0', c], tl, \c -> isDigit c || elem (toLower c) ['a'..'f'])
-      _ -> ("", chars, isDigit)
+    -- check for binary, octal, or hexadecimal prefix
+    (prefix, rest) = case chars of
+      '0' : c : tl | toLower c `elem` ['b', 'o', 'x'] -> (['0', c], tl)
+      _ -> ("", chars)
+
+    -- define digit validator function according to prefix
+    isValidDigit = case prefix of
+      ['0', c] | toLower c == 'b' -> (`elem` ['0', '1'])
+      ['0', c] | toLower c == 'o' -> (`elem` ['0', '7'])
+      ['0', c] | toLower c == 'x' -> \c -> isDigit c || toLower c `elem` ['a'..'f']
+      _ -> isDigit
 
     -- read integral part
     (intPart, afterIntPart) = span isValidDigit rest
@@ -67,7 +71,7 @@ readNumber (acc, chars) =
     -- read exponent part for decimal numbers
     (expPart, afterNumPart) = if prefix == ""
       then case afterFracPart of
-        e : c : tl | toLower e == 'e' && (isDigit c || elem c ['-', '+']) ->
+        e : c : tl | toLower e == 'e' && (isDigit c || c `elem` ['-', '+']) ->
           (e : c : takeWhile isDigit tl, dropWhile isDigit tl)
         _ -> ("", afterFracPart)
       else ("", afterFracPart)
