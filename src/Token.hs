@@ -12,7 +12,7 @@ data Token =
   -- control flow
   | Begin | End
   | Let | Return | Try
-  | If | Then | Else | Elif | Case
+  | If | Then | Else | Elif | Case | When
   | Loop | While | For | In | Do | Break | Continue
   -- expression keywords
   | Match | Of
@@ -57,6 +57,7 @@ keywordTokenDefs =
   , ("else", Else)
   , ("elif", Elif)
   , ("case", Case)
+  , ("when", When)
   , ("loop", Loop)
   , ("while", While)
   , ("for", For)
