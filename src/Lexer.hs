@@ -38,29 +38,25 @@ readWord (acc, chars) = case findKeyword keywordTokenDefs of
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
-    (prefix, afterPrefix) = prefixSpan chars
+    (prefix, afterPrefix) = case chars of
+      '0':c:tl | toLower c `elem` "box" -> (['0', c], tl)
+      _ -> ("", chars)
     (intPart, afterIntPart) = span (isValidDigit prefix) afterPrefix
-    (fracPart, afterFracPart) = fracSpan prefix afterIntPart
-    (expPart, afterNumPart) = expSpan prefix afterFracPart
+    (fracPart, afterFracPart) = case (prefix, afterIntPart) of
+      ("", '.':c:tl) | isDigit c -> (\(xs, ys) -> ('.':c:xs, ys)) $ span isDigit tl
+      _ -> ("", afterIntPart)
+    (expPart, afterNum) = case (prefix, afterFracPart) of
+      ("", e:c:tl) | toLower e == 'e' && (isDigit c || c `elem` "-+") ->
+        (\(xs, ys) -> (e:c:xs, ys)) $ span isDigit tl
+      _ -> ("", afterFracPart)
   in
-  (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNumPart)
+  (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNum)
   where
-    prefixSpan ('0':c:tl) | c `elem` "BbOoXx" = (['0', c], tl)
-    prefixSpan chars = ("", chars)
-
-    isValidDigit ('0':c:_)
-      | c `elem` "Bb" = (`elem` "01")
-      | c `elem` "Oo" = isOctDigit
-      | c `elem` "Xx" = isHexDigit
-    isValidDigit _ = isDigit
-
-    fracSpan "" ('.':c:tl) | isDigit c =
-      (\(part, after) -> ('.':c:part, after)) $ span isDigit tl
-    fracSpan _ part = ("", part)
-
-    expSpan "" (e:c:tl) | e `elem` "Ee" && (isDigit c || c `elem` "-+") =
-      (\(part, after) -> (e:c:part, after)) $ span isDigit tl
-    expSpan _ part = ("", part)
+    isValidDigit prefix = case map toLower prefix of
+      "0b" -> (`elem` "01")
+      "0o" -> isOctDigit
+      "0x" -> isHexDigit
+      _ -> isDigit
 
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
