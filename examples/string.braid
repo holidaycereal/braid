@@ -11,7 +11,7 @@ begin
 
 	let greet3 = match user_input {
 		none -> "not a valid numeric value",
-		some(~n) -> format("hello %s, %d is my favourite number", [name, n]),
+		some(~n) -> format("hello {}, {} is my favourite number", [name, n]),
 	};
 
 	echo([greet1, greet2, greet3] >> join("\n"));
