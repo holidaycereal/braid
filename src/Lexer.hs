@@ -27,43 +27,42 @@ tokenise (acc, c:rest)
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer
-readWord (acc, chars) =
+readWord (acc, cs) =
   case findKeyword keywordTokenDefs of
-    Just (word, tok) -> (tok:acc, drop (length word) chars)
-    Nothing ->
-      let (s, rest) = span isIdentChar chars
-      in (Identifier s : acc, rest)
+    Just (kw, tok) -> (tok:acc, drop (length kw) cs)
+    Nothing        -> let (id, rest) = span isIdentChar cs
+                      in (Identifier id : acc, rest)
   where
-    findKeyword ((word, tok):tl)
-      | word == takeWhile isIdentChar chars = Just (word, tok)
-      | otherwise = findKeyword tl
+    findKeyword ((kw, tok):tl) | kw == takeWord cs = Just (kw, tok)
+                               | otherwise         = findKeyword tl
     findKeyword [] = Nothing
 
     isIdentChar c = isAlphaNum c || c == '_'
+    takeWord = takeWhile isIdentChar
 
 -- read a numeric literal
 readNumber :: Lexer -> Lexer
-readNumber (acc, chars) =
+readNumber (acc, cs) =
   let
-    (prefix, afterPrefix) = case chars of
+    (prefix, afterPrefix) = case cs of
       '0':c:tl | toLower c `elem` "box" -> (['0', c], tl)
-      _ -> ("", chars)
+      _                                 -> ("", cs)
 
     (intPart, afterIntPart) = span (isValidDigit prefix) afterPrefix
 
     (fracPart, afterFracPart) = case (prefix, afterIntPart) of
-      ("", '.':d:tl) | isDigit d ->
-        let (ds, rest) = span isDigit tl
-        in ('.':d:ds, rest)
+      ("", '.':d:tl)      | isDigit d -> let (ds, rest) = span isDigit tl
+                                         in ('.':d:ds, rest)
       _ -> ("", afterIntPart)
 
     (expPart, afterNum) = case (prefix, afterFracPart) of
-      ("", e:s:d:tl) | toLower e == 'e' && s `elem` "-+" && isDigit d ->
-        let (ds, rest) = span isDigit tl
-        in (e:s:d:ds, rest)
-      ("", e:d:tl) | toLower e == 'e' && isDigit d ->
-        let (ds, rest) = span isDigit tl
-        in (e:d:ds, rest)
+      ("", exp:sign:d:tl) | toLower exp == 'e' &&
+                            sign `elem` "-+" &&
+                            isDigit d -> let (ds, rest) = span isDigit tl
+                                         in (exp:sign:d:ds, rest)
+      ("", exp:d:tl)      | toLower exp == 'e' &&
+                            isDigit d -> let (ds, rest) = span isDigit tl
+                                         in (exp:d:ds, rest)
       _ -> ("", afterFracPart)
   in
     (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNum)
@@ -76,33 +75,32 @@ readNumber (acc, chars) =
 
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
-readTextLiteral mkToken (toks, chars) =
-    aux toks "" (tail chars) >>= \(s, (acc, rest)) -> Right (mkToken s : acc, rest)
+readTextLiteral mkToken (acc, cs) =
+    aux "" (tail cs) >>= \(str, cs) -> Right (mkToken str : acc, cs)
   where
-    aux toks acc ('\\':c:rest) = aux toks (c:'\\':acc) rest
-    aux toks acc (c:rest) | c == head chars = Right (reverse acc, (toks, rest))
-                          | otherwise       = aux toks (c:acc) rest
-    aux _ _ [] = Left UnterminatedTextLiteral
+    aux str ('\\':c:rest)           = aux (c:'\\':str) rest
+    aux str (c:rest) | c == head cs = Right (reverse str, rest)
+                     | otherwise    = aux (c:str) rest
+    aux _ [] = Left UnterminatedTextLiteral
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
-readSymbol (acc, chars) =
+readSymbol (acc, cs) =
   case findSymbol symbolTokenDefs of
-    Nothing -> Left $ UnexpectedChar $ head chars
-    Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') chars)
-    Just (_, BlockComment) -> skipBlockComment chars >>= \s -> Right (acc, s)
-    Just (sym, tok) -> Right (tok:acc, drop (length sym) chars)
+    Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
+    Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
+    Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
+    Nothing -> Left $ UnexpectedChar $ head cs
   where
-    findSymbol ((sym, tok):tl) | sym `isPrefixOf` chars = Just (sym, tok)
-                               | otherwise              = findSymbol tl
+    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs = Just (sym, tok)
+                               | otherwise           = findSymbol tl
     findSymbol [] = Nothing
 
 -- skip block comments, allowing for nesting
 skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 0
   where
-    aux ('*':'-':rest) depth = aux rest (depth - 1)
-    aux ('-':'*':rest) depth = aux rest (depth + 1)
-    aux (_:rest) depth | depth == 0 = Right rest
-                       | otherwise  = aux rest depth
+    aux ('*':'-':rest) n = aux rest (n - 1)
+    aux ('-':'*':rest) n = aux rest (n + 1)
+    aux (_      :rest) n = if n < 1 then Right rest else aux rest n
     aux [] _ = Left UnterminatedComment
