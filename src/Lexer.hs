@@ -18,8 +18,8 @@ tokenise (acc, c:rest)
   | isSpace c = tokenise (acc, dropWhile isSpace rest)
   | isAlpha c || c == '_' = tokenise $ readWord (acc, c:rest)
   | isDigit c = tokenise $ readNumber (acc, c:rest)
-  | c == '"' = readTextLiteral (c, StringLiteral) (acc, rest) >>= tokenise
-  | c == '\'' = readTextLiteral (c, CharLiteral) (acc, rest) >>= tokenise
+  | c == '"' = readTextLiteral StringLiteral (acc, c:rest) >>= tokenise
+  | c == '\'' = readTextLiteral CharLiteral (acc, c:rest) >>= tokenise
   | otherwise = readSymbol (acc, c:rest) >>= tokenise
 
 -- read a keyword or identifier
@@ -61,14 +61,15 @@ readNumber (acc, chars) =
   (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNumPart)
 
 -- read a string or char literal
-readTextLiteral :: (Char, String -> Token) -> Lexer -> Either LexError Lexer
-readTextLiteral (delim, kind) (toks, chars) =
-  aux toks "" chars >>= \(s, (acc, rest)) -> Right (kind s : acc, rest)
+readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
+readTextLiteral mkToken (toks, chars) =
+  aux toks "" (tail chars) >>= \(s, (acc, rest)) -> Right (mkToken s : acc, rest)
   where
     aux toks acc (c:rest) | c == delim = Right (reverse acc, (toks, rest))
     aux toks acc ('\\':c:rest) = aux toks (c:'\\':acc) rest
     aux toks acc (c:rest) = aux toks (c:acc) rest
     aux _ _ [] = Left UnterminatedTextLiteral
+    delim = head chars
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
