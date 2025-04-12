@@ -1,7 +1,6 @@
 module Lexer where
 
-import Data.Char
-  (isAlpha, isAlphaNum, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
+import Data.Char (isAlpha, isAlphaNum, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
 import Data.List (isPrefixOf)
 import Control.Monad (join)
 
@@ -9,7 +8,7 @@ import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
 type Lexer = ([Token], String)
 
-data LexError = UnexpectedChar Char | UnterminatedComment | UnterminatedLiteral
+data LexError = UnexpectedChar Char | UnterminatedComment | UnterminatedTextLiteral
   deriving (Show)
 
 -- main lexing function
@@ -33,7 +32,7 @@ readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
       | otherwise = findKeywordToken tail chars
     -- no match found, read identifier
     findKeywordToken [] chars =
-      let (ident, rest) = span isIdentChar chars in (Identifier ident : acc, rest)
+      (\(ident, rest) -> (Identifier ident : acc, rest)) $ span isIdentChar chars
     isIdentChar c = isAlphaNum c || c == '_'
 
 -- read a numeric literal
@@ -42,7 +41,7 @@ readNumber (acc, chars) =
   let
     -- check for 0b/0o/0x prefix and define digit validator function accordingly
     (prefix, rest, isValidDigit) = case chars of
-      '0':c:tl | toLower c == 'b' -> (['0', c], tl, (`elem` ['0', '1']))
+      '0':c:tl | toLower c == 'b' -> (['0', c], tl, (`elem` "01"))
       '0':c:tl | toLower c == 'o' -> (['0', c], tl, isOctDigit)
       '0':c:tl | toLower c == 'x' -> (['0', c], tl, isHexDigit)
       _ -> ("", chars, isDigit)
@@ -55,7 +54,7 @@ readNumber (acc, chars) =
       _ -> ("", afterIntPart)
     -- read exponent part
     (expPart, afterNumPart) = case (prefix, afterFracPart) of
-      ("", e:c:tl) | toLower e == 'e' && (isDigit c || c `elem` ['-', '+']) ->
+      ("", e:c:tl) | toLower e == 'e' && (isDigit c || c `elem` "-+") ->
         (\(part, after) -> (e:c:part, after)) $ span isDigit tl
       _ -> ("", afterFracPart)
   in
@@ -69,7 +68,7 @@ readTextLiteral (delim, kind) (toks, chars) =
     aux toks acc (c:rest) | c == delim = Right (reverse acc, (toks, rest))
     aux toks acc ('\\':c:rest) = aux toks (c:'\\':acc) rest
     aux toks acc (c:rest) = aux toks (c:acc) rest
-    aux _ _ [] = Left UnterminatedLiteral
+    aux _ _ [] = Left UnterminatedTextLiteral
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
@@ -91,8 +90,8 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
 skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 0
   where
-    aux ('*':'-':rest) depth = aux rest $ depth - 1
-    aux ('-':'*':rest) depth = aux rest $ depth + 1
+    aux ('*':'-':rest) depth = aux rest (depth - 1)
+    aux ('-':'*':rest) depth = aux rest (depth + 1)
     aux (_:rest) 0 = Right rest
     aux (_:rest) depth = aux rest depth
     aux [] _ = Left UnterminatedComment
