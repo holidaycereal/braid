@@ -81,7 +81,7 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
           -- if it's a comment start token, discard it and skip the comment
           LineComment -> Right (acc, dropWhile (/= '\n') chars)
           BlockComment -> skipBlockComment chars >>= \s -> Right (acc, s)
-          -- otherwise, add the token to the accumulator
+          -- otherwise, add token to lexer accumulator and return new lexer
           _ -> Right (tok:acc, drop (length sym) chars)
       | otherwise = findSymbolToken tail chars
     -- error if no matching token found
