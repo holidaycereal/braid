@@ -14,8 +14,8 @@ data Token =
   | Let | Return | Try
   | If | Then | Else | Elif | Case | When
   | Loop | While | For | In | Do | Break | Continue
-  -- expression keywords
-  | Match | Of
+  -- expression/pattern keywords
+  | Match | Of | And
 
   -- symbols
   | LineComment | BlockComment
@@ -23,15 +23,16 @@ data Token =
   | ERange | IRange
   | Tilde -- pattern binding
   | Caret -- pointer operations
+  | Ampersand -- list construction
   -- delimiters
-  | Dot | Comma | Semicolon | Colon | Pipe
+  | Dot | Comma | Semicolon | Colon | Pipe | Equals
   | ParenL | ParenR | BracketL | BracketR | BraceL | BraceR
   | Arrow
   | FwdCompose
   | PathSep
   -- logic
   | TestEq | TestNe | CmpLe | CmpGe | Less | Greater
-  | And | Or | Bang
+  | LogicalAnd | LogicalOr | Bang
   | TernaryLeft | TernaryRight
   -- arithmetic
   | Plus | Minus | Star | Slash | Percent
@@ -67,6 +68,7 @@ keywordTokenDefs =
   , ("continue", Continue)
   , ("match", Match)
   , ("of", Of)
+  , ("and", And)
   ]
 
 symbolTokenDefs :: [(String, Token)]
@@ -86,20 +88,22 @@ symbolTokenDefs =
   , ("!=", TestNe)
   , ("<=", CmpLe)
   , (">=", CmpGe)
-  , ("&&", And)
-  , ("||", Or)
+  , ("&&", LogicalAnd)
+  , ("||", LogicalOr)
   , ("+=", AddAssign)
   , ("-=", SubAssign)
   , ("*=", MulAssign)
   , ("/=", DivAssign)
   , ("%=", ModAssign)
-  , ("|", Pipe)
   , ("~", Tilde)
   , ("^", Caret)
+  , ("&", Ampersand)
   , (".", Dot)
   , (",", Comma)
   , (";", Semicolon)
   , (":", Colon)
+  , ("|", Pipe)
+  , ("=", Equals)
   , ("(", ParenL)
   , (")", ParenR)
   , ("[", BracketL)
@@ -115,10 +119,3 @@ symbolTokenDefs =
   , ("/", Slash)
   , ("%", Percent)
   ]
-
-showToken :: Token -> String
-showToken (Identifier s) = "Identifier(" ++ s ++ ")"
-showToken (StringLiteral s) = "StringLiteral(\"" ++ s ++ "\")"
-showToken (CharLiteral s) = "CharLiteral('" ++ s ++ "')"
-showToken (NumLiteral s) = "NumLiteral(" ++ s ++ ")"
-showToken token = show token

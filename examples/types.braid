@@ -12,7 +12,7 @@ union status {
 	active { time_joined : time },
 }
 
-union option[a] { none, some a }
+union option[a] { none, some(a) }
 
 -- product type (record)
 record point3 { x: int, y: int, z: int }
