@@ -13,19 +13,18 @@ data LexError = UnexpectedChar Char | UnexpectedEOF
 
 -- main lexing function
 tokenise :: Lexer -> Either LexError [Token]
-tokenise (acc, []) = Right (reverse acc)
+
+-- lex while there are still characters to consume
 tokenise (acc, c:rest)
-  -- skip whitespace
   | isSpace c = tokenise (acc, dropWhile isSpace rest)
-  -- identifier or keyword
   | isAlpha c || c == '_' = tokenise $ readWord (acc, c:rest)
-  -- numeric literal
   | isDigit c = tokenise $ readNumber (acc, c:rest)
-  -- string and char literals
   | c == '"' = readTextLiteral (c, StringLiteral) (acc, rest) >>= tokenise
   | c == '\'' = readTextLiteral (c, CharLiteral) (acc, rest) >>= tokenise
-  -- read symbol, skip comment, or error on unexpected char
   | otherwise = readSymbol (acc, c:rest) >>= tokenise
+
+-- base case: no more characters to consume, return the accumulated tokens
+tokenise (acc, []) = Right (reverse acc)
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer
@@ -35,11 +34,13 @@ readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
     findKeywordToken ((word, tok):tail) chars
       | word == takeWhile isIdentChar chars = (tok:acc, drop (length word) chars)
       | otherwise = findKeywordToken tail chars
+
     -- no match found, read identifier
     findKeywordToken [] chars =
       let (ident, rest) = span isIdentChar chars in (Identifier ident : acc, rest)
     isIdentChar c = isAlphaNum c || c == '_'
 
+-- read a numeric literal
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
