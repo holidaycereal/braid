@@ -38,21 +38,26 @@ readWord (acc, chars) = case findKeyword keywordTokenDefs of
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
-    (prefix, rest, isValidDigit) = prefixInfo chars
-    (intPart, afterIntPart) = span isValidDigit rest
+    (prefix, afterPrefix) = prefixSpan chars
+    (intPart, afterIntPart) = span (isValidDigit prefix) afterPrefix
     (fracPart, afterFracPart) = fracSpan prefix afterIntPart
     (expPart, afterNumPart) = expSpan prefix afterFracPart
   in
   (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNumPart)
   where
-    prefixInfo ('0':c:tl)
-      | c `elem` "Bb" = (['0', c], tl, (`elem` "01"))
-      | c `elem` "Oo" = (['0', c], tl, isOctDigit)
-      | c `elem` "Xx" = (['0', c], tl, isHexDigit)
-    prefixInfo chars = ("", chars, isDigit)
+    prefixSpan ('0':c:tl) | c `elem` "BbOoXx" = (['0', c], tl)
+    prefixSpan chars = ("", chars)
+
+    isValidDigit ('0':c:_)
+      | c `elem` "Bb" = (`elem` "01")
+      | c `elem` "Oo" = isOctDigit
+      | c `elem` "Xx" = isHexDigit
+    isValidDigit _ = isDigit
+
     fracSpan "" ('.':c:tl) | isDigit c =
       (\(part, after) -> ('.':c:part, after)) $ span isDigit tl
     fracSpan _ part = ("", part)
+
     expSpan "" (e:c:tl) | e `elem` "Ee" && (isDigit c || c `elem` "-+") =
       (\(part, after) -> (e:c:part, after)) $ span isDigit tl
     expSpan _ part = ("", part)
