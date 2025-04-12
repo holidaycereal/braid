@@ -9,7 +9,7 @@ import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
 type Lexer = ([Token], String)
 
-data LexError = UnexpectedChar Char | UnexpectedEOF
+data LexError = UnexpectedChar Char | UnterminatedComment | UnterminatedLiteral
   deriving (Show)
 
 -- main lexing function
@@ -69,7 +69,7 @@ readTextLiteral (delim, kind) (toks, chars) =
     aux toks acc (c:rest) | c == delim = Right (reverse acc, (toks, rest))
     aux toks acc ('\\':c:rest) = aux toks (c:'\\':acc) rest
     aux toks acc (c:rest) = aux toks (c:acc) rest
-    aux _ _ [] = Left UnexpectedEOF
+    aux _ _ [] = Left UnterminatedLiteral
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
@@ -89,10 +89,10 @@ readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
 
 -- skip block comments, allowing for nesting
 skipBlockComment :: String -> Either LexError String
-skipBlockComment s = aux s 1
+skipBlockComment s = aux s 0
   where
-    aux (_:rest) 0 = Right rest
     aux ('*':'-':rest) depth = aux rest $ depth - 1
     aux ('-':'*':rest) depth = aux rest $ depth + 1
+    aux (_:rest) 0 = Right rest
     aux (_:rest) depth = aux rest depth
-    aux [] _ = Left UnexpectedEOF
+    aux [] _ = Left UnterminatedComment
