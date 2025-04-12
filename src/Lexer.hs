@@ -43,11 +43,17 @@ readNumber (acc, chars) =
       _ -> ("", chars)
     (intPart, afterIntPart) = span (isValidDigit prefix) afterPrefix
     (fracPart, afterFracPart) = case (prefix, afterIntPart) of
-      ("", '.':c:tl) | isDigit c -> (\(xs, ys) -> ('.':c:xs, ys)) $ span isDigit tl
+      ("", '.':d:tl) | isDigit d ->
+        let (part, after) = span isDigit tl
+        in ('.':d:part, after)
       _ -> ("", afterIntPart)
     (expPart, afterNum) = case (prefix, afterFracPart) of
-      ("", e:c:tl) | toLower e == 'e' && (isDigit c || c `elem` "-+") ->
-        (\(xs, ys) -> (e:c:xs, ys)) $ span isDigit tl
+      ("", e:s:d:tl) | toLower e == 'e' && s `elem` "-+" && isDigit d ->
+        let (ds, after) = span isDigit tl
+        in (e:s:d:ds, after)
+      ("", e:d:tl) | toLower e == 'e' && isDigit d ->
+        let (ds, after) = span isDigit tl
+        in (e:d:ds, after)
       _ -> ("", afterFracPart)
   in
   (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNum)
