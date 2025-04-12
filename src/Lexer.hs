@@ -24,15 +24,14 @@ tokenise (acc, c:rest)
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer
-readWord (acc, chars) = findKeywordToken keywordTokenDefs chars
+readWord (acc, chars) = case findKeyword keywordTokenDefs of
+  Just (word, tok) -> (tok:acc, drop (length word) chars)
+  Nothing -> (\(s, rest) -> (Identifier s : acc, rest)) $ span isIdentChar chars
   where
-    -- descend keyword token def list
-    findKeywordToken ((word, tok):tail) chars
-      | word == takeWhile isIdentChar chars = (tok:acc, drop (length word) chars)
-      | otherwise = findKeywordToken tail chars
-    -- no match found, read identifier
-    findKeywordToken [] chars =
-      (\(ident, rest) -> (Identifier ident : acc, rest)) $ span isIdentChar chars
+    findKeyword ((word, tok):tl)
+      | word == takeWhile isIdentChar chars = Just (word, tok)
+      | otherwise = findKeyword tl
+    findKeyword [] = Nothing
     isIdentChar c = isAlphaNum c || c == '_'
 
 -- read a numeric literal
@@ -73,19 +72,16 @@ readTextLiteral mkToken (toks, chars) =
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
-readSymbol (acc, chars) = findSymbolToken symbolTokenDefs chars
+readSymbol (acc, chars) = case findSymbol symbolTokenDefs of
+  Nothing -> Left $ UnexpectedChar $ head chars
+  Just (_, LineComment) -> Right (acc, dropWhile (/= '\n') chars)
+  Just (_, BlockComment) -> skipBlockComment chars >>= \s -> Right (acc, s)
+  Just (sym, tok) -> Right (tok:acc, drop (length sym) chars)
   where
-    -- descend symbol token def list
-    findSymbolToken ((sym, tok):tail) chars
-      | sym `isPrefixOf` chars = case tok of
-          -- if it's a comment start token, discard it and skip the comment
-          LineComment -> Right (acc, dropWhile (/= '\n') chars)
-          BlockComment -> skipBlockComment chars >>= \s -> Right (acc, s)
-          -- otherwise, add token to lexer accumulator and return new lexer
-          _ -> Right (tok:acc, drop (length sym) chars)
-      | otherwise = findSymbolToken tail chars
-    -- error if no matching token found
-    findSymbolToken [] chars = Left $ UnexpectedChar $ head chars
+    findSymbol ((sym, tok):tl)
+      | sym `isPrefixOf` chars = Just (sym, tok)
+      | otherwise = findSymbol tl
+    findSymbol [] = Nothing
 
 -- skip block comments, allowing for nesting
 skipBlockComment :: String -> Either LexError String
