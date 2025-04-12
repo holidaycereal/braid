@@ -80,11 +80,9 @@ readTextLiteral mkToken (toks, chars) =
     aux toks "" (tail chars) >>= \(s, (acc, rest)) -> Right (mkToken s : acc, rest)
   where
     aux toks acc ('\\':c:rest) = aux toks (c:'\\':acc) rest
-    aux toks acc (c:rest) | c == delim = Right (reverse acc, (toks, rest))
-                          | otherwise  = aux toks (c:acc) rest
+    aux toks acc (c:rest) | c == head chars = Right (reverse acc, (toks, rest))
+                          | otherwise       = aux toks (c:acc) rest
     aux _ _ [] = Left UnterminatedTextLiteral
-
-    delim = head chars
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
