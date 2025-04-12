@@ -38,26 +38,24 @@ readWord (acc, chars) = case findKeyword keywordTokenDefs of
 readNumber :: Lexer -> Lexer
 readNumber (acc, chars) =
   let
-    -- check for 0b/0o/0x prefix and define digit validator function accordingly
-    (prefix, rest, isValidDigit) = case chars of
-      '0':c:tl | toLower c == 'b' -> (['0', c], tl, (`elem` "01"))
-      '0':c:tl | toLower c == 'o' -> (['0', c], tl, isOctDigit)
-      '0':c:tl | toLower c == 'x' -> (['0', c], tl, isHexDigit)
-      _ -> ("", chars, isDigit)
-    -- read integral part
+    (prefix, rest, isValidDigit) = prefixInfo chars
     (intPart, afterIntPart) = span isValidDigit rest
-    -- read fractional part
-    (fracPart, afterFracPart) = case (prefix, afterIntPart) of
-      ("", '.':c:tl) | isDigit c ->
-        (\(part, after) -> ('.':c:part, after)) $ span isDigit tl
-      _ -> ("", afterIntPart)
-    -- read exponent part
-    (expPart, afterNumPart) = case (prefix, afterFracPart) of
-      ("", e:c:tl) | toLower e == 'e' && (isDigit c || c `elem` "-+") ->
-        (\(part, after) -> (e:c:part, after)) $ span isDigit tl
-      _ -> ("", afterFracPart)
+    (fracPart, afterFracPart) = fracSpan prefix afterIntPart
+    (expPart, afterNumPart) = expSpan prefix afterFracPart
   in
   (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNumPart)
+  where
+    prefixInfo ('0':c:tl)
+      | c `elem` "Bb" = (['0', c], tl, (`elem` "01"))
+      | c `elem` "Oo" = (['0', c], tl, isOctDigit)
+      | c `elem` "Xx" = (['0', c], tl, isHexDigit)
+    prefixInfo chars = ("", chars, isDigit)
+    fracSpan "" ('.':c:tl) | isDigit c =
+      (\(part, after) -> ('.':c:part, after)) $ span isDigit tl
+    fracSpan _ part = ("", part)
+    expSpan "" (e:c:tl) | e `elem` "Ee" && (isDigit c || c `elem` "-+") =
+      (\(part, after) -> (e:c:part, after)) $ span isDigit tl
+    expSpan _ part = ("", part)
 
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
