@@ -8,11 +8,7 @@ import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
 type Lexer = ([Token], String)
 
-data LexError =
-    UnexpectedChar Char
-  | UnterminatedComment
-  | UnterminatedTextLiteral
-  deriving (Show)
+data LexError = UnknownChar Char | UnclosedComment | UnclosedLiteral deriving (Show)
 
 -- main lexing function
 tokenise :: Lexer -> Either LexError [Token]
@@ -27,51 +23,43 @@ tokenise (acc, c:rest)
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer
-readWord (acc, cs) =
-  case findKeyword keywordTokenDefs of
+readWord (acc, cs) = case findKeyword keywordTokenDefs of
     Just (kw, tok) -> (tok:acc, drop (length kw) cs)
-    Nothing        -> let (id, rest) = span isIdentChar cs
-                      in (Identifier id : acc, rest)
+    Nothing        -> (\(id, rs) -> (Identifier id : acc, rs)) (span isIdentChar cs)
   where
-    findKeyword ((kw, tok):tl) | kw == takeWord cs = Just (kw, tok)
-                               | otherwise         = findKeyword tl
-    findKeyword [] = Nothing
+    findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs
+                       = Just (kw, tok)
+    findKeyword (_:tl) = findKeyword tl
+    findKeyword []     = Nothing
 
     isIdentChar c = isAlphaNum c || c == '_'
-    takeWord = takeWhile isIdentChar
 
 -- read a numeric literal
 readNumber :: Lexer -> Lexer
 readNumber (acc, cs) =
   let
-    (prefix, afterPrefix) = case cs of
-      '0':c:tl | toLower c `elem` "box" -> (['0', c], tl)
-      _                                 -> ("", cs)
+    (intPart, afterInt) = span isValidDigit (if isBase10 then cs else drop 2 cs)
 
-    (intPart, afterIntPart) = span (isValidDigit prefix) afterPrefix
+    (fracPart, afterFrac) = case (isBase10, afterInt) of
+      (True, '.':d:tl) | isDigit d -> (\(ds, rs) -> ('.':d:ds, rs)) $ span isDigit tl
+      _ -> ("", afterInt)
 
-    (fracPart, afterFracPart) = case (prefix, afterIntPart) of
-      ("", '.':d:tl)      | isDigit d -> let (ds, rest) = span isDigit tl
-                                         in ('.':d:ds, rest)
-      _ -> ("", afterIntPart)
-
-    (expPart, afterNum) = case (prefix, afterFracPart) of
-      ("", exp:sign:d:tl) | toLower exp == 'e' &&
-                            sign `elem` "-+" &&
-                            isDigit d -> let (ds, rest) = span isDigit tl
-                                         in (exp:sign:d:ds, rest)
-      ("", exp:d:tl)      | toLower exp == 'e' &&
-                            isDigit d -> let (ds, rest) = span isDigit tl
-                                         in (exp:d:ds, rest)
-      _ -> ("", afterFracPart)
+    (expPart, afterNum) = case (isBase10, afterFrac) of
+      (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
+        (\(ds, rs) -> (e:sign:d:ds, rs)) $ span isDigit tl
+      (True, e:d:tl) | e `elem` "Ee" && isDigit d ->
+        (\(ds, rs) -> (e:d:ds, rs)) $ span isDigit tl
+      _ -> ("", afterFrac)
   in
-    (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNum)
+    (NumLiteral (intPart ++ fracPart ++ expPart) : acc, afterNum)
   where
-    isValidDigit prefix = case toLower <$> prefix of
-      "0b" -> (`elem` "01")
-      "0o" -> isOctDigit
-      "0x" -> isHexDigit
-      _    -> isDigit
+    (isBase10, isValidDigit) = case cs of
+      '0':c:d:_ | isDigit d -> case toLower c of
+        'b' -> (False, (`elem` "01"))
+        'o' -> (False, isOctDigit)
+        'x' -> (False, isHexDigit)
+        _   -> (True, isDigit)
+      _ -> (True, isDigit)
 
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
@@ -81,20 +69,20 @@ readTextLiteral mkToken (acc, cs) =
     aux str ('\\':c:rest)           = aux (c:'\\':str) rest
     aux str (c:rest) | c == head cs = Right (reverse str, rest)
                      | otherwise    = aux (c:str) rest
-    aux _ [] = Left UnterminatedTextLiteral
+    aux _   []                      = Left UnclosedLiteral
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
-readSymbol (acc, cs) =
-  case findSymbol symbolTokenDefs of
+readSymbol (acc, cs) = case findSymbol symbolTokenDefs of
     Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
     Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
     Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
-    Nothing -> Left $ UnexpectedChar $ head cs
+    Nothing                -> Left $ UnknownChar $ head cs
   where
-    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs = Just (sym, tok)
-                               | otherwise           = findSymbol tl
-    findSymbol [] = Nothing
+    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs
+                      = Just (sym, tok)
+    findSymbol (_:tl) = findSymbol tl
+    findSymbol []     = Nothing
 
 -- skip block comments, allowing for nesting
 skipBlockComment :: String -> Either LexError String
@@ -103,4 +91,4 @@ skipBlockComment s = aux s 0
     aux ('*':'-':rest) n = aux rest (n - 1)
     aux ('-':'*':rest) n = aux rest (n + 1)
     aux (_      :rest) n = if n < 1 then Right rest else aux rest n
-    aux [] _ = Left UnterminatedComment
+    aux []             _ = Left UnclosedComment
