@@ -25,7 +25,7 @@ tokenise (acc, c:rest)
 readWord :: Lexer -> Lexer
 readWord (acc, cs) = case findKeyword keywordTokenDefs of
     Just (kw, tok) -> (tok:acc, drop (length kw) cs)
-    Nothing        -> (\(id, rs) -> (Identifier id : acc, rs)) (span isIdentChar cs)
+    Nothing        -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
   where
     findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs
                        = Just (kw, tok)
@@ -42,14 +42,14 @@ readNumber (acc, cs) =
 
     (fracPart, afterFrac) = case (isBase10, afterInt) of
         (True, '.':d:tl) | isDigit d ->
-            (\(ds, rs) -> ('.':d:ds, rs)) $ span isDigit tl
+            let (ds, rs) = span isDigit tl in ('.':d:ds, rs)
         _ -> ("", afterInt)
 
     (expPart, afterNum) = case (isBase10, afterFrac) of
         (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
-            (\(ds, rs) -> (e:sign:d:ds, rs)) $ span isDigit tl
-        (True, e:d:tl) | e `elem` "Ee" && isDigit d ->
-            (\(ds, rs) -> (e:d:ds, rs)) $ span isDigit tl
+            let (ds, rs) = span isDigit tl in (e:sign:d:ds, rs)
+        (True, e:d:tl     ) | e `elem` "Ee" && isDigit d ->
+            let (ds, rs) = span isDigit tl in (e:d:ds, rs)
         _ -> ("", afterFrac)
   in
     (NumLiteral (intPart ++ fracPart ++ expPart) : acc, afterNum)
