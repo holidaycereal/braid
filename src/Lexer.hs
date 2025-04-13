@@ -27,8 +27,7 @@ readWord (acc, cs) = case findKeyword keywordTokenDefs of
     Just (kw, tok) -> (tok:acc, drop (length kw) cs)
     Nothing -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
   where
-    findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs
-                       = Just (kw, tok)
+    findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs = Just (kw, tok)
     findKeyword (_:tl) = findKeyword tl
     findKeyword []     = Nothing
 
@@ -80,8 +79,7 @@ readSymbol (acc, cs) = case findSymbol symbolTokenDefs of
     Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
     Nothing                -> Left $ Unknown $ head cs
   where
-    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs
-                      = Just (sym, tok)
+    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs = Just (sym, tok)
     findSymbol (_:tl) = findSymbol tl
     findSymbol []     = Nothing
 
