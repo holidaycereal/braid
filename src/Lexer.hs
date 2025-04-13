@@ -41,25 +41,26 @@ readNumber (acc, cs) =
     (intPart, afterInt) = span isValidDigit (if isBase10 then cs else drop 2 cs)
 
     (fracPart, afterFrac) = case (isBase10, afterInt) of
-      (True, '.':d:tl) | isDigit d -> (\(ds, rs) -> ('.':d:ds, rs)) $ span isDigit tl
-      _ -> ("", afterInt)
+        (True, '.':d:tl) | isDigit d ->
+            (\(ds, rs) -> ('.':d:ds, rs)) $ span isDigit tl
+        _ -> ("", afterInt)
 
     (expPart, afterNum) = case (isBase10, afterFrac) of
-      (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
-        (\(ds, rs) -> (e:sign:d:ds, rs)) $ span isDigit tl
-      (True, e:d:tl) | e `elem` "Ee" && isDigit d ->
-        (\(ds, rs) -> (e:d:ds, rs)) $ span isDigit tl
-      _ -> ("", afterFrac)
+        (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
+            (\(ds, rs) -> (e:sign:d:ds, rs)) $ span isDigit tl
+        (True, e:d:tl) | e `elem` "Ee" && isDigit d ->
+            (\(ds, rs) -> (e:d:ds, rs)) $ span isDigit tl
+        _ -> ("", afterFrac)
   in
     (NumLiteral (intPart ++ fracPart ++ expPart) : acc, afterNum)
   where
     (isBase10, isValidDigit) = case cs of
-      '0':c:d:_ | isDigit d -> case toLower c of
-        'b' -> (False, (`elem` "01"))
-        'o' -> (False, isOctDigit)
-        'x' -> (False, isHexDigit)
-        _   -> (True, isDigit)
-      _ -> (True, isDigit)
+        '0':c:d:_ | isDigit d -> case toLower c of
+            'b' -> (False, (`elem` "01"))
+            'o' -> (False, isOctDigit)
+            'x' -> (False, isHexDigit)
+            _   -> (True, isDigit)
+        _ -> (True, isDigit)
 
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
