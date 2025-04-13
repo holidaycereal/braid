@@ -67,7 +67,7 @@ readNumber (acc, cs) =
   in
     (NumLiteral (prefix ++ intPart ++ fracPart ++ expPart) : acc, afterNum)
   where
-    isValidDigit prefix = case map toLower prefix of
+    isValidDigit prefix = case toLower <$> prefix of
       "0b" -> (`elem` "01")
       "0o" -> isOctDigit
       "0x" -> isHexDigit
