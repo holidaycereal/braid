@@ -27,7 +27,8 @@ readWord (acc, cs) = case findKeyword keywordTokenDefs of
     Just (kw, tok) -> (tok:acc, drop (length kw) cs)
     Nothing -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
   where
-    findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs = Just (kw, tok)
+    findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs
+                       = Just (kw, tok)
     findKeyword (_:tl) = findKeyword tl
     findKeyword []     = Nothing
 
@@ -65,11 +66,10 @@ readNumber (acc, cs) =
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
 readTextLiteral mkToken (acc, cs) =
     aux "" (tail cs) >>= \(str, cs) -> Right (mkToken str : acc, cs)
-  where
-    aux str ('\\':c:rest)           = aux (c:'\\':str) rest
-    aux str (c:rest) | c == head cs = Right (reverse str, rest)
-                     | otherwise    = aux (c:str) rest
-    aux _   []                      = Left UnclosedLiteral
+  where aux str ('\\':c:rest)           = aux (c:'\\':str) rest
+        aux str (c:rest) | c == head cs = Right (reverse str, rest)
+                         | otherwise    = aux (c:str) rest
+        aux _   []                      = Left UnclosedLiteral
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
@@ -79,15 +79,15 @@ readSymbol (acc, cs) = case findSymbol symbolTokenDefs of
     Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
     Nothing                -> Left $ Unknown $ head cs
   where
-    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs = Just (sym, tok)
+    findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs
+                      = Just (sym, tok)
     findSymbol (_:tl) = findSymbol tl
     findSymbol []     = Nothing
 
 -- skip block comments, allowing for nesting
 skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 0
-  where
-    aux ('*':'-':rest) n = aux rest (n - 1)
-    aux ('-':'*':rest) n = aux rest (n + 1)
-    aux (_      :rest) n = if n < 1 then Right rest else aux rest n
-    aux []             _ = Left UnclosedComment
+  where aux ('*':'-':rest) n = aux rest (n - 1)
+        aux ('-':'*':rest) n = aux rest (n + 1)
+        aux (_      :rest) n = if n < 1 then Right rest else aux rest n
+        aux []             _ = Left UnclosedComment
