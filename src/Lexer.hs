@@ -1,6 +1,6 @@
 module Lexer where
 
-import Data.Char (isAlpha, isAlphaNum, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
+import Data.Char (isAlpha, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
 import Data.List (isPrefixOf)
 import Control.Monad (join)
 
@@ -8,7 +8,7 @@ import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
 type Lexer = ([Token], String)
 
-data LexError = UnknownChar Char | UnclosedComment | UnclosedLiteral deriving (Show)
+data LexError = Unknown Char | UnclosedComment | UnclosedLiteral deriving (Show)
 
 -- main lexing function
 tokenise :: Lexer -> Either LexError [Token]
@@ -25,14 +25,14 @@ tokenise (acc, c:rest)
 readWord :: Lexer -> Lexer
 readWord (acc, cs) = case findKeyword keywordTokenDefs of
     Just (kw, tok) -> (tok:acc, drop (length kw) cs)
-    Nothing        -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
+    Nothing -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
   where
     findKeyword ((kw, tok):tl) | kw == takeWhile isIdentChar cs
                        = Just (kw, tok)
     findKeyword (_:tl) = findKeyword tl
     findKeyword []     = Nothing
 
-    isIdentChar c = isAlphaNum c || c == '_'
+    isIdentChar c = isAlpha c || isDigit c || c == '_'
 
 -- read a numeric literal
 readNumber :: Lexer -> Lexer
@@ -78,7 +78,7 @@ readSymbol (acc, cs) = case findSymbol symbolTokenDefs of
     Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
     Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
     Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
-    Nothing                -> Left $ UnknownChar $ head cs
+    Nothing                -> Left $ Unknown $ head cs
   where
     findSymbol ((sym, tok):tl) | sym `isPrefixOf` cs
                       = Just (sym, tok)
