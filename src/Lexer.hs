@@ -2,7 +2,7 @@ module Lexer where
 
 import Data.Char (isAlpha, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
 import Data.List (isPrefixOf)
-import Control.Monad (join)
+import Control.Monad ((>>=))
 
 import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
