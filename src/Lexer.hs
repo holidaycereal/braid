@@ -35,28 +35,29 @@ readWord (acc, cs) = case findKeyword keywordTokenDefs of
 
 -- read a numeric literal
 readNumber :: Lexer -> Lexer
-readNumber (acc, cs) = let
-    (isBase10, isValidDigit) = case cs of
-        '0':c:d:_ | isDigit d -> case toLower c of
-                                   'b' -> (False, (`elem` "01"))
-                                   'o' -> (False, isOctDigit)
-                                   'x' -> (False, isHexDigit)
-                                   _   -> (True,  isDigit)
-        _ -> (True, isDigit)
+readNumber (acc, cs) =
+    let
+      (isBase10, isValidDigit) = case cs of
+          '0':c:d:_ | isDigit d -> case toLower c of
+                                     'b' -> (False, (`elem` "01"))
+                                     'o' -> (False, isOctDigit)
+                                     'x' -> (False, isHexDigit)
+                                     _   -> (True,  isDigit)
+          _ -> (True, isDigit)
 
-    (intPart, afterInt) = span isValidDigit $ if isBase10 then cs else drop 2 cs
+      (intPart, afterInt) = span isValidDigit $ if isBase10 then cs else drop 2 cs
 
-    (fracPart, afterFrac) = case (isBase10, afterInt) of
-        (True, '.':d:tl) | isDigit d ->
-            let (ds, rs) = span isDigit tl in ('.':d:ds, rs)
-        _ -> ("", afterInt)
+      (fracPart, afterFrac) = case (isBase10, afterInt) of
+          (True, '.':d:tl) | isDigit d ->
+              let (ds, rs) = span isDigit tl in ('.':d:ds, rs)
+          _ -> ("", afterInt)
 
-    (expPart, afterNum) = case (isBase10, afterFrac) of
-        (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
-            let (ds, rs) = span isDigit tl in (e:sign:d:ds, rs)
-        (True, e:d:tl)      | e `elem` "Ee" && isDigit d ->
-            let (ds, rs) = span isDigit tl in (e:d:ds, rs)
-        _ -> ("", afterFrac)
+      (expPart, afterNum) = case (isBase10, afterFrac) of
+          (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
+              let (ds, rs) = span isDigit tl in (e:sign:d:ds, rs)
+          (True, e:d:tl)      | e `elem` "Ee" && isDigit d ->
+              let (ds, rs) = span isDigit tl in (e:d:ds, rs)
+          _ -> ("", afterFrac)
     in
     (NumLiteral (intPart ++ fracPart ++ expPart) : acc, afterNum)
 
