@@ -24,9 +24,11 @@ tokenise (acc, c:rest)
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer
-readWord (acc, cs) = case findKeyword keywordTokenDefs of
-    Just (kw, tok) -> (tok:acc, drop (length kw) cs)
-    Nothing -> let (id, rs) = span isIdentChar cs in (Identifier id : acc, rs)
+readWord (acc, cs) =
+    case findKeyword keywordTokenDefs of
+      Just (kw, tok) -> (tok:acc, drop (length kw) cs)
+      Nothing        -> let (id, rs) = span isIdentChar cs
+                        in (Identifier id : acc, rs)
   where
     findKeyword ((kw, tok):tl)
       | kw == takeWhile isIdentChar cs = Just (kw, tok)
@@ -37,28 +39,35 @@ readWord (acc, cs) = case findKeyword keywordTokenDefs of
 -- read a numeric literal
 readNumber :: Lexer -> Lexer
 readNumber (acc, cs) =
-    let
-      (isBase10, isValidDigit) =
-          case cs of '0':c:d:_ | isDigit d -> case toLower c of
-                                                'b' -> (False, (`elem` "01"))
-                                                'o' -> (False, isOctDigit)
-                                                'x' -> (False, isHexDigit)
-                                                _   -> (True,  isDigit)
-                     _                     -> (True, isDigit)
+    let (isBase10, isValidDigit) =
+            case cs of
+              '0':c:d:_ | isDigit d -> case toLower c of
+                                         'b' -> (False, (`elem` "01"))
+                                         'o' -> (False, isOctDigit)
+                                         'x' -> (False, isHexDigit)
+                                         _   -> (True,  isDigit)
+              _                     -> (True, isDigit)
 
-      (intPart, afterInt) = span isValidDigit $ if isBase10 then cs else drop 2 cs
+        (intPart, afterInt) = span isValidDigit $
+                                   if isBase10 then cs else drop 2 cs
 
-      (fracPart, afterFrac) = case (isBase10, afterInt) of
-          (True, '.':d:tl) | isDigit d ->
-              let (ds, rs) = span isDigit tl in ('.':d:ds, rs)
-          _ -> ("", afterInt)
+        (fracPart, afterFrac) =
+            case (isBase10, afterInt) of
+              (True, '.':d:tl) | isDigit d -> let (ds, rs) = span isDigit tl
+                                              in ('.':d:ds, rs)
+              _ -> ("", afterInt)
 
-      (expPart, afterNum) = case (isBase10, afterFrac) of
-          (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
-              let (ds, rs) = span isDigit tl in (e:sign:d:ds, rs)
-          (True, e:d:tl)      | e `elem` "Ee" && isDigit d ->
-              let (ds, rs) = span isDigit tl in (e:d:ds, rs)
-          _ -> ("", afterFrac)
+        (expPart, afterNum) =
+            case (isBase10, afterFrac) of
+              (True, e:sign:d:tl) | e `elem` "Ee" && sign `elem` "-+" && isDigit d ->
+                  let (ds, rs) = span isDigit tl
+                  in (e:sign:d:ds, rs)
+
+              (True, e:d:tl)      | e `elem` "Ee" && isDigit d ->
+                  let (ds, rs) = span isDigit tl
+                  in (e:d:ds, rs)
+
+              _ -> ("", afterFrac)
     in
     (NumLiteral (intPart ++ fracPart ++ expPart) : acc, afterNum)
 
@@ -74,11 +83,12 @@ readTextLiteral mkToken (acc, cs) =
 
 -- read a 'symbol' (anything that's not alphanumeric or an underscore)
 readSymbol :: Lexer -> Either LexError Lexer
-readSymbol (acc, cs) = case findSymbol symbolTokenDefs of
-    Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
-    Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
-    Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
-    Nothing                -> Left $ Unknown $ head cs
+readSymbol (acc, cs) =
+    case findSymbol symbolTokenDefs of
+      Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
+      Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
+      Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
+      Nothing                -> Left $ Unknown $ head cs
   where
     findSymbol ((sym, tok):tl)
       | sym `isPrefixOf` cs = Just (sym, tok)
