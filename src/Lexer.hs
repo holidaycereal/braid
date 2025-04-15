@@ -8,7 +8,8 @@ import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
 
 type Lexer = ([Token], String)
 
-data LexError = Unknown Char | UnclosedComment | UnclosedLiteral deriving Show
+data LexError = Unknown Char | UnclosedComment | UnclosedLiteral
+  deriving Show
 
 -- main lexing function
 tokenise :: Lexer -> Either LexError [Token]
@@ -38,12 +39,12 @@ readNumber :: Lexer -> Lexer
 readNumber (acc, cs) =
     let
       (isBase10, isValidDigit) = case cs of
-          '0':c:d:_ | isDigit d -> case toLower c of
-                                     'b' -> (False, (`elem` "01"))
-                                     'o' -> (False, isOctDigit)
-                                     'x' -> (False, isHexDigit)
-                                     _   -> (True,  isDigit)
-          _ -> (True, isDigit)
+                                   '0':c:d:_ | isDigit d -> case toLower c of
+                                                              'b' -> (False, (`elem` "01"))
+                                                              'o' -> (False, isOctDigit)
+                                                              'x' -> (False, isHexDigit)
+                                                              _   -> (True,  isDigit)
+                                   _                     -> (True, isDigit)
 
       (intPart, afterInt) = span isValidDigit $ if isBase10 then cs else drop 2 cs
 
