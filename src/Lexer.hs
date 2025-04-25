@@ -11,15 +11,16 @@ data LexError = Unknown Char | UnclosedComment | UnclosedLiteral
   deriving Show
 
 -- main lexing function
-tokenise :: Lexer -> Either LexError [Token]
-tokenise (acc, []) = return $ reverse acc
-tokenise (acc, c:rest)
-  | isSpace c             = tokenise (acc, dropWhile isSpace rest)
-  | isAlpha c || c == '_' = tokenise $ readWord   (acc, c:rest)
-  | isDigit c             = tokenise $ readNumber (acc, c:rest)
-  | c == '"'  = readTextLiteral StringLiteral (acc, c:rest) >>= tokenise
-  | c == '\'' = readTextLiteral CharLiteral   (acc, c:rest) >>= tokenise
-  | otherwise = readSymbol (acc, c:rest) >>= tokenise
+tokenise :: String -> Either LexError [Token]
+tokenise src = aux ([], src) where
+    aux (acc, []) = return $ reverse acc
+    aux (acc, c:rest)
+      | isSpace c             = aux (acc, dropWhile isSpace rest)
+      | isAlpha c || c == '_' = aux $ readWord    (acc, c:rest)
+      | isDigit c             = aux $ readNumber  (acc, c:rest)
+      | c == '"'  = readTextLiteral StringLiteral (acc, c:rest) >>= aux
+      | c == '\'' = readTextLiteral CharLiteral   (acc, c:rest) >>= aux
+      | otherwise = readSymbol                    (acc, c:rest) >>= aux
 
 -- read a keyword or identifier
 readWord :: Lexer -> Lexer

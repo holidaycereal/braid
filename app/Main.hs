@@ -1,19 +1,20 @@
 module Main where
 
-import System.Environment (getArgs)
+import System.Environment (getArgs, getProgName)
 import System.IO (readFile)
 import Data.List (intercalate)
-
-import Lexer (tokenise, LexError(..))
-import Token (Token(..))
+import Lexer
+import Token
 
 main :: IO ()
 main = do
-  args <- getArgs
-  case args of
-    [filename] -> do
-      source <- readFile filename
-      case tokenise ([], source) of
-        Left err -> putStrLn $ "lexer error: " ++ show err
-        Right tokens -> putStrLn $ intercalate "\n" $ map show tokens
-    _ -> putStrLn "usage: ./lexer <filename>"
+    args <- getArgs
+    case args of
+      [filename] -> do
+          src <- readFile filename
+          case tokenise src of
+            Left  err    -> putStrLn $ "lexer error: " ++ show err
+            Right tokens -> putStrLn $ intercalate "\n" $ map show tokens
+      _ -> do
+          progName <- getProgName
+          putStrLn $ "usage: " ++ progName ++ " <filename>"
