@@ -18,7 +18,7 @@ data ParseError
   | ExpectedTypeExpr
   deriving Show
 
--- parse a source file
+-- parse a series of tokens
 parse :: [Token] -> Either ParseError [TopLevel]
 parse toks = aux ([], toks) where
     aux (acc, []) = return $ reverse acc

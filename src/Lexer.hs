@@ -10,7 +10,7 @@ type Lexer = ([Token], String)
 data LexError = Unknown Char | UnclosedComment | UnclosedLiteral
   deriving Show
 
--- main lexing function
+-- tokenise a source file
 tokenise :: String -> Either LexError [Token]
 tokenise src = aux ([], src) where
     aux (acc, []) = return $ reverse acc
