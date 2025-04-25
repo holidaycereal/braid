@@ -19,17 +19,18 @@ data ParseError
   deriving Show
 
 -- parse a source file
-parse :: Parser -> Either ParseError [TopLevel]
-parse (acc, []) = return $ reverse acc
-parse (acc, tok:rest) = case tok of
-    Const  -> parseConst     (acc, rest) >>= parse
-    Def    -> parseFnDef     (acc, rest) >>= parse
-    Type   -> parseTypeDef   (acc, rest) >>= parse
-    Record -> parseRecordDef (acc, rest) >>= parse
-    Union  -> parseUnionDef  (acc, rest) >>= parse
-    Trait  -> parseTraitDef  (acc, rest) >>= parse
-    Impl   -> parseImplBlock (acc, rest) >>= parse
-    _      -> Left $ ExpectedTopLevel tok
+parse :: [Token] -> Either ParseError [TopLevel]
+parse toks = aux ([], toks) where
+    aux (acc, []) = return $ reverse acc
+    aux (acc, tok:rest) = case tok of
+        Const  -> parseConst     (acc, rest) >>= aux
+        Def    -> parseFnDef     (acc, rest) >>= aux
+        Type   -> parseTypeDef   (acc, rest) >>= aux
+        Record -> parseRecordDef (acc, rest) >>= aux
+        Union  -> parseUnionDef  (acc, rest) >>= aux
+        Trait  -> parseTraitDef  (acc, rest) >>= aux
+        Impl   -> parseImplBlock (acc, rest) >>= aux
+        _      -> Left $ ExpectedTopLevel tok
 
 --
 -- parse top-level constructs
