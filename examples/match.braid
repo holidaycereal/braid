@@ -1,20 +1,17 @@
 -* match expression *-
 
--- immediate return
 def factorial(x: int) -> int = match x {
 	0 -> 1,
-	~n -> n * factorial(n - 1),
+	\n -> n * factorial(n - 1),
 };
 
--- some imperative boilerplate, then return
-def process(x: int) -> int
-begin
-	if not valid(x) then
+def process(x: int) -> int {
+	if !valid(x) {
 		log_error();
 		return -1;
-	end
+	}
 	return match computation(x).value {
-		ok(~v) -> v,
+		ok(\v) -> v,
 		error(*) -> -2,
 	};
-end
+}

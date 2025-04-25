@@ -9,10 +9,10 @@ union level { off, low, high }
 
 union status {
 	inactive,
-	active { time_joined : time },
+	active(time),
 }
 
-union option[a] { none, some(a) }
+union option<a> { none, some(a) }
 
 -- product type (record)
 record point3 { x: int, y: int, z: int }
@@ -24,15 +24,20 @@ record user {
 }
 
 -- usage:
-def main() -> ()
-begin
+def main() -> () {
+	-- records
 	-- record literal syntax
-	let alice : user = {
+	let alice = user with {
 		id = 0x01,
 		name = "alice",
-		status = active { time_joined = now() },
+		status = active(now()),
 	};
+	-- tuple/constructor syntax
+	let bob = user(0x02, "bob", active(now()));
 
-	-- tuple syntax
-	let bob : user = (0x02, "bob", active(now()));
-end
+	-- unions
+	let x : int = match bob.status {
+		inactive -> 0,
+		active(\t) -> t,
+	};
+}

@@ -3,8 +3,7 @@ module Lexer where
 import Data.Char (isAlpha, isDigit, isOctDigit, isHexDigit, isSpace, toLower)
 import Data.List (isPrefixOf)
 import Control.Monad ((>>=))
-
-import Token (Token(..), keywordTokenDefs, symbolTokenDefs)
+import Token
 
 type Lexer = ([Token], String)
 
@@ -13,7 +12,7 @@ data LexError = Unknown Char | UnclosedComment | UnclosedLiteral
 
 -- main lexing function
 tokenise :: Lexer -> Either LexError [Token]
-tokenise (acc, []) = Right $ reverse acc
+tokenise (acc, []) = return $ reverse acc
 tokenise (acc, c:rest)
   | isSpace c             = tokenise (acc, dropWhile isSpace rest)
   | isAlpha c || c == '_' = tokenise $ readWord   (acc, c:rest)
@@ -74,10 +73,10 @@ readNumber (acc, cs) =
 -- read a string or char literal
 readTextLiteral :: (String -> Token) -> Lexer -> Either LexError Lexer
 readTextLiteral mkToken (acc, cs) =
-    aux "" (tail cs) >>= \(str, cs) -> Right (mkToken str : acc, cs)
+    aux "" (tail cs) >>= \(str, cs) -> return (mkToken str : acc, cs)
   where
     aux str ('\\':c:rest)           = aux (c:'\\':str) rest
-    aux str (c:rest) | c == head cs = Right (reverse str, rest)
+    aux str (c:rest) | c == head cs = return (reverse str, rest)
                      | otherwise    = aux (c:str) rest
     aux _   []                      = Left UnclosedLiteral
 
@@ -85,9 +84,9 @@ readTextLiteral mkToken (acc, cs) =
 readSymbol :: Lexer -> Either LexError Lexer
 readSymbol (acc, cs) =
     case findSymbol symbolTokenDefs of
-      Just (_, LineComment)  -> Right (acc, dropWhile (/= '\n') cs)
-      Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> Right (acc, cs)
-      Just (sym, tok)        -> Right (tok:acc, drop (length sym) cs)
+      Just (_, LineComment)  -> return (acc, dropWhile (/= '\n') cs)
+      Just (_, BlockComment) -> skipBlockComment cs >>= \cs -> return (acc, cs)
+      Just (sym, tok)        -> return (tok:acc, drop (length sym) cs)
       Nothing                -> Left $ Unknown $ head cs
   where
     findSymbol ((sym, tok):tl)
@@ -100,5 +99,5 @@ skipBlockComment :: String -> Either LexError String
 skipBlockComment s = aux s 0 where
     aux ('*':'-':rest) n = aux rest (n - 1)
     aux ('-':'*':rest) n = aux rest (n + 1)
-    aux (_      :rest) n = if n < 1 then Right rest else aux rest n
+    aux (_      :rest) n = if n < 1 then return rest else aux rest n
     aux []             _ = Left UnclosedComment

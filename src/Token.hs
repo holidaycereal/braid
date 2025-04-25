@@ -1,27 +1,26 @@
 module Token where
 
-data Token =
-    Identifier String
+data Token
+  = Identifier String
   | StringLiteral String
   | CharLiteral String
   | NumLiteral String
 
   -- keywords
   -- top-level definitions
-  | Def | Type | Record | Union | Trait | Iface | Impl
+  | Const | Def | Type | Record | Union | Trait | Iface | Impl
   -- control flow
-  | Begin | End
   | Let | Return | Try
-  | If | Then | Else | Elif | Case | When
-  | Loop | While | For | In | Do | Break | Continue
+  | If | Then | Else
+  | Loop | While | For | In | Break | Continue
   -- expression/pattern keywords
-  | Match | Of | And
+  | Match | Of
 
   -- symbols
   | LineComment | BlockComment
   | Concat | ConcatAssign
   | ERange | IRange
-  | Tilde -- pattern binding
+  | Backslash -- pattern binding
   | Caret -- pointer operations
   | Ampersand -- list construction
   -- delimiters
@@ -48,27 +47,20 @@ keywordTokenDefs =
   , ("trait", Trait)
   , ("iface", Iface)
   , ("impl", Impl)
-  , ("begin", Begin)
-  , ("end", End)
   , ("let", Let)
   , ("return", Return)
   , ("try", Try)
   , ("if", If)
   , ("then", Then)
   , ("else", Else)
-  , ("elif", Elif)
-  , ("case", Case)
-  , ("when", When)
   , ("loop", Loop)
   , ("while", While)
   , ("for", For)
   , ("in", In)
-  , ("do", Do)
   , ("break", Break)
   , ("continue", Continue)
   , ("match", Match)
   , ("of", Of)
-  , ("and", And)
   ]
 
 symbolTokenDefs :: [(String, Token)]
@@ -95,7 +87,7 @@ symbolTokenDefs =
   , ("*=", MulAssign)
   , ("/=", DivAssign)
   , ("%=", ModAssign)
-  , ("~", Tilde)
+  , ("\\", Backslash)
   , ("^", Caret)
   , ("&", Ampersand)
   , (".", Dot)
