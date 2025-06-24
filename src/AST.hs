@@ -3,11 +3,12 @@ module AST where
 import Token
 
 data TopLevel
-  = ConstDef String Expr
-  | FnDef String [Param] (Maybe TypeExpr) Expr
+  = ExprDef String [Param] (Maybe TypeExpr) Expr
+  | ConstDef String Expr
   | TypeDef String [String] TypeExpr
   | RecordDef String [String] [(String, TypeExpr)]
   | UnionDef String [String] [(String, Maybe TypeExpr)]
+  | IfaceDef String [String] TypeExpr
   | TraitDef String [String] [TypeExpr]
   | ImplBlock String TypeExpr [TopLevel]
 
@@ -40,25 +41,26 @@ data TypeExpr
 
 data Stmt
   = ExprStmt Expr
-  | Return Expr
-  | Yield Expr
-  | Let LValue (Maybe TypeExpr) (Maybe Expr)
-  | Var LValue (Maybe TypeExpr) (Maybe Expr)
-  | Assignment LValue Expr
+  | ReturnStmt Expr
+  | LetBinding Lvalue (Maybe TypeExpr) (Maybe Expr)
+  | Declaration Lvalue (Maybe TypeExpr) (Maybe Expr)
+  | Assignment Lvalue Expr
   | Block [Stmt]
-  | If Expr [Stmt] (Maybe [Stmt])
-  | Loop [Stmt]
-  | While Expr [Stmt]
-  | For Pattern Expr [Stmt]
+  | IfStmt Expr [Stmt] (Maybe [Stmt])
+  | LoopBlock [Stmt]
+  | WhileLoop Expr [Stmt]
+  | ForLoop Pattern Expr [Stmt]
+  | BreakStmt
+  | ContinueStmt
 
 data Param
   = UnitParam
   | ParamSingle String
   | ParamTuple [Param]
 
-data LValue
+data Lvalue
   = Name String
-  | NameTuple [LValue]
+  | NameTuple [Lvalue]
 
 data Pattern
   = Wildcard

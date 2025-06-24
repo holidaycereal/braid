@@ -8,10 +8,10 @@ data Token
 
   -- keywords
   -- top-level definitions
-  | Const | Def | Type | Record | Union | Trait | Iface | Impl
+  | Const | Type | Record | Union | Trait | Iface | Impl
   -- control flow
   | Let | Return | Try
-  | If | Then | Else
+  | If | Then | Else | Elif
   | Loop | While | For | In | Break | Continue
   -- expression/pattern keywords
   | Match | Of
@@ -40,7 +40,7 @@ data Token
 
 keywordTokenDefs :: [(String, Token)]
 keywordTokenDefs =
-  [ ("def", Def)
+  [ ("const", Const)
   , ("type", Type)
   , ("record", Record)
   , ("union", Union)
@@ -53,6 +53,7 @@ keywordTokenDefs =
   , ("if", If)
   , ("then", Then)
   , ("else", Else)
+  , ("elif", Elif)
   , ("loop", Loop)
   , ("while", While)
   , ("for", For)

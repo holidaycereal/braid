@@ -23,39 +23,48 @@ parse :: [Token] -> Either ParseError [TopLevel]
 parse toks = aux ([], toks) where
     aux (acc, []) = return $ reverse acc
     aux (acc, tok:rest) = case tok of
-        Const  -> parseConst     (acc, rest) >>= aux
-        Def    -> parseFnDef     (acc, rest) >>= aux
-        Type   -> parseTypeDef   (acc, rest) >>= aux
-        Record -> parseRecordDef (acc, rest) >>= aux
-        Union  -> parseUnionDef  (acc, rest) >>= aux
-        Trait  -> parseTraitDef  (acc, rest) >>= aux
-        Impl   -> parseImplBlock (acc, rest) >>= aux
-        _      -> Left $ ExpectedTopLevel tok
+        Identifier _ -> parseDef       (acc, tok:rest) >>= aux
+        Const        -> parseConstDef  (acc, rest)     >>= aux
+        Type         -> parseTypeDef   (acc, rest)     >>= aux
+        Record       -> parseRecordDef (acc, rest)     >>= aux
+        Union        -> parseUnionDef  (acc, rest)     >>= aux
+        Iface        -> parseIfaceDef  (acc, rest)     >>= aux
+        Trait        -> parseTraitDef  (acc, rest)     >>= aux
+        Impl         -> parseImplBlock (acc, rest)     >>= aux
+        _            -> Left $ ExpectedTopLevel tok
 
 --
 -- parse top-level constructs
 --
 
 -- constant definitions
-parseConst :: Parser -> Either ParseError Parser
-parseConst (acc, rest) =
-    expectIdent rest >>= \(name, rest) -> (
-        expectToken Equals >=> parseExpr >=> \(expr, rest) ->
-        expectToken Semicolon rest >>= \rest ->
-        return (ConstDef name expr : acc, rest)
-    ) rest
+parseConstDef :: Parser -> Either ParseError Parser
+parseConstDef (acc, rest) =
+    expectIdent rest >>= \(name, rest) ->
+  ( expectToken Equals >=> parseExpr >=> \(expr, rest) ->
+    expectToken Semicolon rest >>= \rest ->
+    return (ConstDef name expr : acc, rest)
+  ) rest
 
 -- function definitions
-parseFnDef :: Parser -> Either ParseError Parser
-parseFnDef (acc, rest) =
+parseDef :: Parser -> Either ParseError Parser
+-- with type annotation
+parseDef (acc, Identifier name : Colon : rest) =
+    parseTypeExpr rest >>= \(typ, rest) ->
+  ( expectToken Equals >=> parseExpr >=> \(expr, rest) ->
+    expectToken Semicolon rest >>= \rest ->
+    return (ExprDef name [] (Just typ) expr : acc, rest)
+  ) rest
+-- without type annotation
+parseDef (acc, rest) =
     expectIdent rest >>= \(name, rest) ->
     parseParamList rest >>= \(params, rest) ->
     let finalise retType rest = case rest of
             Equals:rest -> parseExpr rest >>= \(expr, rest) ->
                            expectToken Semicolon rest >>= \rest ->
-                           return (FnDef name params retType expr : acc, rest)
+                           return (ExprDef name params retType expr : acc, rest)
             BraceL:rest -> parseBlock rest >>= \(stmts, rest) ->
-                           return (FnDef name params retType (Proc stmts) : acc, rest)
+                           return (ExprDef name params retType (Proc stmts) : acc, rest)
             tok:_       -> Left $ Expected [Equals, BraceL] tok
             []          -> Left UnexpectedEOF
     in
@@ -78,20 +87,20 @@ parseParamList = aux []
 parseTypeDef :: Parser -> Either ParseError Parser
 parseTypeDef (acc, rest) =
     expectIdent rest >>= \(name, rest) ->
-    parseTypeParams rest >>= \(tParams, rest) -> (
-        expectToken Equals >=> parseTypeExpr >=> \(tExpr, rest) ->
-        expectToken Semicolon rest >>= \rest ->
-        return (TypeDef name tParams tExpr : acc, rest)
-    ) rest
+    parseTypeParams rest >>= \(tParams, rest) ->
+  ( expectToken Equals >=> parseTypeExpr >=> \(tExpr, rest) ->
+    expectToken Semicolon rest >>= \rest ->
+    return (TypeDef name tParams tExpr : acc, rest)
+  ) rest
 
 -- record types
 parseRecordDef :: Parser -> Either ParseError Parser
 parseRecordDef (acc, rest) =
     expectIdent rest >>= \(name, rest) ->
-    parseTypeParams rest >>= \(tParams, rest) -> (
-        expectToken BraceL >=> parseBody [] >=> \(fields, rest) ->
-        return (RecordDef name tParams fields : acc, rest)
-    ) rest
+    parseTypeParams rest >>= \(tParams, rest) ->
+  ( expectToken BraceL >=> parseBody [] >=> \(fields, rest) ->
+    return (RecordDef name tParams fields : acc, rest)
+  ) rest
   where
     parseBody fields rest = case rest of
         BraceR                  : rest -> return (reverse fields, rest)
@@ -105,10 +114,10 @@ parseRecordDef (acc, rest) =
 parseUnionDef :: Parser -> Either ParseError Parser
 parseUnionDef (acc, rest) =
     expectIdent rest >>= \(name, rest) ->
-    parseTypeParams rest >>= \(tParams, rest) -> (
-        expectToken BraceL >=> parseBody [] >=> \(variants, rest) ->
-        return (UnionDef name tParams variants : acc, rest)
-    ) rest
+    parseTypeParams rest >>= \(tParams, rest) ->
+  ( expectToken BraceL >=> parseBody [] >=> \(variants, rest) ->
+    return (UnionDef name tParams variants : acc, rest)
+  ) rest
   where
     parseBody variants rest = case rest of
         BraceR                   : rest -> return (reverse variants, rest)
@@ -118,6 +127,10 @@ parseUnionDef (acc, rest) =
         Identifier name          : rest -> parseBody ((name, Nothing)    : variants) rest
         _:_                             -> Left InvalidVariant
         []                              -> Left UnexpectedEOF
+
+-- interface definitions
+parseIfaceDef :: Parser -> Either ParseError Parser
+parseIfaceDef = undefined
 
 -- trait definitions
 parseTraitDef :: Parser -> Either ParseError Parser
@@ -181,15 +194,39 @@ parseTupleType rest =
 
 parseTypeList :: Token -> [Token] -> Either ParseError ([TypeExpr], [Token])
 parseTypeList delim = aux [] where
-    aux acc (tok:rest)
-      | tok == delim = return (reverse acc, rest)
-      | tok == Comma = aux acc rest
-    aux acc rest     = parseSingleType rest >>= \(typ, rest) ->
-                       aux (typ:acc) rest
+    aux acc (Comma:rest)              = aux acc rest
+    aux acc (tok:rest) | tok == delim = return (reverse acc, rest)
+    aux acc rest                      = parseSingleType rest >>= \(typ, rest) ->
+                                        aux (typ:acc) rest
 
 -- parse a statement
 parseStmt :: [Token] -> Either ParseError (Stmt, [Token])
-parseStmt = undefined
+parseStmt [] = Left UnexpectedEOF
+
+parseStmt (Break   :Semicolon:rest) = return (BreakStmt, rest)
+parseStmt (Continue:Semicolon:rest) = return (ContinueStmt, rest)
+
+parseStmt (Let:rest) =
+    parseLvalue rest >>= \(lvalue, rest) ->
+    let parseRvalue :: Maybe TypeExpr -> [Token] -> Either ParseError (Stmt, [Token])
+        parseRvalue texpr (Semicolon:rest) = return (LetBinding lvalue texpr Nothing, rest)
+        parseRvalue texpr (Equals   :rest) = parseExpr rest >>= \(expr, rest) ->
+                                             expectToken Semicolon rest >>= \rest ->
+                                             return (LetBinding lvalue texpr (Just expr), rest)
+        parseRvalue _     (tok:_)          = Left $ Expected [Semicolon, Equals] tok
+        parseRvalue _     []               = Left UnexpectedEOF
+    in
+    case rest of
+      Colon:rest -> parseTypeExpr rest >>= \(texpr, rest) ->
+                    parseRvalue (Just texpr) rest
+      _          -> parseRvalue Nothing rest
+
+parseStmt (Return:rest) =
+    parseExpr rest >>= \(expr, rest) ->
+    expectToken Semicolon rest >>= \rest ->
+    return (ReturnStmt expr, rest)
+
+parseStmt _ = undefined
 
 parseBlock :: [Token] -> Either ParseError ([Stmt], [Token])
 parseBlock = aux [] where

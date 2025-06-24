@@ -13,6 +13,7 @@ data LexError = Unknown Char | UnclosedComment | UnclosedLiteral
 -- tokenise a source file
 tokenise :: String -> Either LexError [Token]
 tokenise src = aux ([], src) where
+    aux :: ([Token], String) -> Either LexError [Token]
     aux (acc, []) = return $ reverse acc
     aux (acc, c:rest)
       | isSpace c             = aux (acc, dropWhile isSpace rest)
