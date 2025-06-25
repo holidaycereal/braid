@@ -1,37 +1,37 @@
--* algebraic type system *-
+#{ algebraic type system }#
 
--- type aliases
+# type aliases
 type time = i64;
 type point = (int, int);
 
--- sum type (union)
+# sum type (union)
 union level { off, low, high }
 
 union status {
 	inactive,
-	active { time_joined : time },
+	active(time_joined: time),
 }
 
-union option[a] { none, some a }
+union option<a> { none, some(a) }
 
--- product type (record)
-record point3 { x : int, y : int, z : int }
+# product type (record)
+record point3(x: int, y: int, z: int);
 
-record user {
-	id : u8,
-	name : string,
-	status : status,
-}
+record user(
+	id: u8,
+	name: string,
+	status: status,
+);
 
--- usage:
-def main() -> () proc
-	-- record literal syntax
-	let alice : user = {
-		id = 0x01,
-		name = "alice",
-		status = active { time_joined = now() },
-	};
+# usage:
+main() -> () {
+	# record literal syntax
+	let alice : user = (
+		.id = 0x01,
+		.name = "alice",
+		.status = :active(time_joined = now()),
+	);
 
-	-- tuple syntax
+	# tuple syntax
 	let bob : user = (0x02, "bob", active(now()));
-end
+}
