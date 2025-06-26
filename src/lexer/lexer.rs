@@ -44,7 +44,8 @@ impl Lexer {
         Ok(&self.toks)
     }
 
-    //
+    // when #{ is encountered, skip the block comment until }#.
+    // allows nesting.
     fn skip_block_comment(&mut self) -> Result<(), ParserError> {
         self.pos += 2; // skip the first #{
         let mut depth = 1;
