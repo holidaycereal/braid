@@ -1,8 +1,7 @@
 // use crate::lexer::{ lexer::Lexer, token::Token };
 // use crate::parser::astnode::*;
 
-#[derive(Debug)]
-pub enum ParserError {
+pub enum SyntaxError {
     // lexer errors
 	UnknownCharacter(char),
     UnterminatedLiteral,
@@ -13,6 +12,6 @@ pub enum ParserError {
 	// ExpectedIdentifierOr(Vec<Token>, Token),
 	// ExpectedTopLevel(Token),
 	// ExpectedStatement(Token),
-	// UnexpectedEof,
+	UnexpectedEof,
 	// LastTerminatorNotFound,
 }

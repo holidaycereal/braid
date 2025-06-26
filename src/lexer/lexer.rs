@@ -1,5 +1,5 @@
 use crate::lexer::token::{ Token, get_keyword_map, SYMBOL_DEFS };
-use crate::parser::parser::ParserError;
+use crate::parser::parser::SyntaxError;
 
 pub struct Lexer {
     chars: Vec<char>,
@@ -16,7 +16,7 @@ impl Lexer {
         }
     }
 
-    pub fn tokenise(&mut self) -> Result<&Vec<Token>, ParserError> {
+    pub fn tokenise(&mut self) -> Result<&Vec<Token>, SyntaxError> {
         while let Some(c) = self.peek(0) {
             // skip whitespace
             if c.is_whitespace() {
@@ -51,7 +51,7 @@ impl Lexer {
 
     // when #{ is encountered, skip the block comment until }#.
     // allows nesting.
-    fn skip_block_comment(&mut self) -> Result<(), ParserError> {
+    fn skip_block_comment(&mut self) -> Result<(), SyntaxError> {
         self.pos += 2; // skip the first #{
         let mut depth = 1;
         while let (Some(cur), Some(next)) = (self.peek(0), self.peek(1)) {
@@ -70,7 +70,7 @@ impl Lexer {
                 },
             }
         }
-        Err(ParserError::UnterminatedComment)
+        Err(SyntaxError::UnterminatedComment)
     }
 
     // handles a letter or underscore.
@@ -143,7 +143,7 @@ impl Lexer {
 
     // handles a ' or ".
     // creates either a StringLiteral or CharLiteral.
-    fn read_text_literal<F>(&mut self, make_token: F) -> Result<Token, ParserError>
+    fn read_text_literal<F>(&mut self, make_token: F) -> Result<Token, SyntaxError>
     where F: Fn(String) -> Token {
         let mut text = String::new();
         let delim = self.consume().unwrap();
@@ -159,20 +159,24 @@ impl Lexer {
                 text.push(c);
             }
         }
-        Err(ParserError::UnterminatedLiteral)
+        Err(SyntaxError::UnterminatedLiteral)
     }
 
     // match any other kind of token
     // (doesn't start with a letter, underscore, digit, or quote mark)
-    fn read_symbol(&mut self) -> Result<Token, ParserError> {
+    fn read_symbol(&mut self) -> Result<Token, SyntaxError> {
         let remaining = &self.chars[self.pos..];
         for (sym, tok) in SYMBOL_DEFS {
-            if remaining.len() >= sym.len() && remaining[..sym.len()].iter().collect::<String>() == *sym {
-                self.pos += sym.len();
-                return Ok(tok.clone());
+            if remaining.len() >= sym.len() {
+                if remaining[..sym.len()].iter().collect::<String>() == *sym {
+                    self.pos += sym.len();
+                    return Ok(tok.clone());
+                }
+            } else {
+                return Err(SyntaxError::UnexpectedEof);
             }
         }
-        Err(ParserError::UnknownCharacter(self.current()))
+        Err(SyntaxError::UnknownCharacter(self.current()))
     }
 
     // basic utility helpers {{{

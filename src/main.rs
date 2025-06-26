@@ -1,7 +1,7 @@
 mod lexer;
 mod parser;
 use crate::lexer::{ token::Token, lexer::Lexer };
-use crate::parser::parser::ParserError;
+use crate::parser::parser::SyntaxError;
 use std::{ env, fs, path::Path, process };
 use colored::Colorize;
 
@@ -129,10 +129,10 @@ fn token_to_string(token: &Token) -> String {
 	}
 }
 
-fn parser_error_to_string(error: &ParserError) -> String {
+fn parser_error_to_string(error: &SyntaxError) -> String {
     match error {
-        ParserError::UnknownCharacter(c) => format!("unknown character '{}'", c),
-        ParserError::UnterminatedLiteral => "unterminated literal".to_string(),
-        ParserError::UnterminatedComment => "unterminated comment".to_string(),
+        SyntaxError::UnknownCharacter(c) => format!("unknown character '{}'", c),
+        SyntaxError::UnterminatedLiteral => "unterminated literal".to_string(),
+        SyntaxError::UnterminatedComment => "unterminated comment".to_string(),
     }
 }
