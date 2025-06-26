@@ -72,11 +72,14 @@ impl Lexer {
     }
 
     // handles a letter or underscore.
-    // reads till the end of the 'word', tries to match it with a keyword token,
+    // reads till the end of the word, tries to match it with a keyword token,
     // and falls back to creating an identifier token
     fn read_word(&mut self) -> Token {
         let word = self.consume_while(|c| c.is_alphanumeric() || c == '_');
-        get_keyword_map().get(word.as_str()).cloned().unwrap_or_else(|| Token::Identifier(word))
+        get_keyword_map()
+            .get(word.as_str())
+            .cloned()
+            .unwrap_or_else(|| Token::Identifier(word))
     }
 
     // reads a numeric literal when we encounter a digit.
