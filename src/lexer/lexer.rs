@@ -65,7 +65,9 @@ impl Lexer {
                     self.pos += 2;
                     depth += 1;
                 },
-                _ => { self.pos += 1; },
+                _ => {
+                    self.pos += 1;
+                },
             }
         }
         Err(ParserError::UnterminatedComment)
