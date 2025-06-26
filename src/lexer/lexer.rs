@@ -18,11 +18,12 @@ impl Lexer {
 
     pub fn tokenise(&mut self) -> Result<&Vec<Token>, ParserError> {
         while let Some(c) = self.peek(0) {
+            // skip whitespace
             if c.is_whitespace() {
                 self.pos += 1;
                 continue;
             }
-
+            // skip comments
             if c == '#' {
                 if let Some('{') = self.peek(1) {
                     self.skip_block_comment()?;
@@ -31,14 +32,18 @@ impl Lexer {
                 }
                 continue;
             }
-
-            let token =
-                if c.is_alphabetic() || c == '_' { self.read_word() }
-                else if c.is_digit(10)           { self.read_number() }
-                else if c == '"'                 { self.read_text_literal(Token::StringLiteral)? }
-                else if c == '\''                { self.read_text_literal(Token::CharLiteral)? }
-                else                             { self.read_symbol()? };
-
+            // handle various types of characters
+            let token = if c.is_alphabetic() || c == '_' {
+                self.read_word()
+            } else if c.is_digit(10) {
+                self.read_number()
+            } else if c == '"' {
+                self.read_text_literal(Token::StringLiteral)?
+            } else if c == '\'' {
+                self.read_text_literal(Token::CharLiteral)?
+            } else {
+                self.read_symbol()?
+            };
             self.toks.push(token);
         }
         Ok(&self.toks)
@@ -131,6 +136,8 @@ impl Lexer {
     }
     // }}}
 
+    // handles a ' or ".
+    // creates either a StringLiteral or CharLiteral.
     fn read_text_literal<F>(&mut self, make_token: F) -> Result<Token, ParserError>
     where F: Fn(String) -> Token {
         let mut text = String::new();
@@ -150,6 +157,8 @@ impl Lexer {
         Err(ParserError::UnterminatedLiteral)
     }
 
+    // match any other kind of token
+    // (doesn't start with a letter, underscore, digit, or quote mark)
     fn read_symbol(&mut self) -> Result<Token, ParserError> {
         let remaining = &self.chars[self.pos..];
         for (sym, tok) in SYMBOL_DEFS {
