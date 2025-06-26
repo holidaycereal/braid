@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone)]
 pub enum Token {
     Identifier(String),
 
@@ -30,9 +30,10 @@ pub enum Token {
 
     WordLet, WordVar, WordReturn,
     WordIf, WordElse, WordElif,
-    WordMatch, WordWhere, WordFn,
     WordWhile, WordFor, WordIn, WordBreak, WordContinue,
+    WordMatch, WordFn,
     WordType, WordRecord, WordUnion, WordIface, WordImpl,
+    WordWhere,
 
     InclRange,      // ..=
     ConcatAssign,   // ++=
@@ -71,19 +72,19 @@ pub fn get_keyword_map() -> &'static HashMap<&'static str, Token> {
         ("if",       Token::WordIf),
         ("else",     Token::WordElse),
         ("elif",     Token::WordElif),
-        ("match",    Token::WordMatch),
-        ("where",    Token::WordWhere),
-        ("fn",       Token::WordFn),
         ("while",    Token::WordWhile),
         ("for",      Token::WordFor),
         ("in",       Token::WordIn),
         ("break",    Token::WordBreak),
         ("continue", Token::WordContinue),
+        ("match",    Token::WordMatch),
+        ("fn",       Token::WordFn),
         ("type",     Token::WordType),
         ("record",   Token::WordRecord),
         ("union",    Token::WordUnion),
         ("iface",    Token::WordIface),
         ("impl",     Token::WordImpl),
+        ("where",    Token::WordWhere),
     ]))
 }
 

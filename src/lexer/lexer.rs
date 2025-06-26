@@ -32,23 +32,19 @@ impl Lexer {
                 continue;
             }
 
-            let token = if c.is_alphabetic() || c == '_' {
-                self.read_word()
-            } else if c.is_digit(10) {
-                self.read_number()
-            } else if c == '"' {
-                self.read_text_literal(Token::StringLiteral)?
-            } else if c == '\'' {
-                self.read_text_literal(Token::CharLiteral)?
-            } else {
-                self.read_symbol()?
-            };
+            let token =
+                if c.is_alphabetic() || c == '_' { self.read_word() }
+                else if c.is_digit(10)           { self.read_number() }
+                else if c == '"'                 { self.read_text_literal(Token::StringLiteral)? }
+                else if c == '\''                { self.read_text_literal(Token::CharLiteral)? }
+                else                             { self.read_symbol()? };
 
             self.toks.push(token);
         }
         Ok(&self.toks)
     }
 
+    //
     fn skip_block_comment(&mut self) -> Result<(), ParserError> {
         self.pos += 2; // skip the first #{
         let mut depth = 1;
@@ -165,6 +161,10 @@ impl Lexer {
     }
 
     // basic utility helpers {{{
+    fn current(&self) -> char {
+        self.chars[self.pos]
+    }
+
     fn peek(&self, offset: usize) -> Option<char> {
         if self.pos + offset >= self.chars.len() { None } else {
             Some(self.chars[self.pos + offset])
@@ -188,10 +188,6 @@ impl Lexer {
             self.pos += 1;
         }
         acc
-    }
-
-    fn current(&self) -> char {
-        self.chars[self.pos]
     }
     // }}}
 }
