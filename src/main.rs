@@ -1,6 +1,6 @@
-mod lexer;
 mod parser;
-use crate::lexer::{ token::Token, lexer::Lexer };
+
+use crate::parser::{ token::Token, lexer::Lexer };
 use std::{ env, fs, path::Path, process, fmt };
 
 fn main() {
@@ -13,6 +13,7 @@ fn main() {
     let path = Path::new(&argv[1]);
     match fs::read_to_string(path) {
         Ok(s) => {
+            println!("braid lexer output for file '{:?}':", path);
             let mut lexer = Lexer::new(&s);
             match lexer.tokenise() {
                 Ok(tokens) => {

@@ -1,6 +1,3 @@
-// use crate::lexer::{ lexer::Lexer, token::Token };
-// use crate::parser::astnode::*;
-
 #[derive(Debug)]
 #[allow(dead_code)] // rust dead code analysis ignores derived impls
 pub enum SyntaxError {

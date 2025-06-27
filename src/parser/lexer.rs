@@ -1,5 +1,5 @@
-use crate::lexer::token::{ Token, get_keyword_map, SYMBOL_DEFS };
-use crate::parser::parser::SyntaxError;
+use crate::parser::token::{ Token, get_keyword_map, SYMBOL_DEFS };
+use crate::parser::syntax_error::SyntaxError;
 
 pub struct Lexer {
     chars: Vec<char>,
