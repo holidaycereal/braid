@@ -1,138 +1,126 @@
 mod lexer;
 mod parser;
 use crate::lexer::{ token::Token, lexer::Lexer };
-use crate::parser::parser::SyntaxError;
-use std::{ env, fs, path::Path, process };
-use colored::Colorize;
+use std::{ env, fs, path::Path, process, fmt };
 
 fn main() {
-	let argv: Vec<String> = env::args().collect();
-	if argv.len() != 2 {
-		eprintln!("usage: {} <filename>", argv[0]);
-		process::exit(1);
-	}
+    let argv: Vec<String> = env::args().collect();
+    if argv.len() != 2 {
+        eprintln!("usage: {} <filename>", argv[0]);
+        process::exit(1);
+    }
 
-	let path = Path::new(&argv[1]);
-	match fs::read_to_string(path) {
-		Ok(s) => {
+    let path = Path::new(&argv[1]);
+    match fs::read_to_string(path) {
+        Ok(s) => {
             let mut lexer = Lexer::new(&s);
             match lexer.tokenise() {
                 Ok(tokens) => {
-                    for token in tokens {
-                        print!("{} ", token_to_string(&token));
-                    }
+                    for token in tokens { print!("{} ", token); }
                     println!();
                 },
                 Err(e) => {
-                    eprintln!("error: {}", parser_error_to_string(&e));
+                    eprintln!("syntax error: {:?}", e);
                     process::exit(1);
                 },
             }
         },
-		Err(e) => {
-			eprintln!("error reading file '{}': {}", path.display(), e);
-			process::exit(1);
-		},
-	}
+
+        Err(e) => {
+            eprintln!("error reading file '{:?}': {}", path, e);
+            process::exit(1);
+        },
+    }
 }
 
-fn token_to_string(token: &Token) -> String {
-	match token {
-		Token::Identifier(s) => format!("{}", s).to_string(),
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            Token::Identifier(s) => write!(f, "{}", s),
 
-		Token::StringLiteral(s) => format!("\"{}\"", s).green().to_string(),
-		Token::CharLiteral(s) => format!("'{}'", s).green().to_string(),
+            Token::StringLiteral(s) => write!(f, "\"{}\"", s),
+            Token::CharLiteral(s) => write!(f, "'{}'", s),
 
-        Token::IntLiteral { base, int } => match base {
-            2 => format!("0b{}", int),
-            8 => format!("0o{}", int),
-            16 => format!("0x{}", int),
-            _ => format!("{}", int),
-        }.yellow().to_string(),
+            Token::IntLiteral { base, int } => match base {
+                2 => write!(f, "0b{}", int),
+                8 => write!(f, "0o{}", int),
+                16 => write!(f, "0x{}", int),
+                _ => write!(f, "{}", int),
+            },
+            Token::FracLiteral { int, frac } => write!(f,
+                "{}.{}", int, frac
+            ),
+            Token::ExpLiteral { int, has_minus, exp } => write!(f,
+                "{}e{}{}", int, if *has_minus { '-' } else { '+' }, exp
+            ),
+            Token::FracExpLiteral { int, frac, has_minus, exp } => write!(f,
+                "{}.{}e{}{}", int, frac, if *has_minus { '-' } else { '+' }, exp
+            ),
 
-        Token::FracLiteral { int, frac } => format!(
-            "{}.{}", int, frac
-        ).yellow().to_string(),
+            Token::Let           => write!(f, "let"),
+            Token::Var           => write!(f, "var"),
+            Token::Return        => write!(f, "return"),
+            Token::If            => write!(f, "if"),
+            Token::Else          => write!(f, "else"),
+            Token::Elif          => write!(f, "elif"),
+            Token::While         => write!(f, "while"),
+            Token::For           => write!(f, "for"),
+            Token::In            => write!(f, "in"),
+            Token::Break         => write!(f, "break"),
+            Token::Continue      => write!(f, "continue"),
+            Token::Match         => write!(f, "match"),
+            Token::Fn            => write!(f, "fn"),
+            Token::Type          => write!(f, "type"),
+            Token::Record        => write!(f, "record"),
+            Token::Union         => write!(f, "union"),
+            Token::Iface         => write!(f, "iface"),
+            Token::Impl          => write!(f, "impl"),
+            Token::Where         => write!(f, "where"),
 
-        Token::ExpLiteral { int, has_minus, exp } => format!(
-            "{}e{}{}", int, if *has_minus { '-' } else { '+' }, exp
-        ).yellow().to_string(),
+            Token::InclRange     => write!(f, "..="),
+            Token::ConcatAssign  => write!(f, "++="),
 
-        Token::FracExpLiteral { int, frac, has_minus, exp } => format!(
-            "{}.{}e{}{}", int, frac, if *has_minus { '-' } else { '+' }, exp
-        ).yellow().to_string(),
+            Token::ExclRange     => write!(f, ".."),
+            Token::Concat        => write!(f, "++"),
+            Token::CompLe        => write!(f, "<="),
+            Token::CompGe        => write!(f, ">="),
+            Token::TestEq        => write!(f, "=="),
+            Token::TestNe        => write!(f, "!="),
+            Token::Arrow         => write!(f, "->"),
+            Token::LogicOr       => write!(f, "||"),
+            Token::LogicAnd      => write!(f, "&&"),
+            Token::FwdCompose    => write!(f, ">>"),
+            Token::PathSeparator => write!(f, "::"),
+            Token::AddAssign     => write!(f, "+="),
+            Token::SubAssign     => write!(f, "-="),
+            Token::MulAssign     => write!(f, "*="),
+            Token::DivAssign     => write!(f, "/="),
+            Token::ModAssign     => write!(f, "%="),
+            Token::TernaryLeft   => write!(f, "??"),
+            Token::TernaryRight  => write!(f, "!!"),
 
-        Token::WordLet      => "let"     .magenta().to_string(),
-        Token::WordVar      => "var"     .magenta().to_string(),
-        Token::WordReturn   => "return"  .magenta().to_string(),
-        Token::WordIf       => "if"      .magenta().to_string(),
-        Token::WordElse     => "else"    .magenta().to_string(),
-        Token::WordElif     => "elif"    .magenta().to_string(),
-        Token::WordMatch    => "match"   .magenta().to_string(),
-        Token::WordWhere    => "where"   .magenta().to_string(),
-        Token::WordFn       => "fn"      .magenta().to_string(),
-        Token::WordWhile    => "while"   .magenta().to_string(),
-        Token::WordFor      => "for"     .magenta().to_string(),
-        Token::WordIn       => "in"      .magenta().to_string(),
-        Token::WordBreak    => "break"   .magenta().to_string(),
-        Token::WordContinue => "continue".magenta().to_string(),
-        Token::WordType     => "type"    .magenta().to_string(),
-        Token::WordRecord   => "record"  .magenta().to_string(),
-        Token::WordUnion    => "union"   .magenta().to_string(),
-        Token::WordIface    => "iface"   .magenta().to_string(),
-        Token::WordImpl     => "impl"    .magenta().to_string(),
-
-        Token::InclRange     => "..=".to_string(),
-        Token::ConcatAssign  => "++=".to_string(),
-
-        Token::ExclRange     => "..".to_string(),
-        Token::Concat        => "++".to_string(),
-        Token::CompLe        => "<=".to_string(),
-        Token::CompGe        => ">=".to_string(),
-        Token::TestEq        => "==".to_string(),
-        Token::TestNe        => "!=".to_string(),
-        Token::Arrow         => "->".to_string(),
-        Token::LogicOr       => "||".to_string(),
-        Token::LogicAnd      => "&&".to_string(),
-        Token::FwdCompose    => ">>".to_string(),
-        Token::PathSeparator => "::".to_string(),
-        Token::AddAssign     => "+=".to_string(),
-        Token::SubAssign     => "-=".to_string(),
-        Token::MulAssign     => "*=".to_string(),
-        Token::DivAssign     => "/=".to_string(),
-        Token::ModAssign     => "%=".to_string(),
-        Token::TernaryLeft   => "??".to_string(),
-        Token::TernaryRight  => "!!".to_string(),
-
-        Token::ParenL        => "(".to_string(),
-        Token::ParenR        => ")".to_string(),
-        Token::BracketL      => "[".to_string(),
-        Token::BracketR      => "]".to_string(),
-        Token::BraceL        => "{".to_string(),
-        Token::BraceR        => "}".to_string(),
-        Token::Dot           => ".".to_string(),
-        Token::Comma         => ",".to_string(),
-        Token::Semicolon     => ";".to_string(),
-        Token::Colon         => ":".to_string(),
-        Token::Equals        => "=".to_string(),
-        Token::Minus         => "-".to_string(),
-        Token::Plus          => "+".to_string(),
-        Token::Star          => "*".to_string(),
-        Token::Slash         => "/".to_string(),
-        Token::Percent       => "%".to_string(),
-        Token::Less          => "<".to_string(),
-        Token::Greater       => ">".to_string(),
-        Token::Bang          => "!".to_string(),
-        Token::Pipe          => "|".to_string(),
-        Token::Ampersand     => "&".to_string(),
-        Token::Caret         => "^".to_string(),
-	}
-}
-
-fn parser_error_to_string(error: &SyntaxError) -> String {
-    match error {
-        SyntaxError::UnknownCharacter(c) => format!("unknown character '{}'", c),
-        SyntaxError::UnterminatedLiteral => "unterminated literal".to_string(),
-        SyntaxError::UnterminatedComment => "unterminated comment".to_string(),
+            Token::ParenL        => write!(f, "("),
+            Token::ParenR        => write!(f, ")"),
+            Token::BracketL      => write!(f, "["),
+            Token::BracketR      => write!(f, "]"),
+            Token::BraceL        => write!(f, "{{"),
+            Token::BraceR        => write!(f, "}}"),
+            Token::Dot           => write!(f, "."),
+            Token::Comma         => write!(f, ","),
+            Token::Semicolon     => write!(f, ";"),
+            Token::Colon         => write!(f, ":"),
+            Token::Equals        => write!(f, "="),
+            Token::Minus         => write!(f, "-"),
+            Token::Plus          => write!(f, "+"),
+            Token::Star          => write!(f, "*"),
+            Token::Slash         => write!(f, "/"),
+            Token::Percent       => write!(f, "%"),
+            Token::Less          => write!(f, "<"),
+            Token::Greater       => write!(f, ">"),
+            Token::Bang          => write!(f, "!"),
+            Token::Pipe          => write!(f, "|"),
+            Token::Ampersand     => write!(f, "&"),
+            Token::Caret         => write!(f, "^"),
+        }
     }
 }

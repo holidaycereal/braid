@@ -18,21 +18,13 @@ impl Lexer {
 
     pub fn tokenise(&mut self) -> Result<&Vec<Token>, SyntaxError> {
         while let Some(c) = self.peek(0) {
-            // skip whitespace
+            // skip whitespace & comments
             if c.is_whitespace() {
                 self.pos += 1;
                 continue;
             }
-            // skip comments
-            if c == '#' {
-                if let Some('{') = self.peek(1) {
-                    self.skip_block_comment()?;
-                } else {
-                    self.consume_while(|c| c != '\n');
-                }
-                continue;
-            }
-            // handle various types of characters
+            self.skip_comments()?;
+            // make a token and append it to toks
             let token = if c.is_alphabetic() || c == '_' {
                 self.read_word()
             } else if c.is_digit(10) {
@@ -47,30 +39,6 @@ impl Lexer {
             self.toks.push(token);
         }
         Ok(&self.toks)
-    }
-
-    // when #{ is encountered, skip the block comment until }#.
-    // allows nesting.
-    fn skip_block_comment(&mut self) -> Result<(), SyntaxError> {
-        self.pos += 2; // skip the first #{
-        let mut depth = 1;
-        while let (Some(cur), Some(next)) = (self.peek(0), self.peek(1)) {
-            match (cur, next) {
-                ('}', '#') => {
-                    self.pos += 2;
-                    depth -= 1;
-                    if depth < 1 { return Ok(()); }
-                },
-                ('#', '{') => {
-                    self.pos += 2;
-                    depth += 1;
-                },
-                _ => {
-                    self.pos += 1;
-                },
-            }
-        }
-        Err(SyntaxError::UnterminatedComment)
     }
 
     // handles a letter or underscore.
@@ -167,13 +135,10 @@ impl Lexer {
     fn read_symbol(&mut self) -> Result<Token, SyntaxError> {
         let remaining = &self.chars[self.pos..];
         for (sym, tok) in SYMBOL_DEFS {
-            if remaining.len() >= sym.len() {
-                if remaining[..sym.len()].iter().collect::<String>() == *sym {
-                    self.pos += sym.len();
-                    return Ok(tok.clone());
-                }
-            } else {
-                return Err(SyntaxError::UnexpectedEof);
+            if remaining.len() >= sym.len()
+            && remaining[..sym.len()].iter().collect::<String>() == *sym {
+                self.pos += sym.len();
+                return Ok(tok.clone());
             }
         }
         Err(SyntaxError::UnknownCharacter(self.current()))
@@ -207,6 +172,32 @@ impl Lexer {
             self.pos += 1;
         }
         acc
+    }
+
+    fn skip_comments(&mut self) -> Result<(), SyntaxError> {
+        match self.peek(0) {
+            Some('#') => match self.peek(1) {
+                // skip block comment, allowing nesting
+                Some('{') => {
+                    self.pos += 2;
+                    let mut depth = 1;
+                    while let (Some(cur), Some(next)) = (self.peek(0), self.peek(1)) {
+                        match (cur, next) {
+                            ('}', '#') => { self.pos += 2; depth -= 1; if depth < 1 { return Ok(()); } },
+                            ('#', '{') => { self.pos += 2; depth += 1; },
+                            _          => { self.pos += 1; }
+                        }
+                    }
+                    Err(SyntaxError::UnterminatedComment)
+                },
+                // skip line comment
+                _ => {
+                    self.consume_while(|c| c != '\n');
+                    Ok(())
+                },
+            },
+            _ => Ok (()),
+        }
     }
     // }}}
 }

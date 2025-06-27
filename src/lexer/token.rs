@@ -28,12 +28,25 @@ pub enum Token {
         exp: String,
     },
 
-    WordLet, WordVar, WordReturn,
-    WordIf, WordElse, WordElif,
-    WordWhile, WordFor, WordIn, WordBreak, WordContinue,
-    WordMatch, WordFn,
-    WordType, WordRecord, WordUnion, WordIface, WordImpl,
-    WordWhere,
+    Let,
+    Var,
+    Return,
+    If,
+    Else,
+    Elif,
+    While,
+    For,
+    In,
+    Break,
+    Continue,
+    Match,
+    Fn,
+    Type,
+    Record,
+    Union,
+    Iface,
+    Impl,
+    Where,
 
     InclRange,      // ..=
     ConcatAssign,   // ++=
@@ -66,10 +79,10 @@ static KEYWORD_MAP: OnceLock<HashMap<&'static str, Token>> = OnceLock::new();
 
 pub fn get_keyword_map() -> &'static HashMap<&'static str, Token> {
     KEYWORD_MAP.get_or_init(|| HashMap::from([
-        ("let",      Token::WordLet),
-        ("var",      Token::WordVar),
-        ("return",   Token::WordReturn),
-        ("if",       Token::WordIf),
+        ("let",      Token::Let),
+        ("var",      Token::Var),
+        ("return",   Token::Return),
+        ("if",       Token::If),
         ("else",     Token::WordElse),
         ("elif",     Token::WordElif),
         ("while",    Token::WordWhile),

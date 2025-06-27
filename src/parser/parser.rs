@@ -1,6 +1,8 @@
 // use crate::lexer::{ lexer::Lexer, token::Token };
 // use crate::parser::astnode::*;
 
+#[derive(Debug)]
+#[allow(dead_code)] // rust dead code analysis ignores derived impls
 pub enum SyntaxError {
     // lexer errors
 	UnknownCharacter(char),
@@ -12,6 +14,6 @@ pub enum SyntaxError {
 	// ExpectedIdentifierOr(Vec<Token>, Token),
 	// ExpectedTopLevel(Token),
 	// ExpectedStatement(Token),
-	UnexpectedEof,
+	// UnexpectedEof,
 	// LastTerminatorNotFound,
 }
