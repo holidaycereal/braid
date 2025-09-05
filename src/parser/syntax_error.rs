@@ -1,10 +1,12 @@
 #[derive(Debug)]
 #[allow(dead_code)] // rust dead code analysis ignores derived impls
-pub enum SyntaxError {
+pub enum SyntaxErrorKind {
     // lexer errors
 	UnknownCharacter(char),
     UnterminatedLiteral,
 	UnterminatedComment,
+    UnterminatedNumericLiteral,
+    InvalidNumericLiteral,
 
 	// Expected(Vec<Token>, Token),
 	// ExpectedIdentifier(Token),
@@ -13,4 +15,10 @@ pub enum SyntaxError {
 	// ExpectedStatement(Token),
 	// UnexpectedEof,
 	// LastTerminatorNotFound,
+}
+
+pub struct SyntaxError {
+    pub kind: SyntaxErrorKind,
+    pub line: usize,
+    pub column: usize,
 }

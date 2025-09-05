@@ -1,62 +1,71 @@
 mod parser;
 
 use crate::parser::{ token::Token, lexer::Lexer };
-use std::{ env, fs, path::Path, process, fmt };
+use std::{ env, fs::File, path::Path, process, fmt };
 
 fn main() {
     let argv: Vec<String> = env::args().collect();
-    if argv.len() != 2 {
-        eprintln!("usage: {} <filename>", argv[0]);
+    if argv.len() < 2 || argv.len() > 3 {
+        eprintln!("usage: {} <filename> [--dump]", argv[0]);
         process::exit(1);
     }
 
     let path = Path::new(&argv[1]);
-    match fs::read_to_string(path) {
-        Ok(s) => {
-            println!("braid lexer output for file '{:?}':", path);
-            let mut lexer = Lexer::new(&s);
-            match lexer.tokenise() {
-                Ok(tokens) => {
-                    for token in tokens { print!("{} ", token); }
-                    println!();
-                },
-                Err(e) => {
-                    eprintln!("syntax error: {:?}", e);
-                    process::exit(1);
-                },
-            }
-        },
+    let dump_mode = argv.get(2).map(|s| s == "--dump").unwrap_or(false);
 
+    let file = match File::open(path) {
+        Ok(f) => f,
         Err(e) => {
-            eprintln!("error reading file '{:?}': {}", path, e);
+            eprintln!("error opening file '{:?}': {}", path, e);
             process::exit(1);
         },
+    };
+
+    println!("braid lexer output for file {:?}:", path);
+
+    let mut lexer = match Lexer::new(file) {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("error creating lexer: {}", e);
+            process::exit(1);
+        },
+    };
+
+    loop {
+        match lexer.next_token() {
+            Ok(Ok(Some(tok))) => {
+                if dump_mode {
+                    // verbose dump: one token per line with position
+                    println!("[line {}, col {}] {}", lexer.line, lexer.column, tok);
+                } else {
+                    // flat dump: all tokens space-separated
+                    print!("{} ", tok);
+                }
+            },
+            Ok(Ok(None)) => {
+                if !dump_mode { println!(); }
+                break;
+            },
+            Ok(Err(err)) => {
+                eprintln!(
+                    "syntax error at line {}, column {}: {:?}",
+                    err.line, err.column, err.kind
+                );
+                process::exit(1);
+            },
+            Err(io_err) => {
+                eprintln!("io error: {}", io_err);
+                process::exit(1);
+            },
+        }
     }
 }
 
 impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Token::Identifier(s) => write!(f, "{}", s),
-
-            Token::StringLiteral(s) => write!(f, "\"{}\"", s),
-            Token::CharLiteral(s) => write!(f, "'{}'", s),
-
-            Token::IntLiteral { base, int } => match base {
-                2 => write!(f, "0b{}", int),
-                8 => write!(f, "0o{}", int),
-                16 => write!(f, "0x{}", int),
-                _ => write!(f, "{}", int),
-            },
-            Token::FracLiteral { int, frac } => write!(f,
-                "{}.{}", int, frac
-            ),
-            Token::ExpLiteral { int, has_minus, exp } => write!(f,
-                "{}e{}{}", int, if *has_minus { '-' } else { '+' }, exp
-            ),
-            Token::FracExpLiteral { int, frac, has_minus, exp } => write!(f,
-                "{}.{}e{}{}", int, frac, if *has_minus { '-' } else { '+' }, exp
-            ),
+            Token::Literal(s)    => write!(f, "{}", s),
 
             Token::Let           => write!(f, "let"),
             Token::Var           => write!(f, "var"),
@@ -97,8 +106,8 @@ impl fmt::Display for Token {
             Token::MulAssign     => write!(f, "*="),
             Token::DivAssign     => write!(f, "/="),
             Token::ModAssign     => write!(f, "%="),
-            Token::TernaryLeft   => write!(f, "??"),
-            Token::TernaryRight  => write!(f, "!!"),
+            Token::TernaryThen   => write!(f, "??"),
+            Token::TernaryElse   => write!(f, "!!"),
 
             Token::ParenL        => write!(f, "("),
             Token::ParenR        => write!(f, ")"),

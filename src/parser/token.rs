@@ -4,49 +4,11 @@ use std::sync::OnceLock;
 #[derive(Clone)]
 pub enum Token {
     Identifier(String),
+    Literal(String),
 
-    StringLiteral(String),
-    CharLiteral(String),
-
-    IntLiteral {
-        base: u32,
-        int: String,
-    },
-    FracLiteral {
-        int: String,
-        frac: String,
-    },
-    ExpLiteral {
-        int: String,
-        has_minus: bool,
-        exp: String,
-    },
-    FracExpLiteral {
-        int: String,
-        frac: String,
-        has_minus: bool,
-        exp: String,
-    },
-
-    Let,
-    Var,
-    Return,
-    If,
-    Else,
-    Elif,
-    While,
-    For,
-    In,
-    Break,
-    Continue,
-    Match,
-    Fn,
-    Type,
-    Record,
-    Union,
-    Iface,
-    Impl,
-    Where,
+    Let, Var, Return, If, Else, Elif, Match,
+    While, For, In, Break, Continue,
+    Fn, Type, Record, Union, Iface, Impl, Where,
 
     InclRange,      // ..=
     ConcatAssign,   // ++=
@@ -66,8 +28,8 @@ pub enum Token {
     MulAssign,      // *=
     DivAssign,      // /=
     ModAssign,      // %=
-    TernaryLeft,    // ??
-    TernaryRight,   // !!
+    TernaryThen,    // ??
+    TernaryElse,    // !!
 
     ParenL, ParenR, BracketL, BracketR, BraceL, BraceR,
     Dot, Comma, Semicolon, Colon, Equals,
@@ -121,8 +83,8 @@ pub const SYMBOL_DEFS: &'static [(&str, Token)] = &[
     ("*=", Token::MulAssign),
     ("/=", Token::DivAssign),
     ("%=", Token::ModAssign),
-    ("??", Token::TernaryLeft),
-    ("!!", Token::TernaryRight),
+    ("??", Token::TernaryThen),
+    ("!!", Token::TernaryElse),
 
     ("(", Token::ParenL),
     (")", Token::ParenR),

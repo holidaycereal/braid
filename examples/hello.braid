@@ -1,0 +1,5 @@
+-* the hello world program *-
+
+main() -> () {
+    echo("hello, world");
+}
