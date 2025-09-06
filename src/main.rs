@@ -1,22 +1,22 @@
 mod parser;
 
-use crate::parser::{ token::Token, lexer::Lexer };
-use std::{ env, fs::File, path::Path, process, fmt };
+use crate::parser::{ token::{ Token, TokenBase }, lexer::Lexer };
+use std::{ env, fs::File, path::Path, process };
 
 fn main() {
     let argv: Vec<String> = env::args().collect();
     if argv.len() < 2 || argv.len() > 3 {
-        eprintln!("usage: {} <filename> [--dump]", argv[0]);
+        eprintln!("usage: {} <filename> [--brief]", argv[0]);
         process::exit(1);
     }
 
     let path = Path::new(&argv[1]);
-    let dump_mode = argv.get(2).map(|s| s == "--dump").unwrap_or(false);
+    let brief = argv.get(2).map(|s| s == "--brief").unwrap_or(false);
 
     let file = match File::open(path) {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("error opening file '{:?}': {}", path, e);
+            eprintln!("error opening file {:?}: {}", path, e);
             process::exit(1);
         },
     };
@@ -34,16 +34,16 @@ fn main() {
     loop {
         match lexer.next_token() {
             Ok(Ok(Some(tok))) => {
-                if dump_mode {
-                    // verbose dump: one token per line with position
-                    println!("[line {}, col {}] {}", lexer.line, lexer.column, tok);
+                if brief {
+                    // brief: all tokens space-separated
+                    print!("{} ", token_short_name(&tok));
                 } else {
-                    // flat dump: all tokens space-separated
-                    print!("{} ", tok);
+                    // verbose: one token per line with position
+                    println!("{}:{}\t{:?}", tok.line, tok.column, tok.base);
                 }
             },
             Ok(Ok(None)) => {
-                if !dump_mode { println!(); }
+                if brief { println!(); }
                 break;
             },
             Ok(Err(err)) => {
@@ -61,76 +61,74 @@ fn main() {
     }
 }
 
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Token::Identifier(s) => write!(f, "{}", s),
-            Token::Literal(s)    => write!(f, "{}", s),
+fn token_short_name(token: &Token) -> String {
+    match &token.base {
+        TokenBase::Identifier(s) => String::from(s),
+        TokenBase::Literal(s)    => String::from(s),
 
-            Token::Let           => write!(f, "let"),
-            Token::Var           => write!(f, "var"),
-            Token::Return        => write!(f, "return"),
-            Token::If            => write!(f, "if"),
-            Token::Else          => write!(f, "else"),
-            Token::Elif          => write!(f, "elif"),
-            Token::While         => write!(f, "while"),
-            Token::For           => write!(f, "for"),
-            Token::In            => write!(f, "in"),
-            Token::Break         => write!(f, "break"),
-            Token::Continue      => write!(f, "continue"),
-            Token::Match         => write!(f, "match"),
-            Token::Fn            => write!(f, "fn"),
-            Token::Type          => write!(f, "type"),
-            Token::Record        => write!(f, "record"),
-            Token::Union         => write!(f, "union"),
-            Token::Iface         => write!(f, "iface"),
-            Token::Impl          => write!(f, "impl"),
-            Token::Where         => write!(f, "where"),
+        TokenBase::Let           => String::from("let"),
+        TokenBase::Var           => String::from("var"),
+        TokenBase::Return        => String::from("return"),
+        TokenBase::If            => String::from("if"),
+        TokenBase::Else          => String::from("else"),
+        TokenBase::Elif          => String::from("elif"),
+        TokenBase::While         => String::from("while"),
+        TokenBase::For           => String::from("for"),
+        TokenBase::In            => String::from("in"),
+        TokenBase::Break         => String::from("break"),
+        TokenBase::Continue      => String::from("continue"),
+        TokenBase::Match         => String::from("match"),
+        TokenBase::Fn            => String::from("fn"),
+        TokenBase::Type          => String::from("type"),
+        TokenBase::Record        => String::from("record"),
+        TokenBase::Union         => String::from("union"),
+        TokenBase::Iface         => String::from("iface"),
+        TokenBase::Impl          => String::from("impl"),
+        TokenBase::Where         => String::from("where"),
 
-            Token::InclRange     => write!(f, "..="),
-            Token::ConcatAssign  => write!(f, "++="),
+        TokenBase::InclRange     => String::from("..="),
+        TokenBase::ConcatAssign  => String::from("++="),
 
-            Token::ExclRange     => write!(f, ".."),
-            Token::Concat        => write!(f, "++"),
-            Token::CompLe        => write!(f, "<="),
-            Token::CompGe        => write!(f, ">="),
-            Token::TestEq        => write!(f, "=="),
-            Token::TestNe        => write!(f, "!="),
-            Token::Arrow         => write!(f, "->"),
-            Token::LogicOr       => write!(f, "||"),
-            Token::LogicAnd      => write!(f, "&&"),
-            Token::FwdCompose    => write!(f, ">>"),
-            Token::PathSeparator => write!(f, "::"),
-            Token::AddAssign     => write!(f, "+="),
-            Token::SubAssign     => write!(f, "-="),
-            Token::MulAssign     => write!(f, "*="),
-            Token::DivAssign     => write!(f, "/="),
-            Token::ModAssign     => write!(f, "%="),
-            Token::TernaryThen   => write!(f, "??"),
-            Token::TernaryElse   => write!(f, "!!"),
+        TokenBase::ExclRange     => String::from(".."),
+        TokenBase::Concat        => String::from("++"),
+        TokenBase::CompLe        => String::from("<="),
+        TokenBase::CompGe        => String::from(">="),
+        TokenBase::TestEq        => String::from("=="),
+        TokenBase::TestNe        => String::from("!="),
+        TokenBase::Arrow         => String::from("->"),
+        TokenBase::LogicOr       => String::from("||"),
+        TokenBase::LogicAnd      => String::from("&&"),
+        TokenBase::FwdCompose    => String::from(">>"),
+        TokenBase::PathSeparator => String::from("::"),
+        TokenBase::AddAssign     => String::from("+="),
+        TokenBase::SubAssign     => String::from("-="),
+        TokenBase::MulAssign     => String::from("*="),
+        TokenBase::DivAssign     => String::from("/="),
+        TokenBase::ModAssign     => String::from("%="),
+        TokenBase::TernaryThen   => String::from("??"),
+        TokenBase::TernaryElse   => String::from("!!"),
 
-            Token::ParenL        => write!(f, "("),
-            Token::ParenR        => write!(f, ")"),
-            Token::BracketL      => write!(f, "["),
-            Token::BracketR      => write!(f, "]"),
-            Token::BraceL        => write!(f, "{{"),
-            Token::BraceR        => write!(f, "}}"),
-            Token::Dot           => write!(f, "."),
-            Token::Comma         => write!(f, ","),
-            Token::Semicolon     => write!(f, ";"),
-            Token::Colon         => write!(f, ":"),
-            Token::Equals        => write!(f, "="),
-            Token::Minus         => write!(f, "-"),
-            Token::Plus          => write!(f, "+"),
-            Token::Star          => write!(f, "*"),
-            Token::Slash         => write!(f, "/"),
-            Token::Percent       => write!(f, "%"),
-            Token::Less          => write!(f, "<"),
-            Token::Greater       => write!(f, ">"),
-            Token::Bang          => write!(f, "!"),
-            Token::Pipe          => write!(f, "|"),
-            Token::Ampersand     => write!(f, "&"),
-            Token::Caret         => write!(f, "^"),
-        }
+        TokenBase::ParenL        => String::from("("),
+        TokenBase::ParenR        => String::from(")"),
+        TokenBase::BracketL      => String::from("["),
+        TokenBase::BracketR      => String::from("]"),
+        TokenBase::BraceL        => String::from("{"),
+        TokenBase::BraceR        => String::from("}"),
+        TokenBase::Dot           => String::from("."),
+        TokenBase::Comma         => String::from(","),
+        TokenBase::Semicolon     => String::from(";"),
+        TokenBase::Colon         => String::from(":"),
+        TokenBase::Equals        => String::from("="),
+        TokenBase::Minus         => String::from("-"),
+        TokenBase::Plus          => String::from("+"),
+        TokenBase::Star          => String::from("*"),
+        TokenBase::Slash         => String::from("/"),
+        TokenBase::Percent       => String::from("%"),
+        TokenBase::Less          => String::from("<"),
+        TokenBase::Greater       => String::from(">"),
+        TokenBase::Bang          => String::from("!"),
+        TokenBase::Pipe          => String::from("|"),
+        TokenBase::Ampersand     => String::from("&"),
+        TokenBase::Caret         => String::from("^"),
     }
 }

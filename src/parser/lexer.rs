@@ -1,7 +1,7 @@
 use std::io::{ self, Read, BufReader };
 use std::fs::File;
 use std::str;
-use crate::parser::token::{ Token, get_keyword_map, SYMBOL_DEFS };
+use crate::parser::token::{ Token, TokenBase, get_keyword_map, SYMBOL_DEFS };
 use crate::parser::syntax_error::{ SyntaxError, SyntaxErrorKind };
 
 type LexerResult = io::Result<Result<Option<Token>, SyntaxError>>;
@@ -31,10 +31,6 @@ impl Lexer {
         Ok(lexer)
     }
 
-    fn produce_syntax_error(&self, kind: SyntaxErrorKind) -> SyntaxError {
-        SyntaxError { kind, line: self.line, column: self.column }
-    }
-
     fn read_char(&mut self) -> io::Result<Option<char>> {
         let mut buf = [0_u8; 4]; // buffer for a UTF-8 character
 
@@ -45,27 +41,28 @@ impl Lexer {
                 return Ok(None);
             }
 
-            // NOTE: change this to `if let Ok(ch) = char::decode_utf8(...)` once
+            // NOTE: change this to `if let Ok(c) = char::decode_utf8(...)` once
             // `char::decode_utf8` becomes stable
             if let Ok(s) = str::from_utf8(&buf[..i+1]) {
-                let c = s.chars().next().unwrap();
-                if c == '\n' {
-                    self.line += 1;
-                    self.column = 0;
-                } else {
-                    self.column += 1;
-                }
-                return Ok(Some(c));
+                return Ok(s.chars().next());
             }
         }
 
-        Err(io::Error::new(io::ErrorKind::InvalidData, "invalid UTF-8 character"))
+        Err(io::Error::new(io::ErrorKind::InvalidData, "invalid UTF-8"))
     }
 
     fn advance(&mut self) -> io::Result<Option<char>> {
         self.current = self.peek1;
         self.peek1 = self.peek2;
         self.peek2 = self.read_char()?;
+
+        if let Some('\n') = self.current {
+            self.line += 1;
+            self.column = 0;
+        } else {
+            self.column += 1;
+        }
+
         Ok(self.current)
     }
 
@@ -107,16 +104,23 @@ impl Lexer {
 
     // read a keyword or identifier
     fn read_word(&mut self) -> LexerResult {
+        let (line, column) = (self.line, self.column);
+
         let word = self.advance_while(|c| c.is_alphanumeric() || c == '_')?;
-        Ok(Ok(Some(get_keyword_map()
-            .get(word.as_str())
-            .cloned()
-            .unwrap_or(Token::Identifier(word))
-        )))
+
+        Ok(Ok(Some(Token {
+            base: get_keyword_map()
+                .get(word.as_str())
+                .cloned()
+                .unwrap_or(TokenBase::Identifier(word)),
+            line, column
+        })))
     }
 
     // read a numeric literal
     fn read_number(&mut self) -> LexerResult {
+        let (line, column) = (self.line, self.column);
+
         let mut acc = String::from(self.current.unwrap());
 
         let radix = match (self.current.unwrap(), self.peek1, self.peek2) {
@@ -125,47 +129,59 @@ impl Lexer {
             ('0', Some('x' | 'X'), Some(c)) if c.is_digit(16) => 16,
             _ => 10,
         };
-
         self.advance()?;
 
-        if radix != 10 {
+        if radix != 10 { // read non-decimal int literal
             acc.push(self.current.unwrap());
             self.advance()?;
             acc.push_str(&self.advance_while(|c| c.is_digit(radix))?);
-            return Ok(Ok(Some(Token::Literal(acc))));
-        }
 
-        acc.push_str(&self.advance_while(|c| c.is_digit(radix))?);
+            Ok(Ok(Some(Token {
+                base: TokenBase::Literal(acc),
+                line, column
+            })))
+        } else { // read decimal literal
+            // integral part
+            acc.push_str(&self.advance_while(|c| c.is_digit(radix))?);
 
-        // read fractional part
-        if let (Some('.'), Some(c)) = (self.current, self.peek1) {
-            if c.is_digit(10) {
-                acc.push(self.current.unwrap());
-                self.advance()?;
-                acc.push_str(&self.advance_while(|c| c.is_digit(10))?);
-            }
-        }
-
-        // read exponent part
-        if let Some('e' | 'E') = self.current {
-            acc.push(self.current.unwrap());
-            self.advance()?;
-
-            if let Some('-' | '+') = self.current {
-                acc.push(self.current.unwrap());
-                self.advance()?;
+            // fractional part
+            if let (Some('.'), Some(c)) = (self.current, self.peek1) {
+                if c.is_digit(10) {
+                    acc.push(self.current.unwrap());
+                    self.advance()?;
+                    acc.push_str(&self.advance_while(|c| c.is_digit(10))?);
+                }
             }
 
-            match self.current {
-                Some(c) if c.is_digit(10) => acc.push_str(&self.advance_while(|c| c.is_digit(10))?),
-                _ => return Ok(Err(self.produce_syntax_error(SyntaxErrorKind::InvalidNumericLiteral))),
-            };
-        }
+            // exponent part
+            if let Some('e' | 'E') = self.current {
+                acc.push(self.current.unwrap());
+                self.advance()?;
 
-        Ok(Ok(Some(Token::Literal(acc))))
+                if let Some('-' | '+') = self.current {
+                    acc.push(self.current.unwrap());
+                    self.advance()?;
+                }
+
+                match self.current {
+                    Some(c) if c.is_digit(10) => acc.push_str(&self.advance_while(|c| c.is_digit(10))?),
+                    _ => return Ok(Err(SyntaxError {
+                        kind: SyntaxErrorKind::InvalidNumericLiteral,
+                        line, column
+                    })),
+                };
+            }
+
+            Ok(Ok(Some(Token {
+                base: TokenBase::Literal(acc),
+                line, column
+            })))
+        }
     }
 
     fn read_text_literal(&mut self) -> LexerResult {
+        let (line, column) = (self.line, self.column);
+
         let delim = self.current.unwrap();
         let mut acc = String::from(delim);
         self.advance()?;
@@ -174,7 +190,10 @@ impl Lexer {
             if c == delim {
                 acc.push(delim);
                 self.advance()?;
-                return Ok(Ok(Some(Token::Literal(acc))));
+                return Ok(Ok(Some(Token {
+                    base: TokenBase::Literal(acc),
+                    line, column
+                })));
             }
 
             if c == '\\' {
@@ -192,10 +211,15 @@ impl Lexer {
             }
         }
 
-        Ok(Err(self.produce_syntax_error(SyntaxErrorKind::UnterminatedLiteral)))
+        Ok(Err(SyntaxError {
+            kind: SyntaxErrorKind::UnterminatedLiteral,
+            line, column
+        }))
     }
 
     fn read_symbol(&mut self) -> LexerResult {
+        let (line, column) = (self.line, self.column);
+
         let mut lookahead = String::new();
         if let Some(c) = self.current { lookahead.push(c); }
         if let Some(c) = self.peek1   { lookahead.push(c); }
@@ -205,18 +229,27 @@ impl Lexer {
             if lookahead.len() < len { continue; }
             let slice = &lookahead[..len];
 
-            if let Some((_, token)) = SYMBOL_DEFS.iter().find(|(s, _)| *s == slice) {
+            if let Some((_, token_base)) = SYMBOL_DEFS.iter().find(|(s, _)| *s == slice) {
                 for _ in 0..len { self.advance()?; }
-                return Ok(Ok(Some(token.clone())));
+
+                return Ok(Ok(Some(Token {
+                    base: token_base.clone(),
+                    line, column
+                })));
             }
         }
 
         let unknown_char = self.current.unwrap();
         self.advance()?;
-        Ok(Err(self.produce_syntax_error(SyntaxErrorKind::UnknownCharacter(unknown_char))))
+        Ok(Err(SyntaxError {
+            kind: SyntaxErrorKind::UnknownCharacter(unknown_char),
+            line, column
+        }))
     }
 
     fn skip_comment(&mut self) -> io::Result<Result<bool, SyntaxError>> {
+        let (line, column) = (self.line, self.column);
+
         match (self.current, self.peek1) {
             // line comment
             (Some('-'), Some('-')) => {
@@ -238,7 +271,10 @@ impl Lexer {
                         (Some('-'), Some('*')) => { self.advance()?; self.advance()?; depth += 1; },
                         (Some('*'), Some('-')) => { self.advance()?; self.advance()?; depth -= 1; },
                         (Some(_), _) => { self.advance()?; },
-                        (None, _) => return Ok(Err(self.produce_syntax_error(SyntaxErrorKind::UnterminatedComment))),
+                        (None, _) => return Ok(Err(SyntaxError {
+                            kind: SyntaxErrorKind::UnterminatedComment,
+                            line, column
+                        })),
                     };
                 }
                 Ok(Ok(true))
