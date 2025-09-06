@@ -98,7 +98,7 @@ impl Lexer {
             Some(c) if c.is_digit(10)                => self.read_number(),
             Some('"' | '\'')                         => self.read_text_literal(),
             Some(_)                                  => self.read_symbol(),
-            None => Ok(Ok(None)),
+            None                                     => Ok(Ok(None)),
         }
     }
 
@@ -196,18 +196,16 @@ impl Lexer {
                 })));
             }
 
+            acc.push(c);
+            self.advance()?;
+
             if c == '\\' {
-                acc.push('\\');
-                self.advance()?;
                 if let Some(esc) = self.current {
                     acc.push(esc);
                     self.advance()?;
                 } else {
                     break;
                 }
-            } else {
-                acc.push(c);
-                self.advance()?;
             }
         }
 
@@ -231,7 +229,6 @@ impl Lexer {
 
             if let Some((_, token_base)) = SYMBOL_DEFS.iter().find(|(s, _)| *s == slice) {
                 for _ in 0..len { self.advance()?; }
-
                 return Ok(Ok(Some(Token {
                     base: token_base.clone(),
                     line, column
@@ -264,7 +261,6 @@ impl Lexer {
             (Some('-'), Some('*')) => {
                 self.advance()?;
                 self.advance()?;
-
                 let mut depth = 1;
                 while depth > 0 {
                     match (self.current, self.peek1) {
